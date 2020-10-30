@@ -11,10 +11,10 @@ Using Unity's Package Manager ( in Unity 2019.1+ ) simply add this as a GIT-base
 ```
 https://github.com/Tehelee/com.tehelee.baseline.git
 ```
-![Package Manager - Add GIT Package](/Github/PackageManager_Add-Through-GIT.png)
+![Package Manager - Add GIT Package](/.Github/PackageManager_Add-Through-GIT.png)
 
 Additionally you can download and extract the zip to your project's Packages folder:
-![Package Manager - Add ZIP Package](/Github/PackageManager_Add-Through-Zip.png)
+![Package Manager - Add ZIP Package](/.Github/PackageManager_Add-Through-Zip.png)
 
 ## Dependencies
 
