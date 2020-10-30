@@ -1,0 +1,25 @@
+{
+  "name": "com.tehelee.baseline",
+  "version": "0.5.0",
+  "displayName": "Tehelee Baseline",
+  "description": "A gameplay and packet-focused network baseline using the LLAPI of Unity Transport.\nIncludes general utilities, UI components, and editor helpers.",
+  "unity": "2019.1",
+  "unityRelease": "0f1",
+  "dependencies": {
+    "com.unity.burst": "1.2.3",
+    "com.unity.collections": "0.3.0-preview.0",
+    "com.unity.transport": "0.2.4-preview.0",
+    "com.unity.textmeshpro": "3.0.1"
+  },
+  "keywords": [
+    "Transport",
+    "Networking",
+    "Gameplay",
+    "Baseline",
+    "Lightweight"
+  ],
+  "author": {
+    "name": "Tehelee"
+  },
+  "type": "library"
+}
