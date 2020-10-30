@@ -13,6 +13,9 @@ https://github.com/Tehelee/com.tehelee.baseline.git
 ```
 ![Package Manager - Add GIT Package](/Github/PackageManager_Add-Through-GIT.png)
 
+Additionally you can download and extract the zip to your project's Packages folder:
+![Package Manager - Add ZIP Package](/Github/PackageManager_Add-Through-Zip.png)
+
 ## Dependencies
 
 These are automatically referenced by the package manager, but are listed here for posterity:
