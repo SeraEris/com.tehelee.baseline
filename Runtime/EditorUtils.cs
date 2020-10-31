@@ -257,6 +257,13 @@ namespace Tehelee.Baseline
 
 			return GUI.Button( bRect, label, listHeaderStyle );
 		}
+		
+		public static bool GetExpanded( this ReorderableList reorderableList ) => reorderableList.serializedProperty.isExpanded;
+
+		public static void SetExpanded( this ReorderableList reorderableList, bool expanded )
+		{
+			reorderableList.serializedProperty.isExpanded = expanded;
+		}
 
 		#endregion
 
@@ -931,6 +938,48 @@ namespace Tehelee.Baseline
 
 			int index;
 			return int.TryParse( _index, out index ) ? index : -1;
+		}
+
+		public static void Clamp( this SerializedProperty prop, int min, int max )
+		{
+			int value = prop.intValue;
+			if( value < min )
+				prop.intValue = min;
+			else if( value > max )
+				prop.intValue = max;
+		}
+
+		public static void Clamp( this SerializedProperty prop, float min, float max )
+		{
+			float value = prop.floatValue;
+			if( value < min )
+				prop.floatValue = min;
+			else if( value > max )
+				prop.floatValue = max;
+		}
+
+		public static void Min( this SerializedProperty prop, int min )
+		{
+			if( prop.intValue < min )
+				prop.intValue = min;
+		}
+
+		public static void Min( this SerializedProperty prop, float min )
+		{
+			if( prop.floatValue < min )
+				prop.floatValue = min;
+		}
+		
+		public static void Max( this SerializedProperty prop, int max )
+		{
+			if( prop.intValue > max )
+				prop.intValue = max;
+		}
+
+		public static void Max( this SerializedProperty prop, float max )
+		{
+			if( prop.floatValue > max )
+				prop.floatValue = max;
 		}
 
 		public static SerializedProperty GetParent( this SerializedProperty property )

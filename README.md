@@ -23,5 +23,6 @@ Package | Version
 --------|--------
 com.unity.burst | 1.2.3
 com.unity.collections | 0.3.0-preview.0
+com.unity.mathematics | 1.1.0
 com.unity.transport | 0.2.4-preview.0
 com.unity.textmeshpro | 3.0.1

@@ -17,97 +17,19 @@ namespace Tehelee.Baseline.Networking
 	public class Client : Shared
 	{
 		////////////////////////////////
+		//	Open & Close
 
-		protected override string displayName => "Client";
-
-		////////////////////////////////
-		
-		public static Singleton<Client> singleton = new Singleton<Client>();
-
-		////////////////////////////////
-
-		protected override void Awake()
-		{
-			base.Awake();
-
-			singleton.instance = this;
-		}
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-
-			RegisterListener( typeof( Packets.PacketLoopback ), OnPacketLoopback );
-
-			if( openOnEnable )
-				Open();
-		}
-
-		protected override void OnDisable()
-		{
-			Close();
-
-			DropListener( typeof( Packets.PacketLoopback ), OnPacketLoopback );
-
-			base.OnDisable();
-		}
-
-		protected override void OnDestroy()
-		{
-			if( driver.IsCreated )
-				driver.Dispose();
-
-			if( object.Equals( singleton.instance, this ) )
-				singleton.instance = null;
-
-			base.OnDestroy();
-		}
-
-		////////////////////////////////
-
-		public static string connectionAddress = null;
-		public static ushort connectionPort = 0;
-
-		public override string GetConnectionAddress()
-		{
-			return connectionAddress;
-		}
-
-		public override ushort GetConnectionPort()
-		{
-			return connectionPort;
-		}
-
-		////////////////////////////////
-
-		protected NetworkConnection connection;
-
-		private uint reconnectAttempts = 0;
-
-		////////////////////////////////
-
-		public bool isConnected { get; private set; }
-
-		public delegate void OnNetworkEvent();
-
-		public event OnNetworkEvent onConnected;
-		public event OnNetworkEvent onDisconnected;
-
-		public bool reattemptFailedConnections = false;
-
-		public bool openOnEnable = false;
-		
-		////////////////////////////////
+		#region OpenClose
 
 		public override void Open()
 		{
-			RegisterPacketDatas();
+			failedReconnects = 0;
 
 			base.Open();
 
 			connection = default( NetworkConnection );
 
-			connection = driver.Connect( NetworkEndPoint.Parse( this.serverAddress ?? string.Empty, this.port ) );
+			connection = driver.Connect( NetworkEndPoint.Parse( this.address ?? string.Empty, this.port ) );
 
 			_IHeartbeat = StartCoroutine( IHeartbeat() );
 		}
@@ -123,7 +45,6 @@ namespace Tehelee.Baseline.Networking
 			if( !object.Equals( null, _IHeartbeat ) )
 			{
 				StopCoroutine( _IHeartbeat );
-
 				_IHeartbeat = null;
 			}
 
@@ -134,9 +55,61 @@ namespace Tehelee.Baseline.Networking
 			base.Close();
 		}
 
-		////////////////////////////////
+		#endregion
 
-		private void QueryForEvents()
+		////////////////////////////////
+		//	NetworkUpdate
+
+		#region NetworkUpdate
+
+		protected override void NetworkUpdate()
+		{
+			if( !driver.IsCreated )
+				return;
+
+			driver.ScheduleUpdate().Complete();
+
+			if( !connection.IsCreated )
+				return;
+
+			QueryForEvents();
+
+			// Events *could* result in destruction of these, so now we re-check.
+			if( !driver.IsCreated || !connection.IsCreated )
+				return;
+
+			NetworkConnection.State connectionState = driver.GetConnectionState( connection );
+
+			switch( connectionState )
+			{
+				default:
+					return;
+
+				case NetworkConnection.State.Disconnected:
+					if( failedReconnects < reconnectAttempts )
+					{
+						Debug.LogFormat( "Client: Connection to '{0}:{1}' failed; auto-reconnect attempt {2}.", address, port, ++failedReconnects );
+
+						connection = driver.Connect( NetworkEndPoint.Parse( this.address ?? string.Empty, this.port ) );
+					}
+
+					return;
+
+				case NetworkConnection.State.Connected:
+					break;
+			}
+
+			SendQueue();
+		}
+
+		#endregion
+
+		////////////////////////////////
+		//	QueryForEvents
+
+		#region QueryForEvents
+
+		protected override void QueryForEvents()
 		{
 			DataStreamReader stream;
 			NetworkEvent.Type netEventType;
@@ -150,6 +123,7 @@ namespace Tehelee.Baseline.Networking
 					reconnectAttempts = 0;
 
 					isConnected = true;
+					hasConnected = true;
 
 					onConnected?.Invoke();
 				}
@@ -167,7 +141,22 @@ namespace Tehelee.Baseline.Networking
 			}
 		}
 
-		private void SendQueue()
+		#endregion
+
+		////////////////////////////////
+		//	SendQueue
+
+		#region SendQueue
+
+		public override void Send( Packet packet, bool reliable = false )
+		{
+			if( !isConnected )
+				return;
+
+			base.Send( packet, reliable );
+		}
+
+		protected override void SendQueue()
 		{
 			Packet packet;
 
@@ -202,63 +191,12 @@ namespace Tehelee.Baseline.Networking
 			}
 		}
 
-		protected override ReadResult InternalRead( NetworkConnection connection, ref DataStreamReader reader, ref DataStreamReader.Context context )
-		{
-			ushort packetId = reader.ReadUShort( ref context );
-			
-			if( packetId == Packet.Hash( typeof( Packets.PacketMap ) ) )
-			{
-				Packets.PacketMap packetMap = new Packets.PacketMap( ref reader, ref context );
-
-				packetHashMap = new PacketHashMap( packetMap.map );
-
-				return ReadResult.Consumed;
-			}
-			
-			return ReadResult.Skipped;
-		}
+		#endregion
 
 		////////////////////////////////
+		//	Heartbeat & Loopback
 
-		private void Update()
-		{
-			if( !driver.IsCreated )
-				return;
-
-			driver.ScheduleUpdate().Complete();
-
-			if( !connection.IsCreated )
-				return;
-
-			QueryForEvents();
-
-			// Events *could* result in destruction of these, so now we re-check.
-			if( !driver.IsCreated || !connection.IsCreated )
-				return;
-
-			NetworkConnection.State connectionState = driver.GetConnectionState( connection );
-
-			if( reattemptFailedConnections && ( connectionState == NetworkConnection.State.Disconnected ) )
-			{
-				Debug.LogFormat( "Client: Connection to '{0}:{1}' failed; auto-reconnect attempt {2}.", connectionAddress, port, ++reconnectAttempts );
-				
-				connection = driver.Connect( NetworkEndPoint.Parse( this.serverAddress ?? string.Empty, this.port ) );
-
-				return;
-			}
-
-			if( connectionState != NetworkConnection.State.Connected )
-				return;
-
-			SendQueue();
-		}
-
-		////////////////////////////////
-
-		[Range(1f,10f)]
-		public float heartbeatDelay = 5f;
-		[Range(1,10)]
-		public int pingAverageQueueSize = 3;
+		#region HeartbeatLoopback
 
 		private Queue<float> pingTimings = new Queue<float>();
 
@@ -281,7 +219,7 @@ namespace Tehelee.Baseline.Networking
 					} );
 				}
 
-				yield return new WaitForSeconds( heartbeatDelay );
+				yield return new WaitForSeconds( heartbeatInterval );
 			}
 		}
 
@@ -307,58 +245,152 @@ namespace Tehelee.Baseline.Networking
 			return ReadResult.Consumed;
 		}
 
+		#endregion
+
 		////////////////////////////////
+		//	Events
+
+		#region Events
+
+		public event Callback onConnected;
+		public event Callback onDisconnected;
+
+		#endregion
+
+		////////////////////////////////
+		//	Properties
+
+		#region Properties
+
+		public override string networkScopeLabel => "Client";
+
+		public static Singleton<Client> singleton { get; private set; } = new Singleton<Client>();
+
+		public NetworkConnection connection { get; private set; }
+
+		public bool isConnected { get; private set; }
+		private bool hasConnected;
+
+		public int failedReconnects { get; private set; }
+
+		#endregion
+
+		////////////////////////////////
+		//	Attributes
+
+		#region Attributes
+			
+		[Range( 1f, 10f )]
+		public float heartbeatInterval = 5f;
+		[Range( 1, 10 )]
+		public int pingAverageQueueSize = 3;
+		[Range( 0, 10 )]
+		public int reconnectAttempts = 3;
+
+		#endregion
+
+		////////////////////////////////
+		//	Mono Methods
+
+		#region MonoMethods
+
+		protected override void Awake()
+		{
+			base.Awake();
+
+			singleton.instance = this;
+		}
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			RegisterListener( typeof( Packets.PacketLoopback ), OnPacketLoopback );
+
+			if( openOnEnable )
+				this.Open();
+		}
+
+		protected override void OnDisable()
+		{
+			if( open )
+				this.Close();
+
+			DropListener( typeof( Packets.PacketLoopback ), OnPacketLoopback );
+
+			base.OnDisable();
+		}
+
+		protected override void OnDestroy()
+		{
+			if( driver.IsCreated && hasConnected )
+				driver.Dispose();
+
+			if( object.Equals( singleton.instance, this ) )
+				singleton.instance = null;
+
+			base.OnDestroy();
+		}
+
+		#endregion
 	}
-
-
+	
 #if UNITY_EDITOR
 	[CustomEditor( typeof( Client ) )]
-	public class EditorClient : Editor
+	public class EditorClient : EditorShared
 	{
 		Client client;
-		public void OnEnable()
+
+		public override void Setup()
 		{
+			base.Setup();
+
 			client = ( Client ) target;
 		}
 
-		public override void OnInspectorGUI()
+		public override float GetInspectorHeight()
 		{
-			base.OnInspectorGUI();
+			float inspectorHeight = base.GetInspectorHeight();
 
-			serializedObject.Update();
+			inspectorHeight += lineHeight * 5f + 8f;
 
-			GUILayout.Space( 10f );
+			if( client.isConnected )
+				inspectorHeight += lineHeight * 1f + 4f;
 
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.Space();
-			EditorGUILayout.BeginVertical();
+			return inspectorHeight;
+		}
 
-			EditorGUI.BeginDisabledGroup( !Application.isPlaying );
+		public override void DrawInspector( ref Rect rect )
+		{
+			base.DrawInspector( ref rect );
 
-			if( client.open )
+			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
+
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Networking - Client" ) );
+			bRect.y += lineHeight * 1.5f;
+
+			EditorGUI.Slider( bRect, this[ "heartbeatInterval" ], 1f, 10f, new GUIContent( "Heartbeart Interval", "The delay between individual heartbeat packets used for ping updates." ) );
+			bRect.y += lineHeight + 4f;
+
+			EditorGUI.IntSlider( bRect, this[ "pingAverageQueueSize" ], 1, 10, new GUIContent( "Ping Averages Count", "The amount of ping results that should be tracked and averaged." ) );
+			bRect.y += lineHeight + 4f;
+
+			EditorGUI.IntSlider( bRect, this[ "reconnectAttempts" ], 0, 10, new GUIContent( "Reconnect Attempts", "Amount of times to try reconnecting on unsignaled disconnects." ) );
+
+			if( client.isConnected )
 			{
-				if( GUILayout.Button( "Close Connection" ) )
-				{
-					client.Close();
-				}
+				bRect.y += lineHeight + 4f;
+
+				EditorGUI.BeginDisabledGroup( true );
+
+				EditorGUI.IntField( bRect, new GUIContent( "Average Ping" ), client.pingAverageMS );
+
+				EditorGUI.EndDisabledGroup();
 			}
-			else
-			{
-				if( GUILayout.Button( "Open Connection" ) )
-				{
-					client.Open();
-				}
-			}
-			
-			EditorGUI.EndDisabledGroup();
 
-			EditorGUILayout.EndVertical();
-			EditorGUILayout.Space();
-			EditorGUILayout.EndHorizontal();
+			bRect.y += lineHeight * 1.5f;
 
-			GUILayout.Space( 10f );
-
-			serializedObject.ApplyModifiedProperties();
+			rect.y = bRect.y;
 		}
 	}
 #endif
