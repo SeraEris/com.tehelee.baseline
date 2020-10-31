@@ -4,211 +4,17 @@ using System.Net;
 
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditorInternal;
+#endif
+
 using Unity.Collections;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Utilities;
 
 namespace Tehelee.Baseline.Networking
 {
-	[System.Serializable]
-	public class Packet
-	{
-		////////////////////////////////
-		//	HashToType
-
-		#region HashToType
-
-		private static Dictionary<ushort, System.Type> HashToType = new Dictionary<ushort, System.Type>();
-		private static Dictionary<System.Type, ushort> TypeToHash = new Dictionary<System.Type, ushort>();
-		
-		public static List<System.Type> GetRegisteredPacketTypes()
-		{
-			return new List<System.Type>( TypeToHash.Keys );
-		}
-
-		public static List<ushort> GetRegisteredPacketHashes()
-		{
-			return new List<ushort>( HashToType.Keys );
-		}
-
-		public static System.Type LookupType( ushort hash )
-		{
-			if( !HashToType.ContainsKey( hash ) )
-				return null;
-
-			return HashToType[ hash ];
-		}
-
-		public void Register()
-		{
-			HashToType.Add( this.id, this.GetType() );
-		}
-
-		public static void Register( System.Type packetType )
-		{
-			ushort hash = Hash( packetType );
-			if( !HashToType.ContainsKey( hash ) )
-				HashToType.Add( hash, packetType );
-		}
-
-		public static void Unregister( System.Type packetType )
-		{
-			if( TypeToHash.ContainsKey( packetType ) )
-			{
-				ushort hash = TypeToHash[ packetType ];
-				if( HashToType.ContainsKey( hash ) )
-					HashToType.Remove( hash );
-				TypeToHash.Remove( packetType );
-			}
-			else
-			{
-				ushort hash = Utils.HashCRC( packetType.FullName );
-				if( HashToType.ContainsKey( hash ) )
-					HashToType.Remove( hash );
-			}
-		}
-
-		public static ushort Hash( System.Type packetType )
-		{
-			if( object.Equals( null, packetType ) )
-				return 0;
-
-			if( !TypeToHash.ContainsKey( packetType ) )
-			{
-				ushort hash = Utils.HashCRC( packetType.FullName );
-				
-				TypeToHash.Add( packetType, hash );
-
-				return hash;
-			}
-
-			return TypeToHash[ packetType ];
-		}
-
-		#endregion
-		
-		////////////////////////////////
-		//	Transport Helpers
-
-		#region TransportHelpers
-
-		public static void WriteFloatSafe( ref DataStreamWriter writer, float value )
-		{
-			writer.Write( ( float.IsNaN( value ) || float.IsInfinity( value ) ) ? 0f : value );
-		}
-
-		private static float[] precisionCompress = new[] { 10f, 100f, 1000f, 10000f };
-		private static float[] precisionUncompress = new[] { 0.1f, 0.01f, 0.001f, 0.0001f };
-
-		public static int GetCompressedFloatBytes() => 2;
-
-		public static void WriteCompressedFloat( ref DataStreamWriter writer, float value, byte precision )
-		{
-			float _value = ( float.IsNaN( value ) || float.IsInfinity( value ) ) ? 0f : value;
-
-			writer.Write( ( short ) Mathf.RoundToInt( _value * precisionCompress[ precision ] ) );
-		}
-
-		public static float ReadCompressedFloat( ref DataStreamReader reader, ref DataStreamReader.Context context, byte precision )
-		{
-			return reader.ReadShort( ref context ) * precisionUncompress[ precision ];
-		}
-
-		public static int GetSafeStringBytes( string str )
-		{
-			int bytes = 4;
-
-			if( !string.IsNullOrEmpty( str ) )
-				bytes += str.Length * 2;
-
-			return bytes;
-		}
-
-		public static void WriteSafeString( ref DataStreamWriter writer, string str )
-		{
-			string _str = string.IsNullOrEmpty( str ) ? string.Empty : str;
-
-			writer.Write( _str.Length );
-
-			for( int i = 0, iC = _str.Length; i < iC; i++ )
-				writer.Write( ( ushort ) _str[ i ] );
-		}
-
-		public static string ReadSafeString( ref DataStreamReader reader, ref DataStreamReader.Context context )
-		{
-			char[] _str = new char[ reader.ReadInt( ref context ) ];
-
-			for( int i = 0, iC = _str.Length; i < iC; i++ )
-				_str[ i ] = ( char ) reader.ReadUShort( ref context );
-
-			return new string( _str );
-		}
-
-		#endregion
-
-		////////////////////////////////
-		//	Packet
-
-		#region Packet
-
-		public ushort id { get { return Hash( this.GetType() ); } }
-		
-		public virtual int bytes { get { return 0; } }
-
-		public List<NetworkConnection> targets = new List<NetworkConnection>();
-
-		public virtual void Write( ref DataStreamWriter writer ) { }
-
-		public Packet() { }
-
-		public Packet( ref DataStreamReader reader, ref DataStreamReader.Context context ) { }
-
-		#endregion
-	}
-
-	public interface ITransportObject
-	{
-		int GetBytes( params object[] parameters );
-		void Read( ref DataStreamReader reader, ref DataStreamReader.Context context, params object[] parameters );
-		void Write( ref DataStreamWriter writer, params object[] parameters );
-	}
-	
-	public enum ReadResult : byte
-	{
-		Skipped,	// Not utilized by this listener
-		Processed,	// Used by this listener, but non exclusively.
-		Consumed,	// Used by this listener, and stops all further listener checks.
-		Error		// A problem was encountered, store information into readHandlerErrorMessage
-	}
-
-	public static class ReaderContextFactory
-	{
-		static System.Reflection.FieldInfo m_ReadByteIndex;
-		static System.Reflection.FieldInfo m_BitIndex;
-		static System.Reflection.FieldInfo m_BitBuffer;
-
-		static ReaderContextFactory()
-		{
-			System.Type contextType = typeof( DataStreamReader.Context );
-
-			m_ReadByteIndex = contextType.GetField( "m_ReadByteIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance );
-			m_BitIndex = contextType.GetField( "m_BitIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance );
-			m_BitBuffer = contextType.GetField( "m_BitBuffer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance );
-		}
-
-		public static DataStreamReader.Context Clone( DataStreamReader.Context context )
-		{
-			// Due to boxing, this must be defined as an object, then cast to type on return
-			object _context = new DataStreamReader.Context();
-			
-			m_ReadByteIndex.SetValue( _context, m_ReadByteIndex.GetValue( context ) );
-			m_BitIndex.SetValue( _context, m_BitIndex.GetValue( context ) );
-			m_BitBuffer.SetValue( _context, m_BitBuffer.GetValue( context ) );
-			
-			return ( DataStreamReader.Context ) _context;
-		}
-	}
-
 	public class Shared : MonoBehaviour
 	{
 		////////////////////////////////
@@ -222,6 +28,17 @@ namespace Tehelee.Baseline.Networking
 
 		public class PacketHashMap
 		{
+			////////////////////////////////
+			//	Members
+
+			private ushort[] mappedHashes = new ushort[ 0 ];
+			private Dictionary<ushort, ushort> hashMapLookup = new Dictionary<ushort, ushort>();
+
+			////////////////////////////////
+			//	Constructors
+
+			public PacketHashMap() { }
+
 			public PacketHashMap( ushort[] packetMap )
 			{
 				mappedHashes = packetMap;
@@ -233,8 +50,8 @@ namespace Tehelee.Baseline.Networking
 				}
 			}
 
-			private ushort[] mappedHashes = new ushort[ 0 ];
-			private Dictionary<ushort, ushort> hashMapLookup = new Dictionary<ushort, ushort>();
+			////////////////////////////////
+			//	Conversions
 
 			public int MapIndexFromHash( ushort hash )
 			{
@@ -253,7 +70,7 @@ namespace Tehelee.Baseline.Networking
 			}
 		}
 
-		public PacketHashMap packetHashMap;
+		public PacketHashMap packetHashMap = new PacketHashMap();
 
 		#endregion
 
@@ -321,10 +138,10 @@ namespace Tehelee.Baseline.Networking
 
 		protected virtual void OnEnable()
 		{
-			Packet.Register( typeof( Packet ) );
-			Packet.Register( typeof( Packets.PacketMap ) );
 			Packet.Register( typeof( Packets.PacketBundle ) );
-
+			Packet.Register( typeof( Packets.PacketLoopback ) );
+			Packet.Register( typeof( Packets.PacketMap ) );
+			
 			RegisterPacketDatas();
 		}
 
@@ -729,4 +546,87 @@ namespace Tehelee.Baseline.Networking
 
 		////////////////////////////////
 	}
+
+#if UNITY_EDITOR
+	[CustomEditor( typeof( Shared ) )]
+	public class EditorShared : EditorUtils.InheritedEditor
+	{
+		public override void Setup()
+		{
+			base.Setup();
+		}
+
+		public override float GetInspectorHeight()
+		{
+			float inspectorHeight = base.GetInspectorHeight();
+
+			
+
+			return inspectorHeight;
+		}
+
+		public override void DrawInspector( ref Rect rect )
+		{
+			base.DrawInspector( ref rect );
+
+			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
+
+			
+
+			rect.y = bRect.y;
+		}
+	}
+#endif
+	
+	////////////////////////////////
+	//	Read Result Enum
+	//		Used to determine how a packet listener handled it's read stream.
+
+	#region ReadResult
+
+	public enum ReadResult : byte
+	{
+		Skipped,    // Not utilized by this listener
+		Processed,  // Used by this listener, but non exclusively.
+		Consumed,   // Used by this listener, and stops all further listener checks.
+		Error       // A problem was encountered, store information into readHandlerErrorMessage
+	}
+
+	#endregion
+
+	////////////////////////////////
+	//	Reader Context Factory
+	//		Used to offset DataStreamReader.Context's internal byte read head.
+
+	#region ReaderContextFactory
+
+	public static class ReaderContextFactory
+	{
+		static System.Reflection.FieldInfo m_ReadByteIndex;
+		static System.Reflection.FieldInfo m_BitIndex;
+		static System.Reflection.FieldInfo m_BitBuffer;
+
+		static ReaderContextFactory()
+		{
+			System.Type contextType = typeof( DataStreamReader.Context );
+
+			m_ReadByteIndex = contextType.GetField( "m_ReadByteIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance );
+			m_BitIndex = contextType.GetField( "m_BitIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance );
+			m_BitBuffer = contextType.GetField( "m_BitBuffer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance );
+		}
+
+		public static DataStreamReader.Context Clone( DataStreamReader.Context context )
+		{
+			// Due to boxing, this must be defined as an object, then cast to type on return
+			object _context = new DataStreamReader.Context();
+
+			m_ReadByteIndex.SetValue( _context, m_ReadByteIndex.GetValue( context ) );
+			m_BitIndex.SetValue( _context, m_BitIndex.GetValue( context ) );
+			m_BitBuffer.SetValue( _context, m_BitBuffer.GetValue( context ) );
+
+			return ( DataStreamReader.Context ) _context;
+		}
+	}
+
+	#endregion
 }

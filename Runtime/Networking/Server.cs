@@ -35,6 +35,8 @@ namespace Tehelee.Baseline.Networking
 		protected override void OnEnable()
 		{
 			base.OnEnable();
+			
+			RegisterListener( typeof( Packets.PacketLoopback ), OnPacketLoopback );
 
 			Open();
 		}
@@ -42,6 +44,8 @@ namespace Tehelee.Baseline.Networking
 		protected override void OnDisable()
 		{
 			Close();
+
+			DropListener( typeof( Packets.PacketLoopback ), OnPacketLoopback );
 
 			base.OnDisable();
 		}
@@ -409,6 +413,18 @@ namespace Tehelee.Baseline.Networking
 			QueryForEvents();
 
 			SendQueue();
+		}
+
+		////////////////////////////////
+		
+		private ReadResult OnPacketLoopback( NetworkConnection connection, ref DataStreamReader reader, ref DataStreamReader.Context context )
+		{
+			Packets.PacketLoopback packetLoopback = new Packets.PacketLoopback( ref reader, ref context );
+			packetLoopback.targets.Add( connection );
+
+			Send( packetLoopback );
+
+			return ReadResult.Consumed;
 		}
 
 		////////////////////////////////

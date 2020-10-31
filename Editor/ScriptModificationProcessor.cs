@@ -29,9 +29,17 @@ namespace Tehelee.Baseline
 			////////////////////////////////
 
 			string localAssetPath = path.Substring( 0, index );
+			string appDataPath = Application.dataPath;
 
-			index = Application.dataPath.LastIndexOf( "Assets" );
-			path = Application.dataPath.Substring( 0, index ) + path;
+			index = appDataPath.LastIndexOf( "Assets" );
+
+			if( index < 0 )
+				index = appDataPath.LastIndexOf( "Packages" );
+
+			if( index < 0 )
+				return;
+
+			path = appDataPath.Substring( 0, index ) + path;
 
 			string fileText = System.IO.File.ReadAllText( path );
 
@@ -343,8 +351,8 @@ namespace Tehelee.Baseline
 			folderSpace = SanitizeNamespace( folderSpace );
 
 			////////////////////////////////
-
-			fileText = fileText.Replace( "#FOLDERSPACENONAME#", folderSpace.Substring( Mathf.Min( scriptFolders[ 0 ].Length + 1, folderSpace.Length - 1 ) ) );
+			
+			fileText = fileText.Replace( "#FOLDERSPACENONAME#", folderSpace.Substring( Mathf.Max( 0, Mathf.Min( scriptFolders[ 0 ].Length + 1, folderSpace.Length - 1 ) ) ) );
 
 			fileText = fileText.Replace( "#FOLDERSPACE#", inScriptsFolder != -1 ? folderSpace : namespacePrefix );
 

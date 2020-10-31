@@ -40,57 +40,90 @@ namespace Tehelee.Baseline
 
 			public static readonly int PostProcessing		= ( 1 << 8 );
 			public static readonly int SkipRenderer			= ( 1 << 9 );
-			public static readonly int World				= ( 1 << 10 );
-
-			public static readonly int PlayerServer			= ( 1 << 12 );
-			public static readonly int PlayerClient			= ( 1 << 13 );
-			public static readonly int PlayerPrediction		= ( 1 << 14 );
-
-			public static readonly int Player = ( PlayerServer | PlayerClient | PlayerPrediction );
-
-			public static readonly int DynamicServer		= ( 1 << 15 );
-			public static readonly int DynamicClient		= ( 1 << 16 );
-			public static readonly int DynamicPrediction	= ( 1 << 17 );
-
-			public static readonly int Dynamic = ( DynamicServer | DynamicClient | DynamicPrediction );
 
 #if UNITY_EDITOR
 			private static Dictionary<string, string> layerAssignments = new Dictionary<string, string>()
 			{
 				{ "layers.Array.data[8]", "Post Processing" },
-				{ "layers.Array.data[9]", "Skip Renderer" },
-				{ "layers.Array.data[10]", "World" },
-
-				{ "layers.Array.data[12]", "Player Server" },
-				{ "layers.Array.data[13]", "Player Client" },
-				{ "layers.Array.data[14]", "Player Prediction" },
-
-				{ "layers.Array.data[15]", "Dynamic Server" },
-				{ "layers.Array.data[16]", "Dynamic Client" },
-				{ "layers.Array.data[17]", "Dynamic Prediction" }
+				{ "layers.Array.data[9]", "Skip Renderer" }
 			};
 
-			[MenuItem( "Tehelee/Setup Layers", priority = 100 )]
+			[MenuItem( "Tehelee/Baseline/Setup Layer Assignments", priority = 100 )]
 			public static void SetupLayers( MenuCommand menuCommand )
 			{
 				Object[] objects = AssetDatabase.LoadAllAssetsAtPath( "ProjectSettings/TagManager.asset" );
 				if( !object.Equals( null, objects ) && objects.Length > 0 )
 				{
+					
+
 					SerializedObject tagManager = new SerializedObject( objects[ 0 ] );
 					if( !object.Equals( null, tagManager ) )
 					{
+						bool differenceFound = false;
+						int changed = 0;
+
 						SerializedProperty iterator = tagManager.GetIterator();
 						bool showChildren = true;
 						while( iterator.NextVisible( showChildren ) )
 						{
-							if( layerAssignments.ContainsKey( iterator.propertyPath ) )
+							string propertyPath = iterator.propertyPath;
+
+							if( layerAssignments.ContainsKey( propertyPath ) )
 							{
-								iterator.stringValue = layerAssignments[ iterator.propertyPath ];
+								string oldLayerName = iterator.stringValue;
+								string newLayerName = layerAssignments[ propertyPath ];
+
+								if( string.Equals( oldLayerName, newLayerName ) )
+									continue;
+
+								differenceFound = true;
+
+								int layerIndex = -1;
+
+								int layerIndexOpen = propertyPath.LastIndexOf( '[' ) + 1;
+								int layerIndexClose = propertyPath.LastIndexOf( ']' );
+
+								if( layerIndexOpen > -1 && layerIndexClose > layerIndexOpen )
+									int.TryParse( propertyPath.Substring( layerIndexOpen, layerIndexClose - layerIndexOpen ), out layerIndex );
+								
+								if( string.IsNullOrEmpty( oldLayerName ) )
+								{
+									iterator.stringValue = newLayerName;
+									changed++;
+									Debug.LogFormat( "Updated layer #{0} to '{1}'.", layerIndex, newLayerName );
+								}
+								else if
+								(
+									EditorUtility.DisplayDialog
+									(
+										string.Format( "Update Layer #{0}?", layerIndex ),
+										string.Format( "Current: {0}\nTarget: {1}", oldLayerName, newLayerName ),
+										"Update",
+										"Skip"
+									)
+								)
+								{
+									iterator.stringValue = layerAssignments[ propertyPath ];
+									changed++;
+									Debug.LogFormat( "Updated layer #{0} from '{1}' to '{2}'.", layerIndex, oldLayerName, newLayerName );
+								}
 							}
 						}
-						tagManager.ApplyModifiedProperties();
-						EditorUtility.SetDirty( tagManager.targetObject );
-						EditorUtils.SaveDirtyAssets();
+
+						if( changed > 0 )
+						{
+							if( UnityEditor.VersionControl.Provider.enabled )
+								UnityEditor.VersionControl.Provider.Checkout( objects[ 0 ], UnityEditor.VersionControl.CheckoutMode.Asset ).Wait();
+
+							tagManager.ApplyModifiedProperties();
+							EditorUtility.SetDirty( tagManager.targetObject );
+							EditorUtils.SaveDirtyAssets();
+
+							Debug.LogFormat( "Updated 'ProjectSettings/TagManager.asset' with {0} layer assignments.", changed );
+						}
+
+						if( !differenceFound )
+							EditorUtility.DisplayDialog( "Layers Already Assigned!", "Layers already match global definitions.", "Cool", "Alright" );
 					}
 				}
 			}

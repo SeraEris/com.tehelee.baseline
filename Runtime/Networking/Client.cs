@@ -37,6 +37,8 @@ namespace Tehelee.Baseline.Networking
 		{
 			base.OnEnable();
 
+			RegisterListener( typeof( Packets.PacketLoopback ), OnPacketLoopback );
+
 			if( openOnEnable )
 				Open();
 		}
@@ -44,6 +46,8 @@ namespace Tehelee.Baseline.Networking
 		protected override void OnDisable()
 		{
 			Close();
+
+			DropListener( typeof( Packets.PacketLoopback ), OnPacketLoopback );
 
 			base.OnDisable();
 		}
@@ -251,18 +255,56 @@ namespace Tehelee.Baseline.Networking
 
 		////////////////////////////////
 
+		[Range(1f,10f)]
+		public float heartbeatDelay = 5f;
+		[Range(1,10)]
+		public int pingAverageQueueSize = 3;
+
+		private Queue<float> pingTimings = new Queue<float>();
+
+		public float pingAverage { get; private set; } = 0f;
+		public int pingAverageMS { get; private set; } = 0;
+
 		private Coroutine _IHeartbeat = null;
 		private IEnumerator IHeartbeat()
 		{
+			pingTimings.Clear();
+			pingAverage = 0f;
+
 			while( true )
 			{
-				yield return new WaitForSeconds( 10f );
-
 				if( isConnected )
 				{
-					Send( new Packet() );
+					Send( new Packets.PacketLoopback()
+					{
+						originTime = Time.time
+					} );
 				}
+
+				yield return new WaitForSeconds( heartbeatDelay );
 			}
+		}
+
+		private ReadResult OnPacketLoopback( NetworkConnection connection, ref DataStreamReader reader, ref DataStreamReader.Context context )
+		{
+			Packets.PacketLoopback packetLoopback = new Packets.PacketLoopback( ref reader, ref context );
+			
+			pingTimings.Enqueue( Time.time - packetLoopback.originTime );
+
+			if( pingTimings.Count > pingAverageQueueSize )
+				pingTimings.Dequeue();
+
+			float _pingAverage = 0f;
+			foreach( float pingTime in pingTimings )
+				_pingAverage += pingTime;
+
+			if( pingTimings.Count > 1 )
+				_pingAverage /= pingTimings.Count;
+
+			pingAverage = _pingAverage;
+			pingAverageMS = Mathf.RoundToInt( pingAverage * 1000f );
+
+			return ReadResult.Consumed;
 		}
 
 		////////////////////////////////
