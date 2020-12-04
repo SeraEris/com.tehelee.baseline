@@ -34,7 +34,7 @@ namespace Tehelee.Baseline.Components.UI
 
 				height += lineHeight * 1.5f;
 
-				height += EditorUtils.BetterUnityEventFieldHeight( property.FindPropertyRelative( "onEnable" ) ) + lineHeight * 0.5f;
+				height += EditorUtils.BetterUnityEventFieldHeight( property.FindPropertyRelative( "onEnable" ) );
 				height += EditorUtils.BetterUnityEventFieldHeight( property.FindPropertyRelative( "onDisable" ) );
 
 				return height;
@@ -68,7 +68,7 @@ namespace Tehelee.Baseline.Components.UI
 				bRect.height = EditorUtils.BetterUnityEventFieldHeight( onEnable );
 				EditorUtils.BetterUnityEventField( bRect, onEnable );
 
-				bRect.y += bRect.height + lineHeight * 0.5f;
+				bRect.y += bRect.height;
 
 				bRect.height = EditorUtils.BetterUnityEventFieldHeight( onDisable );
 				EditorUtils.BetterUnityEventField( bRect, onDisable );
@@ -87,11 +87,26 @@ namespace Tehelee.Baseline.Components.UI
 
 		public bool toggleOnReselect = false;
 
+		public bool defaultOnAwake = false;
+		public bool defaultOnEnable = true;
+
 		public List<SwitchObject> switchObjects = new List<SwitchObject>();
+
+		private void Awake()
+		{
+			if( defaultOnAwake )
+				SetupDefault();
+		}
 
 		private void OnEnable()
 		{
-			selectedIndex = Mathf.Clamp( defaultIndex, allowNone ? -1 : 0, Mathf.Max( 0, switchObjects.Count -1 ) );
+			if( defaultOnEnable )
+				SetupDefault();
+		}
+
+		private void SetupDefault()
+		{
+			selectedIndex = Mathf.Clamp( defaultIndex, allowNone ? -1 : 0, Mathf.Max( 0, switchObjects.Count - 1 ) );
 
 			for( int i = 0, iC = switchObjects.Count; i < iC; i++ )
 			{
@@ -99,6 +114,8 @@ namespace Tehelee.Baseline.Components.UI
 					switchObjects[ i ].gameObject.SetActive( i == selectedIndex );
 			}
 		}
+
+		public int selected => selectedIndex;
 
 		public void Select( int switchIndex )
 		{
@@ -137,6 +154,8 @@ namespace Tehelee.Baseline.Components.UI
 		SerializedProperty allowNone;
 		SerializedProperty defaultIndex;
 		SerializedProperty toggleOnReselect;
+		SerializedProperty defaultOnAwake;
+		SerializedProperty defaultOnEnable;
 
 		ReorderableList switchObjects;
 
@@ -147,6 +166,8 @@ namespace Tehelee.Baseline.Components.UI
 			allowNone = this[ "allowNone" ];
 			defaultIndex = this[ "defaultIndex" ];
 			toggleOnReselect = this[ "toggleOnReselect" ];
+			defaultOnAwake = this[ "defaultOnAwake" ];
+			defaultOnEnable = this[ "defaultOnEnable" ];
 
 			switchObjects = EditorUtils.CreateReorderableList
 			(
@@ -163,20 +184,14 @@ namespace Tehelee.Baseline.Components.UI
 			);
 		}
 
-		public override float inspectorLeadingOffset => lineHeight * 0.5f;
-
 		public override float GetInspectorHeight()
 		{
 			float height = base.GetInspectorHeight();
 
-			height += lineHeight * 3.5f;
+			height += lineHeight * 7f;
 
-			if( switchObjects.serializedProperty.isExpanded )
-				height += switchObjects.GetHeight();
-			else
-				height += lineHeight * 1.5f;
-
-
+			height += switchObjects.CalculateCollapsableListHeight();
+			
 			return height;
 		}
 
@@ -186,7 +201,10 @@ namespace Tehelee.Baseline.Components.UI
 
 			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
 
-			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 10f ) * 0.5f, lineHeight * 1.5f );
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Switcher", "Provides a tab-like functionality with only one object active at a time." ) );
+			bRect.y += lineHeight * 1.5f;
+
+			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 20f ) * 0.5f, lineHeight * 1.5f );
 
 			EditorGUI.BeginChangeCheck();
 
@@ -212,6 +230,16 @@ namespace Tehelee.Baseline.Components.UI
 
 			bRect.y += lineHeight * 2f;
 
+			cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 20f ) * 0.5f, lineHeight * 1.5f );
+
+			EditorUtils.BetterToggleField( cRect, new GUIContent( "Default On Awake" ), defaultOnAwake );
+
+			cRect.x += cRect.width + 10f;
+
+			EditorUtils.BetterToggleField( cRect, new GUIContent( "Default On Enable" ), defaultOnEnable );
+
+			bRect.y += lineHeight * 2f;
+
 			cRect = new Rect( bRect.x, bRect.y, bRect.width, lineHeight );
 
 			int min = allowNone.boolValue ? -1 : 0;
@@ -227,27 +255,16 @@ namespace Tehelee.Baseline.Components.UI
 			}
 			else
 			{
+				EditorGUI.BeginDisabledGroup( !( defaultOnAwake.boolValue || defaultOnEnable.boolValue ) );
+
 				EditorGUI.IntSlider( cRect, defaultIndex, min, max, new GUIContent( string.Empty, "Default Index" ) );
+
+				EditorGUI.EndDisabledGroup();
 			}
 
 			bRect.y += lineHeight * 1.5f;
 
-			if( switchObjects.serializedProperty.isExpanded )
-			{
-				bRect.height = switchObjects.GetHeight();
-
-				switchObjects.DoList( bRect );
-
-				bRect.y += bRect.height;
-			}
-			else
-			{
-				bRect.height = lineHeight;
-
-				EditorUtils.DrawListHeader( bRect, switchObjects.serializedProperty );
-
-				bRect.y += lineHeight * 1.5f;
-			}
+			switchObjects.DrawCollapsableList( ref bRect );
 
 			rect.y = bRect.y;
 		}

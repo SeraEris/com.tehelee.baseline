@@ -9,7 +9,7 @@ using Tehelee.Baseline.Networking;
 
 namespace Tehelee.Baseline.Networking.Packets
 {
-	public class PacketBundle : Packet
+	public class Bundle : Packet
 	{
 		////////////////////////////////
 		
@@ -32,17 +32,17 @@ namespace Tehelee.Baseline.Networking.Packets
 
 		////////////////////////////////
 
-		public PacketBundle() : base() { }
+		public Bundle() : base() { }
 
-		public PacketBundle( ref DataStreamReader reader, ref DataStreamReader.Context context ) : base( ref reader, ref context ) { }
+		public Bundle( ref PacketReader reader ) : base( ref reader ) { }
 
 		public override void Write( ref DataStreamWriter writer )
 		{
-			writer.Write( packets.Count );
+			writer.WriteUShort( ( ushort ) packets.Count );
 
 			foreach( Packet packet in packets )
 			{
-				writer.Write( packet.id );
+				writer.WriteUShort( packet.id );
 
 				packet.Write( ref writer );
 			}

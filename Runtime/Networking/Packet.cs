@@ -20,7 +20,7 @@ namespace Tehelee.Baseline.Networking
 		//			Used to marshal packets from server to client; this should match what you're writing.
 		//		Write( ref DataStreamWriter writer );
 		//			Used to write data values to the write stream to be sent to targets.
-		//		<Packet>( ref DataStreamReader reader, ref DataStreamReader.Context context );
+		//		<Packet>( ref PacketReader reader );
 		//			Used to re-construct this packet from the read stream on targets.
 
 		#region Packet
@@ -35,7 +35,17 @@ namespace Tehelee.Baseline.Networking
 
 		public Packet() { }
 
-		public Packet( ref DataStreamReader reader, ref DataStreamReader.Context context ) { }
+		public Packet( ref PacketReader reader ) { }
+
+		#endregion
+
+		////////////////////////////////
+		//	Byte Limits
+
+		#region ByteLimits
+
+		public static readonly ushort maxBytes = NetworkParameterConstants.MTU - 16;
+		public const int bytesSafeString = 2;
 
 		#endregion
 
@@ -46,6 +56,7 @@ namespace Tehelee.Baseline.Networking
 
 		private static Dictionary<ushort, System.Type> HashToType = new Dictionary<ushort, System.Type>();
 		private static Dictionary<System.Type, ushort> TypeToHash = new Dictionary<System.Type, ushort>();
+		private static Dictionary<ushort, HashSet<Shared>> RegistrySources = new Dictionary<ushort, HashSet<Shared>>();
 
 		public static List<System.Type> GetRegisteredPacketTypes()
 		{
@@ -70,27 +81,36 @@ namespace Tehelee.Baseline.Networking
 			HashToType.Add( this.id, this.GetType() );
 		}
 
-		public static void Register( System.Type packetType )
+		public static void Register( Shared source, System.Type packetType )
 		{
 			ushort hash = Hash( packetType );
 			if( !HashToType.ContainsKey( hash ) )
-				HashToType.Add( hash, packetType );
-		}
-
-		public static void Unregister( System.Type packetType )
-		{
-			if( TypeToHash.ContainsKey( packetType ) )
 			{
-				ushort hash = TypeToHash[ packetType ];
-				if( HashToType.ContainsKey( hash ) )
-					HashToType.Remove( hash );
-				TypeToHash.Remove( packetType );
+				HashToType.Add( hash, packetType );
+				RegistrySources.Add( hash, new HashSet<Shared>() { source } );
 			}
 			else
 			{
-				ushort hash = Utils.HashCRC( packetType.FullName );
-				if( HashToType.ContainsKey( hash ) )
+				RegistrySources[ hash ].Add( source );
+			}
+		}
+
+		public static void Unregister( Shared source, System.Type packetType )
+		{
+			ushort hash = ( TypeToHash.ContainsKey( packetType ) ) ? TypeToHash[ packetType ] : Utils.HashCRC( packetType.FullName );
+			
+			if( HashToType.ContainsKey( hash ) )
+			{
+
+				if( RegistrySources[ hash ].Contains( source ) )
+					RegistrySources[ hash ].Remove( source );
+
+				if( RegistrySources[ hash ].Count == 0 )
+				{
 					HashToType.Remove( hash );
+					TypeToHash.Remove( packetType );
+					RegistrySources.Remove( hash );
+				}
 			}
 		}
 
@@ -111,6 +131,8 @@ namespace Tehelee.Baseline.Networking
 			return TypeToHash[ packetType ];
 		}
 
+		public static bool IsValid( ushort packetId ) => HashToType.ContainsKey( packetId );
+
 		#endregion
 
 		////////////////////////////////
@@ -120,7 +142,7 @@ namespace Tehelee.Baseline.Networking
 
 		public static void WriteFloatSafe( ref DataStreamWriter writer, float value )
 		{
-			writer.Write( ( float.IsNaN( value ) || float.IsInfinity( value ) ) ? 0f : value );
+			writer.WriteFloat( ( float.IsNaN( value ) || float.IsInfinity( value ) ) ? 0f : value );
 		}
 
 		private static float[] precisionCompress = new[] { 10f, 100f, 1000f, 10000f };
@@ -132,40 +154,49 @@ namespace Tehelee.Baseline.Networking
 		{
 			float _value = ( float.IsNaN( value ) || float.IsInfinity( value ) ) ? 0f : value;
 
-			writer.Write( ( short ) Mathf.RoundToInt( _value * precisionCompress[ precision ] ) );
+			writer.WriteShort( ( short ) Mathf.RoundToInt( _value * precisionCompress[ precision ] ) );
 		}
 
-		public static float ReadCompressedFloat( ref DataStreamReader reader, ref DataStreamReader.Context context, byte precision )
+		public static float ReadCompressedFloat( ref PacketReader reader, byte precision )
 		{
-			return reader.ReadShort( ref context ) * precisionUncompress[ precision ];
+			return reader.ReadShort() * precisionUncompress[ precision ];
 		}
 
-		public static int GetSafeStringBytes( string str )
+		public static int GetSafeStringBytes( string str, int truncate = 0 )
 		{
-			int bytes = 4;
+			int bytes = bytesSafeString;
 
-			if( !string.IsNullOrEmpty( str ) )
-				bytes += str.Length * 2;
+			string _str = string.IsNullOrEmpty( str ) ? string.Empty : str;
+
+			if( truncate > 0 )
+				_str = _str.Substring( 0, Mathf.Min( _str.Length, truncate ) );
+
+			if( !string.IsNullOrEmpty( _str ) )
+				bytes += _str.Length * 2;
 
 			return bytes;
 		}
 
-		public static void WriteSafeString( ref DataStreamWriter writer, string str )
+		public static void WriteSafeString( ref DataStreamWriter writer, string str, int truncate = 0 )
 		{
 			string _str = string.IsNullOrEmpty( str ) ? string.Empty : str;
 
-			writer.Write( _str.Length );
+			if( truncate > 0 )
+				_str = _str.Substring( 0, Mathf.Min( _str.Length, truncate ) );
 
-			for( int i = 0, iC = _str.Length; i < iC; i++ )
-				writer.Write( ( ushort ) _str[ i ] );
+			int stringLength = Mathf.Min( ushort.MaxValue, _str.Length );
+			writer.WriteUShort( ( ushort ) stringLength );
+
+			for( int i = 0, iC = stringLength; i < iC; i++ )
+				writer.WriteUShort( _str[ i ] );
 		}
 
-		public static string ReadSafeString( ref DataStreamReader reader, ref DataStreamReader.Context context )
+		public static string ReadSafeString( ref PacketReader reader )
 		{
-			char[] _str = new char[ reader.ReadInt( ref context ) ];
+			char[] _str = new char[ reader.ReadUShort() ];
 
 			for( int i = 0, iC = _str.Length; i < iC; i++ )
-				_str[ i ] = ( char ) reader.ReadUShort( ref context );
+				_str[ i ] = ( char ) reader.ReadUShort();
 
 			return new string( _str );
 		}

@@ -32,6 +32,15 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
+		//	Properties
+
+		#region Properties
+
+		public bool useSimulator => ( packetDelayMS > 0 ) || ( packetJitterMS != 0 ) || ( packetDropPercent > 0 ) || ( packetDropInterval > 0 );
+
+		#endregion
+
+		////////////////////////////////
 		//	SimulatorUtility.Parameters
 
 		#region SimulatorUtilityParameters
@@ -74,7 +83,7 @@ namespace Tehelee.Baseline
 		public override float offsetFoldoutGUI => 4f;
 
 		public override float CalculatePropertyHeight( ref SerializedProperty property ) => base.CalculatePropertyHeight( ref property ) + lineHeight * 6f + 20f;
-
+		
 		public override void DrawGUI( ref Rect rect, ref SerializedProperty property )
 		{
 			base.DrawGUI( ref rect, ref property );
@@ -123,17 +132,17 @@ namespace Tehelee.Baseline
 			maxPacketCount.Clamp( 1, 32 );
 			EditorGUIUtility.labelWidth = labelWidth;
 			bRect.y += lineHeight + 4f;
-
+			
 			////////////////////////////////
 			//	Packet Delay & Jitter
 
 			cRect = new Rect( bRect.x, bRect.y, bRect.width - 100f, bRect.height );
 			EditorGUI.PropertyField( cRect, packetDelayMS, new GUIContent( "Packet Delay MS" ) );
-			packetDelayMS.Min( 0 );
+			packetDelayMS.ClampMinimum( 0 );
 			EditorGUIUtility.labelWidth = 20f;
 			cRect = new Rect( bRect.x + bRect.width - 95f, bRect.y, 95f, bRect.height );
 			EditorGUI.PropertyField( cRect, packetJitterMS, new GUIContent( "+-", "Packet Jitter MS" ) );
-			packetJitterMS.Min( 0 );
+			packetJitterMS.ClampMinimum( 0 );
 			EditorGUIUtility.labelWidth = labelWidth;
 			bRect.y += lineHeight + 4f;
 
@@ -144,7 +153,7 @@ namespace Tehelee.Baseline
 			bRect.y += lineHeight + 4f;
 
 			EditorGUI.PropertyField( bRect, packetDropInterval, new GUIContent( "Packet Drop Interval" ) );
-			packetDropInterval.Min( 0 );
+			packetDropInterval.ClampMinimum( 0 );
 			bRect.y += lineHeight;
 
 			rect.y = bRect.y;

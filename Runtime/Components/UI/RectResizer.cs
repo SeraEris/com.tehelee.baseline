@@ -260,9 +260,7 @@ namespace Tehelee.Baseline.Components.UI
 		SerializedProperty selectedIndex;
 
 		ReorderableList resizes;
-
-		public override float inspectorLeadingOffset => lineHeight * 0.5f;
-
+		
 		public override void Setup()
 		{
 			base.Setup();
@@ -294,6 +292,7 @@ namespace Tehelee.Baseline.Components.UI
 		public override float GetInspectorHeight()
 		{
 			float height = base.GetInspectorHeight();
+			height += lineHeight * 1.5f;
 
 			SerializedProperty _resizes = resizes.serializedProperty;
 			if( _resizes.arraySize > 0 )
@@ -304,10 +303,7 @@ namespace Tehelee.Baseline.Components.UI
 					height += lineHeight * 1.5f;
 			}
 
-			if( _resizes.isExpanded )
-				height += resizes.GetHeight();
-			else
-				height += lineHeight * 1.5f;
+			height += resizes.CalculateCollapsableListHeight();
 
 			return height;
 		}
@@ -317,6 +313,9 @@ namespace Tehelee.Baseline.Components.UI
 			base.DrawInspector( ref rect );
 
 			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
+
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Rect Resizer", "Provides an easy way to swap the attributes of the RectTransform from a set list." ) );
+			bRect.y += lineHeight * 1.5f;
 
 			SerializedProperty _resizes = resizes.serializedProperty;
 			if( _resizes.arraySize > 0 )
@@ -334,7 +333,7 @@ namespace Tehelee.Baseline.Components.UI
 					case 2:
 						bRect.height = lineHeight * 1.5f;
 						bool defaultEnabled = selectedIndex.intValue == 1;
-						bool _defaultEnabled = EditorUtils.BetterToggleField( bRect, new GUIContent( "Default" ), defaultEnabled );
+						bool _defaultEnabled = EditorUtils.BetterToggleField( bRect, new GUIContent( "Default to Second" ), defaultEnabled );
 						if( _defaultEnabled != defaultEnabled )
 						{
 							defaultEnabled = _defaultEnabled;
@@ -358,36 +357,23 @@ namespace Tehelee.Baseline.Components.UI
 				bRect.y += bRect.height + lineHeight * 0.5f;
 			}
 
-			if( _resizes.isExpanded )
+			EditorGUI.BeginChangeCheck();
+
+			resizes.DrawCollapsableList( ref bRect );
+
+			if( EditorGUI.EndChangeCheck() )
 			{
-				bRect.height = resizes.GetHeight();
+				serializedObject.ApplyModifiedProperties();
 
-				EditorGUI.BeginChangeCheck();
-
-				resizes.DoList( bRect );
-
-				if( EditorGUI.EndChangeCheck() )
+				foreach( Object target in targets )
 				{
-					serializedObject.ApplyModifiedProperties();
+					RectResizer rectResizer = ( RectResizer ) target;
+					if( !Utils.IsObjectAlive( rectResizer ) )
+						continue;
 
-					foreach( Object target in targets )
-					{
-						RectResizer rectResizer = ( RectResizer ) target;
-						if( object.Equals( null, rectResizer ) || !rectResizer )
-							continue;
-
-						rectResizer.Select( rectResizer.selectedIndex );
-					}
+					rectResizer.Select( rectResizer.selectedIndex );
 				}
 			}
-			else
-			{
-				bRect.height = lineHeight;
-
-				EditorUtils.DrawListHeader( bRect, _resizes );
-			}
-
-			bRect.y += bRect.height + lineHeight * 0.5f;
 
 			rect.y = bRect.y;
 		}

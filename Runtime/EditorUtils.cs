@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEditor.VersionControl;
+using UnityEditor.Build.Reporting;
 
 namespace Tehelee.Baseline
 {
@@ -258,11 +259,56 @@ namespace Tehelee.Baseline
 			return GUI.Button( bRect, label, listHeaderStyle );
 		}
 		
-		public static bool GetExpanded( this ReorderableList reorderableList ) => reorderableList.serializedProperty.isExpanded;
+		public static bool IsListExpanded( this ReorderableList reorderableList ) =>
+			reorderableList.serializedProperty.isExpanded;
 
-		public static void SetExpanded( this ReorderableList reorderableList, bool expanded )
-		{
+		public static void SetListExpanded( this ReorderableList reorderableList, bool expanded ) =>
 			reorderableList.serializedProperty.isExpanded = expanded;
+
+		public static float CalculateCollapsableListHeight( this ReorderableList reorderableList, float endSpacing = -1f )
+		{
+			float lineHeight = EditorGUIUtility.singleLineHeight;
+			if( endSpacing < 0f )
+				endSpacing = lineHeight * 0.5f;
+
+			if( reorderableList.IsListExpanded() )
+				return reorderableList.GetHeight() + endSpacing;
+			else
+				return lineHeight + endSpacing;
+		}
+		
+		public static void DrawCollapsableList( this ReorderableList reorderableList, ref Rect rect, GUIContent guiContent = null, float endSpacing = -1f )
+		{
+			if( object.Equals( null, reorderableList ) || object.Equals( null, reorderableList.serializedProperty ) )
+				return;
+			
+			float lineHeight = EditorGUIUtility.singleLineHeight;
+			if( endSpacing < 0f )
+				endSpacing = lineHeight * 0.5f;
+
+			Rect headerRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
+
+			if( reorderableList.IsListExpanded() )
+			{
+				float oldHeight = rect.height;
+				rect.height = reorderableList.GetHeight();
+				reorderableList.DoList( rect );
+				rect.y += rect.height + endSpacing;
+				rect.height = oldHeight;
+			}
+			else
+			{
+				rect.y += lineHeight + endSpacing;
+			}
+
+			if( object.Equals( null, guiContent ) )
+			{
+				guiContent = new GUIContent( reorderableList.serializedProperty.displayName );
+			}
+
+			DrawListHeader( headerRect, guiContent, reorderableList.serializedProperty );
+
+			return;
 		}
 
 		#endregion
@@ -566,7 +612,7 @@ namespace Tehelee.Baseline
 			{
 				sceneAsset = _sceneAsset;
 
-				if( object.Equals( null, sceneAsset ) || !sceneAsset )
+				if( !Utils.IsObjectAlive( sceneAsset ) )
 				{
 					_scenePath = string.Empty;
 				}
@@ -587,25 +633,40 @@ namespace Tehelee.Baseline
 
 		#region BetterUnityEventField
 
-		public static float BetterUnityEventFieldHeight( SerializedProperty serializedProperty )
+		public static float BetterUnityEventFieldHeight( SerializedProperty serializedProperty, float endSpacing = -1f )
 		{
+			if( endSpacing < 0f )
+				endSpacing = EditorGUIUtility.singleLineHeight * 0.5f;
+
 			if( serializedProperty.isExpanded )
 			{
-				return EditorGUI.GetPropertyHeight( serializedProperty, true );
+				return EditorGUI.GetPropertyHeight( serializedProperty, true ) + endSpacing;
 			}
 			else
 			{
-				return EditorGUIUtility.singleLineHeight * 1.5f;
+				return EditorGUIUtility.singleLineHeight  + endSpacing;
 			}
 		}
 
-		public static void BetterUnityEventField( Rect rect, SerializedProperty serializedProperty )
+		public static void BetterUnityEventField( ref Rect rect, SerializedProperty serializedProperty, float endSpacing = -1f )
 		{
+			float oldHeight = rect.height;
+			rect.height = BetterUnityEventFieldHeight( serializedProperty, endSpacing );
+			BetterUnityEventField( rect, serializedProperty, endSpacing );
+			rect.y += rect.height;
+			rect.height = oldHeight;
+		}
+
+		public static void BetterUnityEventField( Rect rect, SerializedProperty serializedProperty, float endSpacing = -1f )
+		{
+			if( endSpacing < 0f )
+				endSpacing = EditorGUIUtility.singleLineHeight * 0.5f;
+
 			if( serializedProperty.isExpanded )
 			{
 				EditorGUI.PropertyField( new Rect( rect.x, rect.y, rect.width, rect.height ), serializedProperty, true );
 
-				if( GUI.Button( new Rect( rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight ), new GUIContent(), GUIStyle.none ) )
+				if( GUI.Button( new Rect( rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight ), EmptyContent, GUIStyle.none ) )
 					serializedProperty.isExpanded = !serializedProperty.isExpanded;
 			}
 			else
@@ -958,28 +1019,34 @@ namespace Tehelee.Baseline
 				prop.floatValue = max;
 		}
 
-		public static void Min( this SerializedProperty prop, int min )
+		public static void ClampMinimum( this SerializedProperty prop, int min )
 		{
 			if( prop.intValue < min )
 				prop.intValue = min;
 		}
 
-		public static void Min( this SerializedProperty prop, float min )
+		public static void ClampMinimum( this SerializedProperty prop, float min )
 		{
 			if( prop.floatValue < min )
 				prop.floatValue = min;
 		}
 		
-		public static void Max( this SerializedProperty prop, int max )
+		public static void ClampMaximum( this SerializedProperty prop, int max )
 		{
 			if( prop.intValue > max )
 				prop.intValue = max;
 		}
 
-		public static void Max( this SerializedProperty prop, float max )
+		public static void ClampMaximum( this SerializedProperty prop, float max )
 		{
 			if( prop.floatValue > max )
 				prop.floatValue = max;
+		}
+
+		public static void Truncate( this SerializedProperty prop, int characterLimit )
+		{
+			if( prop.stringValue.Length > characterLimit )
+				prop.stringValue = prop.stringValue.Substring( 0, characterLimit );
 		}
 
 		public static SerializedProperty GetParent( this SerializedProperty property )
@@ -1242,9 +1309,9 @@ namespace Tehelee.Baseline
 				emptyContent = new GUIContent();
 			}
 
-			public virtual float inspectorLeadingOffset { get { return 0f; } }
-			public virtual float inspectorPostInspectorOffset { get { return 0f; } }
-			public virtual float inspectorTrailingOffset { get { return 0f; } }
+			public virtual float inspectorLeadingOffset => 0f;
+			public virtual float inspectorPostInspectorOffset => 0f;
+			public virtual float inspectorTrailingOffset => 0f;
 
 			public virtual void Setup() { }
 			public virtual void Cleanup() { }
@@ -1689,6 +1756,42 @@ namespace Tehelee.Baseline
 		public static void Space( float lineHeight = -1f )
 		{
 			GUILayout.Space( lineHeight < 0f ? EditorGUIUtility.singleLineHeight * 0.5f : lineHeight );
+		}
+
+		#endregion
+
+		////////////////////////////////
+		// Build Helper
+
+		#region Build Helper
+
+		public static BuildResult BuildHelper( string title, BuildTarget buildTarget, bool debug, string[] sceneAssetPaths, string defaultDirectory = null )
+		{
+			if( string.IsNullOrEmpty( defaultDirectory ) )
+				defaultDirectory = System.IO.Directory.GetParent( Application.dataPath ).FullName;
+			
+			string path = EditorUtility.SaveFilePanel( "Build Destination", defaultDirectory, title, "exe" );
+
+			if( string.IsNullOrEmpty( path ) )
+				return BuildResult.Cancelled;
+
+			BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
+
+			buildPlayerOptions.scenes = sceneAssetPaths;
+
+			buildPlayerOptions.locationPathName = path;
+			buildPlayerOptions.target = buildTarget;
+			buildPlayerOptions.options = debug ? ( BuildOptions.Development | BuildOptions.AllowDebugging | BuildOptions.ShowBuiltPlayer | BuildOptions.ConnectWithProfiler ) : BuildOptions.ShowBuiltPlayer;
+
+			BuildReport buildReport = BuildPipeline.BuildPlayer( buildPlayerOptions );
+			BuildSummary buildSummary = buildReport.summary;
+			
+			if( buildSummary.result == BuildResult.Succeeded )
+				Debug.LogFormat( "{0} Build Succeeded!\nSize: {1:0.00} MB\nTime Elapsed: {2}\nWarnings: {3}\nPath: {4}", title, buildSummary.totalSize * 0.000001, string.Format( "{0:00}:{1:00}:{2:00}", buildSummary.totalTime.Hours, buildSummary.totalTime.Minutes, buildSummary.totalTime.Seconds ), buildSummary.totalWarnings, buildSummary.outputPath );
+			else if( buildSummary.result == BuildResult.Failed )
+				Debug.LogError( "Build Encounter Server Failed!" );
+
+			return buildSummary.result;
 		}
 
 		#endregion

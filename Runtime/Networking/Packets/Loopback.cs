@@ -7,28 +7,34 @@ using Unity.Networking.Transport;
 
 namespace Tehelee.Baseline.Networking.Packets
 {
-	public class PacketLoopback : Packet
+	public class Loopback : Packet
 	{
 		////////////////////////////////
 		
-		public override int bytes { get { return 4; } }
+		public override int bytes { get { return 6; } }
 
 		////////////////////////////////
-
+		
 		public float originTime;
 
+		public ushort averagePingMS;
+
 		////////////////////////////////
 
-		public PacketLoopback() : base() { }
+		public Loopback() : base() { }
 
-		public PacketLoopback( ref DataStreamReader reader, ref DataStreamReader.Context context ) : base( ref reader, ref context )
+		public Loopback( ref PacketReader reader ) : base( ref reader )
 		{
-			originTime = reader.ReadFloat( ref context );
+			originTime = reader.ReadFloat();
+
+			averagePingMS = reader.ReadUShort();
 		}
 
 		public override void Write( ref DataStreamWriter writer )
 		{
-			writer.Write( originTime );
+			writer.WriteFloat( originTime );
+
+			writer.WriteUShort( averagePingMS );
 		}
 
 		////////////////////////////////

@@ -99,7 +99,7 @@ namespace Tehelee.Baseline.Components
 				if( string.IsNullOrEmpty( objectReference.castType ) || !string.Equals( objectReference.castType, typeof( T ).Name ) )
 					return null;
 
-				if( object.Equals( null, objectReference.reference ) || !objectReference.reference )
+				if( !Utils.IsObjectAlive( objectReference.reference ) )
 					return null;
 				
 				return ( T ) ( object ) objectReference.reference;

@@ -13,7 +13,7 @@ namespace Tehelee.Baseline
 		{
 			get
 			{
-				if( !object.Equals( null, _instance) && !_instance )
+				if( !Utils.IsObjectAlive( _instance ) )
 				{
 					_instance = null;
 				}

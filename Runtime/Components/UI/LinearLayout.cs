@@ -11,6 +11,7 @@ namespace Tehelee.Baseline.Components.UI
 #if UNITY_EDITOR
 	[ExecuteInEditMode]
 #endif
+	[RequireComponent( typeof( RectTransform ) )]
 	public class LinearLayout : MonoBehaviour
 	{
 		public float paddingStart = 0f;
@@ -22,10 +23,14 @@ namespace Tehelee.Baseline.Components.UI
 		public bool resizeBounds = false;
 
 		public bool updateInRuntime = false;
-
 #if UNITY_EDITOR
 		public bool updateInEdit = false;
 #endif
+
+		public RectTransform rectTransform { get; private set; }
+
+		private RectTransform viewport = null;
+
 		protected virtual void Update()
 		{
 #if UNITY_EDITOR
@@ -45,14 +50,42 @@ namespace Tehelee.Baseline.Components.UI
 			PerformLayout();
 		}
 
+		protected virtual void Awake()
+		{
+			rectTransform = ( RectTransform ) transform;
+
+			CheckScrollRect();
+			
+		}
+
 		protected virtual void OnEnable()
 		{
+			CheckScrollRect();
+
 			PerformLayout();
+		}
+
+		protected virtual void OnDisable()
+		{
+			viewport = null;
+		}
+
+		public void CheckScrollRect()
+		{
+			UnityEngine.UI.ScrollRect scrollRect = rectTransform.GetComponentInParent<UnityEngine.UI.ScrollRect>();
+			if( !object.Equals( null, scrollRect ) && object.Equals( scrollRect.content, rectTransform ) && !object.Equals( null, scrollRect.viewport ) )
+				viewport = scrollRect.viewport;
 		}
 
 		public void PerformLayout()
 		{
-			RectTransform child, rectTransform = ( RectTransform ) transform;
+			if( !Utils.IsObjectAlive( rectTransform ) )
+			{
+				rectTransform = ( RectTransform ) transform;
+				CheckScrollRect();
+			}
+
+			RectTransform child;
 
 			float totalSize = paddingStart;
 			if( layoutHorizontal )
@@ -72,6 +105,11 @@ namespace Tehelee.Baseline.Components.UI
 						child.anchoredPosition = new Vector2( -totalSize, child.anchoredPosition.y );
 						
 						totalSize += child.sizeDelta.x + ( ( i < iC - 1 ) ? paddingMids : paddingEnd );
+					}
+
+					if( Utils.IsObjectAlive( viewport ) )
+					{
+						totalSize = Mathf.Max( totalSize, viewport.rect.width );
 					}
 				}
 				else
@@ -116,6 +154,11 @@ namespace Tehelee.Baseline.Components.UI
 
 						totalSize += child.sizeDelta.y + ( ( i < iC - 1 ) ? paddingMids : paddingEnd );
 					}
+					
+					if( Utils.IsObjectAlive( viewport ) )
+					{
+						totalSize = Mathf.Max( totalSize, viewport.rect.height );
+					}
 				}
 				else
 				{
@@ -148,13 +191,11 @@ namespace Tehelee.Baseline.Components.UI
 	[CustomEditor( typeof( LinearLayout ) )]
 	public class EditorLinearLayout : EditorUtils.InheritedEditor
 	{
-		public override float inspectorLeadingOffset => lineHeight * 0.5f;
-
 		public override float GetInspectorHeight()
 		{
 			float height = base.GetInspectorHeight();
 
-			height += lineHeight * 6f;
+			height += lineHeight * 7.5f;
 
 			return height;
 		}
@@ -164,6 +205,9 @@ namespace Tehelee.Baseline.Components.UI
 			base.DrawInspector( ref rect );
 
 			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
+
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Linear Layout", "Provides a more extensive and polished horizontal or vertical layout group." ) );
+			bRect.y += lineHeight * 1.5f;
 
 			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 20f ) * 0.333f, lineHeight * 1.5f );
 

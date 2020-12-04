@@ -8,13 +8,6 @@ namespace Tehelee.Baseline
 	{
 		public Singleton() { }
 
-		public Singleton( bool clearOnInvoke )
-		{
-			this.clearOnInvoke = clearOnInvoke;
-		}
-
-		public bool clearOnInvoke = false;
-
 		private T _instance;
 		public T instance
 		{
@@ -27,8 +20,8 @@ namespace Tehelee.Baseline
 				{
 					onInstance?.Invoke( value );
 
-					if( clearOnInvoke )
-						onInstance = null;
+					onNextInstance?.Invoke( value );
+					onNextInstance = null;
 				}
 			}
 		}
@@ -39,17 +32,31 @@ namespace Tehelee.Baseline
 
 		public delegate void OnInstance( T instance );
 
-		public event OnInstance onInstance;
+		private event OnInstance onInstance = null;
+		private event OnInstance onNextInstance = null;
 
-		public void ListenForInstance( OnInstance onInstance )
+		public void RegisterListener( OnInstance listener, bool clearOnInvoke = false )
 		{
-			if( object.Equals( null, onInstance ) )
-				return;
+			if( !object.Equals( null, _instance ) )
+			{
+				listener( _instance );
 
-			this.onInstance += onInstance;
+				if( !clearOnInvoke )
+					this.onInstance += listener;
+			}
+			else
+			{
+				if( clearOnInvoke )
+					this.onNextInstance += listener;
+				else
+					this.onInstance += listener;
+			}
+		}
 
-			if( this )
-				onInstance( _instance );
+		public void DropListener( OnInstance listener )
+		{
+			onInstance -= listener;
+			onNextInstance -= listener;
 		}
 	}
 }

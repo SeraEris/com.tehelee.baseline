@@ -10,12 +10,6 @@ using System.Runtime.InteropServices;
 
 namespace Tehelee.Baseline
 {
-	public delegate void Callback();
-
-	public delegate void Callback<T>( T context );
-
-	public delegate void Callback<T, T2>( T context, T2 context2 );
-
 	// This is a static utility class for method defines used in multiple locations
 
 	public static class Utils
@@ -71,7 +65,7 @@ namespace Tehelee.Baseline
 		// Hashing
 		////////////////
 
-		#region Hasing
+		#region Hashing
 
 		private static readonly ushort CrcPolynomial = 0xA001;
 
@@ -369,7 +363,12 @@ namespace Tehelee.Baseline
 			{
 				s = split[ i ];
 
-				output += char.ToUpper( s[ 0 ] ) + s.Substring( 1 ).ToLower();
+				if( s.Length <= 3 )
+					s = s.ToUpper();
+				else
+					s = char.ToUpper( s[ 0 ] ) + s.Substring( 1 ).ToLower();
+
+				output += s;
 
 				if( underscoreSpaces && ( i < ( c - 1 ) ) )
 					output += "_";
@@ -534,6 +533,23 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
+		// Unity Object Helpers
+		////////////////////////
+
+		#region Unity Object Helpers
+
+		// Shortcut to check if an object is null or if it's been destroyed.
+		public static bool IsObjectAlive( Object obj )
+		{
+			if( object.Equals( null, obj ) )
+				return false;
+
+			return obj;
+		}
+
+		#endregion
+
+		////////////////////////
 		// Sound Helpers
 		////////////////////////
 
@@ -655,6 +671,139 @@ namespace Tehelee.Baseline
 		}
 
 		#endregion
+
+		////////////////////////
+		// Clipboard
+		////////////////////////
+
+		#region Clipboard
+
+		private static TextEditor _clipboardTextEditor = null;
+		private static TextEditor clipboardTextEditor
+		{
+			get
+			{
+				if( object.Equals( null, _clipboardTextEditor ) )
+				{
+					_clipboardTextEditor = new TextEditor();
+				}
+				return _clipboardTextEditor;
+			}
+		}
+
+		public static string Clipboard
+		{
+			get
+			{
+				clipboardTextEditor.Paste();
+				return clipboardTextEditor.text;
+			}
+			set
+			{
+				clipboardTextEditor.text = value;
+				clipboardTextEditor.OnFocus();
+				clipboardTextEditor.Copy();
+				clipboardTextEditor.text = string.Empty;
+			}
+		}
+
+		#endregion
+
+		////////////////////////
+		// Threading
+		////////////////////////
+
+		#region Threading
+
+		public static void WaitForTask( System.Threading.Tasks.Task task, System.Action callback ) => StartCoroutine( IWaitForTask( task, callback ) );
+
+		public static IEnumerator IWaitForTask( System.Threading.Tasks.Task task, System.Action callback )
+		{
+			if( !task.IsCompleted )
+				if( task.Status == System.Threading.Tasks.TaskStatus.Created )
+					task.Start();
+
+			do
+				yield return null;
+			while( !task.IsCompleted );
+
+			callback?.Invoke();
+
+			yield break;
+		}
+
+		public static void WaitForTask<T>( System.Threading.Tasks.Task<T> task, System.Action<T> callback ) => StartCoroutine( IWaitForTask( task, callback ) );
+
+		public static IEnumerator IWaitForTask<T>( System.Threading.Tasks.Task<T> task, System.Action<T> callback )
+		{
+			if( !task.IsCompleted )
+				if( task.Status == System.Threading.Tasks.TaskStatus.Created )
+					task.Start();
+
+			do
+				yield return null;
+			while( !task.IsCompleted );
+
+			callback?.Invoke( task.Result );
+
+			yield break;
+		}
+
+		#endregion
+
+		////////////////////////
+		// Types
+		////////////////////////
+
+		#region Types
+
+		private static Dictionary<string, System.Type> typeDictionary = new Dictionary<string, System.Type>();
+
+		public static void ClearTypeCache()
+		{
+			typeDictionary.Clear();
+		}
+
+		private static void PopulateTypeCache()
+		{
+			if( object.Equals( null, typeDictionary ) )
+				typeDictionary = new Dictionary<string, System.Type>();
+
+			if( typeDictionary.Count == 0 )
+			{
+				foreach( System.Reflection.Assembly assembly in System.AppDomain.CurrentDomain.GetAssemblies() )
+				{
+					foreach( System.Type type in assembly.GetTypes() )
+					{
+						string fullName = type.FullName;
+						if( !typeDictionary.ContainsKey( fullName ) )
+							typeDictionary.Add( fullName, type );
+					}
+				}
+			}
+		}
+
+		public static System.Type FindType( string typeFullName )
+		{
+			PopulateTypeCache();
+
+			return typeDictionary.ContainsKey( typeFullName ) ? typeDictionary[ typeFullName ] : null;
+		}
+
+		public static List<System.Type> FindSubTypes<T>( string fullNameStartsWith )
+		{
+			PopulateTypeCache();
+
+			List<System.Type> types = new List<System.Type>();
+
+			foreach( KeyValuePair<string,System.Type> kvp in typeDictionary )
+				if( kvp.Key.StartsWith( fullNameStartsWith ) && typeof( T ).IsAssignableFrom( kvp.Value ) )
+					types.Add( kvp.Value );
+
+			return types;
+		}
+
+		#endregion
 	}
 
 	public class AudioParameters
@@ -692,49 +841,5 @@ namespace Tehelee.Baseline
 
 			yield break;
 		}
-	}
-
-	public class CallbackSingleton<T> where T : class
-	{
-		private List<System.Action<T>> setupCallbacks = new List<System.Action<T>>();
-
-		public void OnSetup( System.Action<T> callback )
-		{
-			if( !object.Equals( null, _value ) )
-			{
-				callback.Invoke( _value );
-			}
-
-			setupCallbacks.Add( callback );
-		}
-
-		private T _value = null;
-		public T value
-		{
-			get { return _value; }
-			set
-			{
-				_value = value;
-
-				if( !object.Equals( null, value ) )
-				{
-					List<System.Action<T>> callbacks = new List<System.Action<T>>();
-
-					foreach( System.Action<T> callback in setupCallbacks )
-					{
-						if( !object.Equals( null, callback ) )
-						{
-							callback.Invoke( _value );
-
-							callbacks.Add( callback );
-						}
-					}
-
-					setupCallbacks = callbacks;
-				}
-			}
-		}
-
-		public static implicit operator T( CallbackSingleton<T> callbackSingleton ) { return callbackSingleton._value; }
 	}
 }

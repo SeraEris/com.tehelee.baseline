@@ -12,16 +12,218 @@ using UnityEditorInternal;
 using Unity.Collections;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Utilities;
+using Unity.Collections.LowLevel.Unsafe;
+using System.Runtime.InteropServices;
 
 namespace Tehelee.Baseline.Networking
 {
+	public enum ReadResult : byte
+	{
+		Skipped,    // Not utilized by this listener
+		Processed,  // Used by this listener, but non exclusively.
+		Consumed,   // Used by this listener, and stops all further listener checks.
+		Error       // A problem was encountered, store information into readHandlerErrorMessage
+	}
+
 	public class Shared : MonoBehaviour
 	{
 		////////////////////////////////
+		//	Attributes
+
+		#region Attributes
+
+		public const string LoopbackAddress = "127.0.0.1";
+
+		public string address = LoopbackAddress;
+		public ushort port = 16448;
+
+		public bool openOnEnable = false;
+		public bool debug = false;
+		public bool registerSingleton = true;
+
+		public NetworkParamters networkParameters = new NetworkParamters();
+
+		#endregion
+
+		////////////////////////////////
+		//	Properties
+
+		#region Properties
+
+		public virtual string networkScopeLabel { get { return "Shared"; } }
+
+		public float connectTimeout => ( networkParameters.connectTimeoutMS * networkParameters.maxConnectAttempts ) * 0.001f;
+
+		public bool open { get; private set; }
+
+		public ushort networkId { get; protected set; }
+
+		#endregion
+
+		////////////////////////////////
+		//	Members
+
+		#region Members
+
+		public Pipeline pipeline;
+
+		public NetworkDriver driver;
+
+		#endregion
+
+		////////////////////////////////
+		//	Mono Methods
+
+		#region Mono Methods
+
+		protected virtual void Awake() { }
+
+		protected virtual void OnEnable() { }
+
+		protected virtual void OnDisable() { }
+
+		protected virtual void OnDestroy() { }
+
+		protected virtual void Update()
+		{
+			if( open )
+			{
+				NetworkUpdate();
+			}
+		}
+
+		#endregion
+
+		////////////////////////////////
+		//	Open & Close
+
+		#region Open & Close
+
+		public virtual void Open()
+		{
+			if( open )
+				return;
+
+			pingTimingsByNetworkId.Clear();
+			usernamesByNetworkId.Clear();
+			adminIds.Clear();
+
+			foreach( System.Type type in builtInPacketTypes )
+				if( !object.Equals( null, type ) )
+					Packet.Register( this, type );
+
+			RegisterPacketDatas();
+
+			Dictionary<string, string> args = new Dictionary<string, string>();
+			args.Add( "networkAddress", null );
+			args.Add( "networkPort", null );
+
+			Utils.GetArgsFromDictionary( ref args );
+
+			if( !string.IsNullOrEmpty( args[ "networkAddress" ] ) )
+				this.address = args[ "networkAddress" ];
+
+			this.address = this.address ?? LoopbackAddress;
+
+			if( !string.IsNullOrEmpty( args[ "networkPort" ] ) )
+			{
+				ushort port;
+				if( ushort.TryParse( args[ "networkPort" ], out port ) )
+					this.port = port;
+			}
+
+			if( networkParameters.useSimulator )
+			{
+				driver = NetworkDriver.Create
+				(
+					new NetworkDataStreamParameter
+					{
+						size = 0
+					},
+					new ReliableUtility.Parameters
+					{
+						WindowSize = networkParameters.maxPacketCount
+					},
+					new NetworkConfigParameter
+					{
+						connectTimeoutMS = networkParameters.connectTimeoutMS,
+						disconnectTimeoutMS = networkParameters.disconnectTimeoutMS,
+						maxConnectAttempts = networkParameters.maxConnectAttempts
+					},
+					( SimulatorUtility.Parameters ) networkParameters
+				);
+				
+				pipeline = new Pipeline( driver, true );
+			}
+			else
+			{
+				driver = NetworkDriver.Create
+				(
+					new NetworkDataStreamParameter
+					{
+						size = 0
+					},
+					new ReliableUtility.Parameters
+					{
+						WindowSize = networkParameters.maxPacketCount
+					},
+					new NetworkConfigParameter
+					{
+						connectTimeoutMS = networkParameters.connectTimeoutMS,
+						disconnectTimeoutMS = networkParameters.disconnectTimeoutMS,
+						maxConnectAttempts = networkParameters.maxConnectAttempts
+					}
+				);
+
+				pipeline = new Pipeline( driver );
+			}
+
+			open = true;
+
+			if( debug )
+				Debug.LogFormat( "{0}.Open() {1} on {2} with {3}", networkScopeLabel, this.address, this.port, networkParameters.ToString() );
+		}
+
+		public virtual void Close()
+		{
+			if( !open )
+				return;
+
+			foreach( System.Type type in builtInPacketTypes )
+				if( !object.Equals( null, type ) )
+					Packet.Unregister( this, type );
+
+			open = false;
+
+			pipeline = default;
+
+			driver.Dispose();
+
+			UnregisterPacketDatas();
+
+			if( debug )
+				Debug.LogFormat( "{0}.Close()", networkScopeLabel );
+		}
+
+		#endregion
+
+		////////////////////////////////
 		//	Packet Datas
 
-		#region PacketDatas
+		#region Packet Datas
 
+		private List<System.Type> builtInPacketTypes = new List<System.Type>()
+		{
+			typeof( Packets.Administration ),
+			typeof( Packets.Bundle ),
+			typeof( Packets.Handshake ),
+			typeof( Packets.Loopback ),
+			typeof( Packets.Password ),
+			typeof( Packets.Ping ),
+			typeof( Packets.ServerInfo ),
+			typeof( Packets.Username )
+		};
+		
 		public List<DesignData.PacketData> packetDatas = new List<DesignData.PacketData>();
 
 		protected virtual void RegisterPacketDatas()
@@ -45,10 +247,10 @@ namespace Tehelee.Baseline.Networking
 			string[] packetTypeNames = packetData.packetTypeNames;
 			foreach( string packetTypeName in packetTypeNames )
 			{
-				System.Type packetType = System.Type.GetType( packetTypeName );
+				System.Type packetType = Utils.FindType( packetTypeName );
 
 				if( !object.Equals( null, packetType ) )
-					Packet.Register( packetType );
+					Packet.Register( this, packetType );
 			}
 
 			if( !skipAdd && !packetDatas.Contains( packetData ) )
@@ -62,10 +264,10 @@ namespace Tehelee.Baseline.Networking
 				string[] packetTypeNames = packetData.packetTypeNames;
 				foreach( string packetTypeName in packetTypeNames )
 				{
-					System.Type packetType = System.Type.GetType( packetTypeName );
+					System.Type packetType = Utils.FindType( packetTypeName );
 
 					if( !object.Equals( null, packetType ) )
-						Packet.Unregister( packetType );
+						Packet.Unregister( this, packetType );
 				}
 
 				if( !skipRemove )
@@ -86,10 +288,18 @@ namespace Tehelee.Baseline.Networking
 			public NetworkPipeline reliable;
 			public NetworkPipeline unreliable;
 
-			public Pipeline( UdpNetworkDriver driver )
+			public Pipeline( NetworkDriver driver, bool useSimulator = false )
 			{
-				reliable = driver.CreatePipeline( typeof( ReliableSequencedPipelineStage ), typeof( SimulatorPipelineStage ) );
-				unreliable = driver.CreatePipeline( typeof( UnreliableSequencedPipelineStage ), typeof( SimulatorPipelineStage ) );
+				if( useSimulator )
+				{
+					reliable = driver.CreatePipeline( typeof( ReliableSequencedPipelineStage ), typeof( SimulatorPipelineStage ) );
+					unreliable = driver.CreatePipeline( typeof( UnreliableSequencedPipelineStage ), typeof( SimulatorPipelineStage ) );
+				}
+				else
+				{
+					reliable = driver.CreatePipeline( typeof( ReliableSequencedPipelineStage ) );
+					unreliable = driver.CreatePipeline( typeof( UnreliableSequencedPipelineStage ) );
+				}
 			}
 
 			public NetworkPipeline this[ bool reliable ] { get { return reliable ? this.reliable : this.unreliable; } }
@@ -98,65 +308,31 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Open & Close
+		//	Reliability Error
 
-		#region OpenClose
+		#region ReliabilityError
 
-		public virtual void Open()
+		protected unsafe int GetReliabilityError( NetworkConnection connection )
 		{
-			if( open )
-				return;
-			
-			Packet.Register( typeof( Packets.PacketBundle ) );
-			Packet.Register( typeof( Packets.PacketLoopback ) );
+			NativeArray<byte> readProcessingBuffer = default;
+			NativeArray<byte> writeProcessingBuffer = default;
+			NativeArray<byte> sharedBuffer = default;
 
-			RegisterPacketDatas();
+			driver.GetPipelineBuffers( pipeline.reliable, NetworkPipelineStageCollection.GetStageId( typeof( ReliableSequencedPipelineStage ) ), connection, out readProcessingBuffer, out writeProcessingBuffer, out sharedBuffer );
 
-			Dictionary<string, string> args = new Dictionary<string, string>();
-			args.Add( "networkAddress", null );
-			args.Add( "networkPort", null );
+			ReliableUtility.SharedContext* unsafePointer = ( ReliableUtility.SharedContext* ) sharedBuffer.GetUnsafePtr();
 
-			Utils.GetArgsFromDictionary( ref args );
-
-			if( !string.IsNullOrEmpty( args[ "networkAddress" ] ) )
-				this.address = args[ "networkAddress" ];
-
-			this.address = this.address ?? LoopbackAddress;
-
-			if( args[ "networkPort" ] != null )
+			if( unsafePointer->errorCode != 0 )
 			{
-				ushort port;
-				if( ushort.TryParse( args[ "networkPort" ], out port ) )
-					this.port = port;
+				int errorId = ( int ) unsafePointer->errorCode;
+				return errorId;
 			}
-
-			driver = new UdpNetworkDriver( new ReliableUtility.Parameters { WindowSize = networkParameters.maxPacketCount }, new NetworkConfigParameter { connectTimeoutMS = networkParameters.connectTimeoutMS, disconnectTimeoutMS = networkParameters.disconnectTimeoutMS, maxConnectAttempts = networkParameters.maxConnectAttempts }, ( SimulatorUtility.Parameters ) networkParameters );
-			
-			pipeline = new Pipeline( driver );
-
-			open = true;
-
-			if( debug )
-				Debug.LogFormat( "{0}.Open() {1} on {2} with {3}", networkScopeLabel, this.address, this.port, networkParameters.ToString() );
+			else
+			{
+				return 0;
+			}
 		}
-
-		public virtual void Close()
-		{
-			if( !open )
-				return;
-
-			open = false;
-
-			pipeline = default;
-
-			driver.Dispose();
-
-			UnregisterPacketDatas();
-
-			if( debug )
-				Debug.LogFormat( "{0}.Close()", networkScopeLabel );
-		}
-
+		
 		#endregion
 
 		////////////////////////////////
@@ -173,6 +349,12 @@ namespace Tehelee.Baseline.Networking
 
 		protected PacketQueue packetQueue = new PacketQueue() { reliable = new Queue<Packet>(), unreliable = new Queue<Packet>() };
 
+		protected virtual ReadResult InternalRead( NetworkConnection connection, ref PacketReader reader ) => ReadResult.Skipped;
+
+		protected static ushort packetBundleHash { get; private set; } = Packet.Hash( typeof( Packets.Bundle ) );
+
+		public string readHandlerErrorMessage = null;
+
 		public virtual void Send( Packet packet, bool reliable = false )
 		{
 			if( !open )
@@ -181,6 +363,37 @@ namespace Tehelee.Baseline.Networking
 			if( null == packet )
 				return;
 
+			if( object.Equals( null, Packet.LookupType( packet.id ) ) )
+			{
+				Debug.LogErrorFormat( "Packet type ( {0} ) not registered!", packet.GetType().FullName );
+				return;
+			}
+
+			if( packet.id == packetBundleHash )
+			{
+				Packets.Bundle packetBundle = ( Packets.Bundle ) packet;
+				foreach( Packet bundledPacket in packetBundle.packets )
+				{
+					UpdateSendMonitors( bundledPacket, reliable );
+				}
+			}
+			else
+			{
+				UpdateSendMonitors( packet, reliable );
+			}
+			
+
+			if( reliable )
+				packetQueue.reliable.Enqueue( packet );
+			else
+				packetQueue.unreliable.Enqueue( packet );
+
+			if( debug )
+				Debug.LogWarningFormat( "{0}.Write( {1} ) using {2} channel.{3}", networkScopeLabel, packet.GetType().FullName, reliable ? "verified" : "fast", !object.Equals( null, packet.targets ) && packet.targets.Count > 0 ? string.Format( " Sent only to {0} connections.", packet.targets.Count ) : string.Empty );
+		}
+
+		private void UpdateSendMonitors( Packet packet, bool reliable )
+		{
 			if( packetMonitors.ContainsKey( packet.id ) && packetMonitors[ packet.id ] != null )
 			{
 				Dictionary<int, SendMonitor> listeners = packetMonitors[ packet.id ];
@@ -191,150 +404,164 @@ namespace Tehelee.Baseline.Networking
 				for( int i = 0; i < keys.Count; i++ )
 				{
 					int key = keys[ i ];
-					SendMonitor spyListener = listeners[ key ];
+					SendMonitor sendMonitor = listeners[ key ];
 
-					if( spyListener != null )
+					if( sendMonitor != null )
 					{
-						spyListener.Invoke( packet, reliable );
+						sendMonitor.Invoke( packet, reliable );
 					}
 				}
 			}
-
-			if( reliable )
-				packetQueue.reliable.Enqueue( packet );
-			else
-				packetQueue.unreliable.Enqueue( packet );
-
-			if( debug )
-				Debug.LogWarningFormat( "{0}.Write( {1} ) using {2} channel.{3}", networkScopeLabel, Packet.LookupType( packet.id ).FullName, reliable ? "verified" : "fast", packet.targets.Count > 0 ? string.Format( " Sent only to {0} connections.", packet.targets.Count ) : string.Empty );
 		}
 
-		protected void Read( NetworkConnection connection, ref DataStreamReader reader )
+		protected ReadResult Read( NetworkConnection connection, ref DataStreamReader reader )
 		{
-			DataStreamReader.Context context = default( DataStreamReader.Context );
-
-			Read( connection, ref reader, ref context );
+			NativeArray<byte> readerBytes = new NativeArray<byte>( reader.Length, Allocator.Temp );
+			reader.ReadBytes( readerBytes );
+			PacketReader packetReader = new PacketReader( readerBytes );
+			return Read( connection, ref packetReader );
 		}
 
-		protected virtual ReadResult InternalRead( NetworkConnection connection, ref DataStreamReader reader, ref DataStreamReader.Context context ) => ReadResult.Skipped;
-
-		protected void Read( NetworkConnection connection, ref DataStreamReader reader, ref DataStreamReader.Context context )
+		protected ReadResult Read( NetworkConnection connection, ref PacketReader reader )
 		{
-			DataStreamReader.Context beginningContext = ReaderContextFactory.Clone( context );
+			int beginReadIndex = reader.readIndex;
 
-			ushort packetId = reader.ReadUShort( ref context );
-			
-			DataStreamReader.Context internalReadContext = ReaderContextFactory.Clone( beginningContext );
-			ReadResult internalReadResult = InternalRead( connection, ref reader, ref internalReadContext );
-			if( internalReadResult == ReadResult.Consumed || internalReadResult == ReadResult.Error )
+			ushort packetId = reader.ReadUShort();
+
+			if( !Packet.IsValid( packetId ) )
+				return ReadResult.Error;
+
+			if( packetId == packetBundleHash )
 			{
-				context = internalReadContext;
-
-				if( debug )
-					Debug.LogFormat( "{0}.InternalRead( {1} ).", networkScopeLabel, Packet.LookupType( packetId ).FullName );
-
-				return;
-			}
-			
-			if( packetId == Packet.Hash( typeof( Packets.PacketBundle ) ) )
-			{
-				int count = reader.ReadInt( ref context );
+				int count = reader.ReadUShort();
 
 				if( debug )
 					Debug.LogFormat( "{0}.ReadPacketBundle() with {1} packets.", networkScopeLabel, count );
 
 				for( int i = 0; i < count; i++ )
-				{
-					Read( connection, ref reader, ref context );
-				}
+					if( Read( connection, ref reader ) == ReadResult.Error )
+						return ReadResult.Error;
 
-				return;
+				return ReadResult.Consumed;
+			}
+
+			int preInternalIndex = reader.readIndex;
+			reader.readIndex = beginReadIndex;
+
+			ReadResult internalReadResult = InternalRead( connection, ref reader );
+			switch( internalReadResult )
+			{
+				default:
+					reader.readIndex = preInternalIndex;
+					break;
+
+				case ReadResult.Error:
+					return ReadResult.Skipped;
+
+				case ReadResult.Consumed:
+
+					if( debug )
+						Debug.LogFormat( "{0}.InternalRead( {1} ).", networkScopeLabel, Packet.LookupType( packetId ).FullName );
+
+					return ReadResult.Consumed;
 			}
 			
-			bool processed = false;
-			int listenerCount = 0;
-
-			if( packetListeners.ContainsKey( packetId ) && packetListeners[ packetId ] != null )
+			if( packetRoutings.ContainsKey( packetId ) )
 			{
-				listenerCount = packetListeners[ packetId ].Count;
-
-				if( debug )
-					Debug.LogFormat( "{0}.Read( {1} ) with {2} listeners.", networkScopeLabel, Packet.LookupType( packetId ).FullName, listenerCount );
-
-				Dictionary<int, ReadHandler> listeners = packetListeners[ packetId ];
-				List<int> keys = new List<int>( listeners.Keys );
-				keys.Sort();
-				
-				DataStreamReader.Context iterationContext, processedContext = context;
-				for( int i = 0; i < keys.Count; i++ )
+				PacketRouting packetRouting = packetRoutings[ packetId ];
+				if( object.Equals( null, packetRouting ) )
 				{
-					int key = keys[ i ];
-					ReadHandler readHandler = listeners[ key ];
-
-					iterationContext = ReaderContextFactory.Clone( context );
-
-					if( readHandler != null )
-					{
-						ReadResult result = readHandler( connection, ref reader, ref iterationContext );
-						if( result != ReadResult.Skipped )
-						{
-							switch( result )
-							{
-								case ReadResult.Processed:
-									if( debug )
-										Debug.LogFormat( "{0}.Read( {1} ) processed by listener {2}.", networkScopeLabel, Packet.LookupType( packetId ).FullName, i );
-									processedContext = iterationContext;
-									processed = true;
-									break;
-								case ReadResult.Consumed:
-									if( debug )
-										Debug.LogFormat( "{0}.Read( {1} ) consumed by listener {2}.", networkScopeLabel, Packet.LookupType( packetId ).FullName, i );
-									context = iterationContext;
-									return;
-								case ReadResult.Error:
-									Debug.LogErrorFormat( "{0}.Read( {1} ) encountered an error on listener {2}.{3}", networkScopeLabel, Packet.LookupType( packetId ).FullName, i, readHandlerErrorMessage != null ? string.Format( "\nError Message: {0}", readHandlerErrorMessage ) : string.Empty );
-									return;
-							}
-						}
-					}
-				}
-
-				if( processed )
-					context = processedContext;
-
-				return;
-			}
-
-			if( !processed )
-			{
-				if( debug )
-				{
-					if( listenerCount == 0 )
-						Debug.LogWarningFormat( "{0}.Read( {1} ) [ {2} ] skipped; no associated listeners.", networkScopeLabel, Packet.LookupType( packetId )?.FullName, packetId );
-					else
-						Debug.LogWarningFormat( "{0}.Read( {1} ) failed to be consumed by one of the {2} listeners.", networkScopeLabel, Packet.LookupType( packetId ).FullName, listenerCount );
-				}
-
-				System.Type packetType = Packet.LookupType( packetId );
-
-				if( !object.Equals( null, packetType ) )
-				{
-					System.Reflection.ConstructorInfo packetConstructor = packetType.GetConstructor( new[] { typeof( DataStreamReader ).MakeByRefType(), typeof( DataStreamReader.Context ).MakeByRefType() } );
-
-					object[] constructorParamters = new object[] { reader, context };
-
-					Packet packet = ( Packet ) packetConstructor.Invoke( constructorParamters );
-
-					context = ( DataStreamReader.Context ) constructorParamters[ 1 ];
+					packetRoutings.Remove( packetId );
 				}
 				else
 				{
-					Debug.LogErrorFormat( "{0}.Read( {1} ) failed to create a fall-through listener!", networkScopeLabel, packetType );
+					int preRoutingIndex = reader.readIndex;
+
+					if( packetRouting.Process( this, connection, ref reader ) == ReadResult.Consumed )
+						return ReadResult.Consumed;
+					else
+						reader.readIndex = preRoutingIndex;
 				}
 			}
-		}
 
-		public string readHandlerErrorMessage = null;
+			int listenerCount = 0;
+
+			if( packetListeners.ContainsKey( packetId ) )
+			{
+				if( object.Equals( null, packetListeners[ packetId ] ) )
+					return ReadResult.Error;
+
+				listenerCount = packetListeners[ packetId ].Count;
+			}
+			
+			if( listenerCount == 0 )
+			{
+				if( debug )
+					Debug.LogWarningFormat( "{0}.Read( {1} ) [ {2} ] skipped; no associated listeners.", networkScopeLabel, Packet.LookupType( packetId )?.FullName, packetId );
+				
+				return ReadResult.Skipped;
+			}
+
+			if( debug )
+				Debug.LogFormat( "{0}.Read( {1} ) with {2} listeners.", networkScopeLabel, Packet.LookupType( packetId ).FullName, listenerCount );
+
+			bool processed = false;
+
+			Dictionary<int, ReadHandler> listeners = packetListeners[ packetId ];
+			List<int> keys = new List<int>( listeners.Keys );
+			keys.Sort();
+
+			int iterationContext, processedContext = reader.readIndex;
+			for( int i = 0; i < keys.Count; i++ )
+			{
+				int key = keys[ i ];
+				ReadHandler readHandler = listeners[ key ];
+
+				iterationContext = reader.readIndex;
+
+				if( readHandler != null )
+				{
+					ReadResult result = readHandler( connection, ref reader );
+					if( result == ReadResult.Skipped )
+					{
+						reader.readIndex = iterationContext;
+					}
+					else
+					{
+						switch( result )
+						{
+							case ReadResult.Processed:
+								if( debug )
+									Debug.LogFormat( "{0}.Read( {1} ) processed by listener {2}.", networkScopeLabel, Packet.LookupType( packetId ).FullName, i );
+								processedContext = reader.readIndex;
+								reader.readIndex = iterationContext;
+								processed = true;
+								break;
+							case ReadResult.Consumed:
+								if( debug )
+									Debug.LogFormat( "{0}.Read( {1} ) consumed by listener {2}.", networkScopeLabel, Packet.LookupType( packetId ).FullName, i );
+								return ReadResult.Consumed;
+							case ReadResult.Error:
+								Debug.LogErrorFormat( "{0}.Read( {1} ) encountered an error on listener {2}.{3}", networkScopeLabel, Packet.LookupType( packetId ).FullName, i, readHandlerErrorMessage != null ? string.Format( "\nError Message: {0}", readHandlerErrorMessage ) : string.Empty );
+								reader.readIndex = iterationContext;
+								return ReadResult.Error;
+						}
+					}
+				}
+			}
+
+			if( processed )
+			{
+				reader.readIndex = processedContext;
+
+				return ReadResult.Processed;
+			}
+			
+			if( debug )
+				Debug.LogWarningFormat( "{0}.Read( {1} ) failed to be consumed by one of the {2} listeners.", networkScopeLabel, Packet.LookupType( packetId ).FullName, listenerCount );
+			
+			return ReadResult.Error;
+		}
 
 		#endregion
 
@@ -352,18 +579,11 @@ namespace Tehelee.Baseline.Networking
 
 		////////////////////////////////
 		//	Listeners
+		//		Callback On Recieve
 
 		#region Listeners
 
-		public enum ReadResult : byte
-		{
-			Skipped,    // Not utilized by this listener
-			Processed,  // Used by this listener, but non exclusively.
-			Consumed,   // Used by this listener, and stops all further listener checks.
-			Error       // A problem was encountered, store information into readHandlerErrorMessage
-		}
-
-		public delegate ReadResult ReadHandler( NetworkConnection connection, ref DataStreamReader reader, ref DataStreamReader.Context context );
+		public delegate ReadResult ReadHandler( NetworkConnection connection, ref PacketReader reader );
 
 		Dictionary<ushort, Dictionary<int,ReadHandler>> packetListeners = new Dictionary<ushort, Dictionary<int, ReadHandler>>();
 		
@@ -420,6 +640,7 @@ namespace Tehelee.Baseline.Networking
 
 		////////////////////////////////
 		//	Monitors
+		//		Callback On Send
 
 		#region Monitors
 
@@ -474,65 +695,178 @@ namespace Tehelee.Baseline.Networking
 		}
 
 		#endregion
-		
-		////////////////////////////////
-		//	Properties
-
-		#region Properties
-
-		public virtual string networkScopeLabel { get { return "Shared"; } }
-
-		public bool open { get; private set; }
-
-		#endregion
 
 		////////////////////////////////
-		//	Members
+		//	Packet Routing
+		//		Quick redirect instead of callback
 
-		#region Members
+		#region Packet Routing
 
-		public Pipeline pipeline;
-
-		public UdpNetworkDriver driver;
-
-		#endregion
-
-		////////////////////////////////
-		//	Attributes
-
-		#region Attributes
-
-		public const string LoopbackAddress = "127.0.0.1";
-
-		public string address = LoopbackAddress;
-		public ushort port = 16448;
-		
-		public bool openOnEnable = false;
-		public bool debug = false;
-		
-		public NetworkParamters networkParameters = new NetworkParamters();
-
-		#endregion
-
-		////////////////////////////////
-		//	Mono Methods
-
-		#region MonoMethods
-
-		protected virtual void Awake() { }
-
-		protected virtual void OnEnable() { }
-
-		protected virtual void OnDisable() { }
-
-		protected virtual void OnDestroy() { }
-
-		protected virtual void Update()
+		public class PacketRouting
 		{
-			if( open )
+			public enum RoutingMode : byte
 			{
-				NetworkUpdate();
+				Loopback,
+				Others,
+				All
 			}
+
+			public RoutingMode routingMode = RoutingMode.Loopback;
+			public bool reliable = false;
+
+			public delegate Packet ConstructPacket( ref PacketReader reader );
+			public ConstructPacket constructPacket = null;
+
+			public delegate Packet ConstructPacketEx( NetworkConnection networkConnection, ref PacketReader reader );
+			public ConstructPacketEx constructPacketEx = null;
+
+			public PacketRouting() { }
+			public PacketRouting( RoutingMode routingMode, bool reliable, ConstructPacket constructPacket )
+			{
+				this.routingMode = routingMode;
+				this.reliable = reliable;
+				this.constructPacket = constructPacket;
+			}
+
+			public PacketRouting( RoutingMode routingMode, bool reliable, ConstructPacketEx constructPacketEx )
+			{
+				this.routingMode = routingMode;
+				this.reliable = reliable;
+				this.constructPacketEx = constructPacketEx;
+			}
+
+			public ReadResult Process( Shared shared, NetworkConnection networkConnection, ref PacketReader reader )
+			{
+				Packet packet = null;
+
+				if( !object.Equals( null, constructPacket ) )
+					packet = constructPacket( ref reader );
+				else if( !object.Equals( null, constructPacketEx ) )
+					packet = constructPacketEx( networkConnection, ref reader );
+				else
+					return ReadResult.Skipped;
+
+				if( object.Equals( null, packet ) )
+					return ReadResult.Skipped;
+
+				switch( routingMode )
+				{
+					case RoutingMode.Loopback:
+						packet.targets.Add( networkConnection );
+						break;
+					case RoutingMode.Others:
+					case RoutingMode.All:
+						Server server = ( Server ) shared;
+						if( object.Equals( null, server ) )
+						{
+							packet.targets.AddRange( server.GetNetworkConnections() );
+							if( routingMode == RoutingMode.Others )
+								packet.targets.Remove( networkConnection );
+						}
+						else
+						{
+							packet.targets.Add( networkConnection );
+						}
+						break;
+				}
+
+				shared.Send( packet, reliable );
+
+				return ReadResult.Consumed;
+			}
+		}
+
+		protected Dictionary<ushort, PacketRouting> packetRoutings = new Dictionary<ushort, PacketRouting>();
+
+		public void RegisterRouting( System.Type type, PacketRouting routingMode )
+		{
+			ushort hash = Packet.Hash( type );
+
+			if( hash == 0 )
+				throw new System.ArgumentException( "The type parameter must be a registered Packet type.", "type" );
+
+			if( packetRoutings.ContainsKey( hash ) )
+				packetRoutings[ hash ] = routingMode;
+			else
+				packetRoutings.Add( hash, routingMode );
+		}
+
+		public void DropRouting( System.Type type )
+		{
+			ushort hash = Packet.Hash( type );
+
+			if( hash == 0 )
+				throw new System.ArgumentException( "The type parameter must be a registered Packet type.", "type" );
+
+			if( !packetRoutings.ContainsKey( hash ) )
+				throw new System.ArgumentOutOfRangeException( "type", "The packet type did not have an existing routing to remove." );
+
+			packetRoutings.Remove( hash );
+		}
+
+		#endregion
+
+		////////////////////////////////
+		//	Ping
+
+		#region Ping
+
+		protected Dictionary<ushort, ushort> pingTimingsByNetworkId = new Dictionary<ushort, ushort>();
+
+		public virtual ushort GetPing( ushort networkId ) => ( networkId == 0 || !pingTimingsByNetworkId.ContainsKey( networkId ) ) ? ( ushort ) 0 : pingTimingsByNetworkId[ networkId ];
+
+		protected void SetPing( ushort networkId, ushort pingMS )
+		{
+			if( pingTimingsByNetworkId.ContainsKey( networkId ) )
+				pingTimingsByNetworkId[ networkId ] = pingMS;
+			else
+				pingTimingsByNetworkId.Add( networkId, pingMS );
+		}
+
+		#endregion
+
+		////////////////////////////////
+		//	Usernames
+
+		#region Usernames
+
+		protected Dictionary<ushort, string> usernamesByNetworkId = new Dictionary<ushort, string>();
+
+		public virtual string GetUsername( ushort networkId ) => ( networkId == 0 || !usernamesByNetworkId.ContainsKey( networkId ) ) ? string.Empty : usernamesByNetworkId[ networkId ];
+
+		protected void SetUsername( ushort networkId, string username )
+		{
+			if( usernamesByNetworkId.ContainsKey( networkId ) )
+				usernamesByNetworkId[ networkId ] = username;
+			else
+				usernamesByNetworkId.Add( networkId, username );
+		}
+
+		#endregion
+
+		////////////////////////////////
+		//	Admins
+
+		#region Admins
+
+		protected HashSet<ushort> adminIds = new HashSet<ushort>();
+		public List<ushort> GetAdminIds() => new List<ushort>( adminIds );
+		public bool IsAdminId( ushort clientId ) => adminIds.Contains( clientId );
+
+		public virtual bool AdminPromote( ushort clientId )
+		{
+			if( clientId == 0 )
+				return false;
+
+			return adminIds.Add( clientId );
+		}
+
+		public virtual bool AdminDemote( ushort clientId )
+		{
+			if( clientId == 0 )
+				return false;
+
+			return adminIds.Remove( clientId );
 		}
 
 		#endregion
@@ -555,10 +889,7 @@ namespace Tehelee.Baseline.Networking
 			packetDatas = EditorUtils.CreateReorderableList
 			(
 				serializedObject.FindProperty( "packetDatas" ),
-				( SerializedProperty element ) =>
-				{
-					return lineHeight * 1.5f;
-				},
+				( SerializedProperty element ) => lineHeight * 1.5f,
 				( Rect rect, SerializedProperty element ) =>
 				{
 					EditorUtils.BetterObjectField( new Rect( rect.x, rect.y + lineHeight * 0.25f, rect.width, lineHeight ), new GUIContent(), element, typeof( DesignData.PacketData ) );
@@ -572,10 +903,7 @@ namespace Tehelee.Baseline.Networking
 
 			inspectorHeight += lineHeight * 1.5f;
 
-			if( packetDatas.GetExpanded() )
-				inspectorHeight += packetDatas.GetHeight();
-			else
-				inspectorHeight += lineHeight * 1.5f;
+			inspectorHeight += packetDatas.CalculateCollapsableListHeight();
 
 			inspectorHeight += lineHeight * 3.5f;
 
@@ -590,17 +918,10 @@ namespace Tehelee.Baseline.Networking
 
 			Rect cRect, bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
 
-			EditorUtils.DrawDivider( bRect, new GUIContent( "Networking - Shared" ) );
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Networking - Shared", "Functionality for both the Server and Client environments." ) );
 			bRect.y += lineHeight * 1.5f;
 
-			if( packetDatas.GetExpanded() )
-			{
-				bRect.height = packetDatas.GetHeight();
-				packetDatas.DoList( bRect );
-			}
-			EditorUtils.DrawListHeader( new Rect( bRect.x, bRect.y, bRect.width, lineHeight ), packetDatas.serializedProperty );
-			bRect.y += bRect.height + lineHeight * 0.5f;
-			bRect.height = lineHeight;
+			packetDatas.DrawCollapsableList( ref bRect, new GUIContent( "Packet Datas" ) );
 
 			cRect = new Rect( bRect.x, bRect.y, bRect.width - 80f, lineHeight );
 			EditorGUI.PropertyField( cRect, this[ "address" ], new GUIContent( "Address & Port" ) );
@@ -608,8 +929,10 @@ namespace Tehelee.Baseline.Networking
 			EditorGUI.PropertyField( cRect, this[ "port" ], new GUIContent( string.Empty, "Port" ) );
 			bRect.y += lineHeight * 1.5f;
 
-			cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 10f ) * 0.5f, lineHeight * 1.5f );
+			cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 20f ) / 3f, lineHeight * 1.5f );
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Auto-Open on Enable", string.Format( "The {0} will immediately attempt to connect on component enable.", shared.networkScopeLabel.ToLower() ) ), this[ "openOnEnable" ] );
+			cRect.x += cRect.width + 10f;
+			EditorUtils.BetterToggleField( cRect, new GUIContent( "Singleton" ), this[ "registerSingleton" ] );
 			cRect.x += cRect.width + 10f;
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Debug" ), this[ "debug" ] );
 			bRect.y += lineHeight * 2f;
@@ -624,10 +947,7 @@ namespace Tehelee.Baseline.Networking
 
 		public override float inspectorPostInspectorOffset => 0f;
 
-		public override float GetPostInspectorHeight()
-		{
-			return base.GetPostInspectorHeight() + lineHeight * 3.5f;
-		}
+		public override float GetPostInspectorHeight() => base.GetPostInspectorHeight() + lineHeight * 3.5f;
 
 		public override void DrawPostInspector( ref Rect rect )
 		{

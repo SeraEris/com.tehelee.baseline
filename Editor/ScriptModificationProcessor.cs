@@ -325,37 +325,36 @@ namespace Tehelee.Baseline
 			}
 
 			string namespacePrefix = !string.IsNullOrEmpty( NamespacePrefix ) ? NamespacePrefix : Utils.ToPascalCase( PlayerSettings.productName );
-
 			namespacePrefix = SanitizeNamespace( namespacePrefix );
 
 			string folderSpace = "";
+			string folderSpaceSkipFirst = "";
 			if( inScriptsFolder != -1 )
 			{
-				scriptFolders.Add( inScenesFolder != -1 ? string.Format( "{0}.scenes", namespacePrefix ) : namespacePrefix );
-
 				scriptFolders.Reverse();
 
 				for( int i = 0, iC = scriptFolders.Count; i < iC; i++ )
 				{
-					string folder = scriptFolders[ i ];
+					string folder = Utils.ToPascalCase( scriptFolders[ i ], true );
+					folder = folder.Replace( "_", string.Empty );
 
-					if( i == 0 && folder == namespacePrefix )
-						continue;
+					if( i < iC - 1 )
+						folder += ".";
 
-					folderSpace += string.Format( "{0}.", folder );
+					if( i > 0 )
+						folderSpaceSkipFirst += folder;
+
+					folderSpace += folder;
 				}
-
-				folderSpace = folderSpace.Substring( 0, folderSpace.Length - 1 );
 			}
-
-			folderSpace = SanitizeNamespace( folderSpace );
-
-			////////////////////////////////
 			
-			fileText = fileText.Replace( "#FOLDERSPACENONAME#", folderSpace.Substring( Mathf.Max( 0, Mathf.Min( scriptFolders[ 0 ].Length + 1, folderSpace.Length - 1 ) ) ) );
+			////////////////////////////////
 
-			fileText = fileText.Replace( "#FOLDERSPACE#", inScriptsFolder != -1 ? folderSpace : namespacePrefix );
+			fileText = fileText.Replace( "#PRODUCT_NAMESPACE#", namespacePrefix );
 
+			fileText = fileText.Replace( "#FOLDERSPACE_SKIP_FIRST#", folderSpaceSkipFirst );
+			fileText = fileText.Replace( "#FOLDERSPACE#", folderSpace );
+			
 			fileText = fileText.Replace( "#SCRIPTNAME#", scriptName );
 
 			fileText = fileText.Replace( "#PRINTNAME#", printName );
@@ -372,11 +371,12 @@ namespace Tehelee.Baseline
 
 		public static string SanitizeNamespace( string namespaceString )
 		{
-			string _namespaceString = Utils.ToPascalCase( namespaceString, true );
-			_namespaceString = namespaceString.Replace( '_', '.' );
-			_namespaceString = System.Text.RegularExpressions.Regex.Replace( _namespaceString, "[^.0-9A-Z_a-z]", string.Empty );
+			namespaceString = namespaceString.Replace( '-', ' ' ).Replace( '_', ' ' ).Replace( '.', ' ' );
+			namespaceString = Utils.ToPascalCase( namespaceString, true );
+			namespaceString = namespaceString.Replace( '_', '.' );
+			namespaceString = System.Text.RegularExpressions.Regex.Replace( namespaceString, "[^.0-9A-Z_a-z]", string.Empty );
 
-			return _namespaceString;
+			return namespaceString;
 		}
 
 		public static AssetDeleteResult OnWillDeleteAsset( string path, RemoveAssetOptions removeOptions )

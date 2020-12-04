@@ -26,7 +26,7 @@ namespace Tehelee.Baseline.Components.UI
 
 		public static void Register( KeyEvents keyEvents )
 		{
-			if( object.Equals( null, keyEvents ) || !keyEvents )
+			if( !Utils.IsObjectAlive( keyEvents ) )
 				return;
 
 			listeners.Add( keyEvents );
@@ -295,14 +295,7 @@ namespace Tehelee.Baseline.Components.UI
 					if( index >= keyEventKeys.Length )
 						RebuildKeyEventKeys();
 
-					if( keyEventKeys[ index ].serializedProperty.isExpanded )
-					{
-						height += keyEventKeys[ index ].GetHeight() + lineHeight * 0.5f;
-					}
-					else
-					{
-						height += lineHeight * 1.5f;
-					}
+					height += keyEventKeys[ index ].CalculateCollapsableListHeight();
 
 					height += EditorUtils.BetterUnityEventFieldHeight( element.FindPropertyRelative( "onDown" ) );
 
@@ -317,21 +310,7 @@ namespace Tehelee.Baseline.Components.UI
 					if( index >= keyEventKeys.Length )
 						RebuildKeyEventKeys();
 
-					if( keyEventKeys[ index ].serializedProperty.isExpanded )
-					{
-						bRect.height = keyEventKeys[ index ].GetHeight();
-
-						keyEventKeys[ index ].DoList( bRect );
-						bRect.y += bRect.height + lineHeight * 0.5f;
-					}
-					else
-					{
-						bRect.height = lineHeight;
-
-						EditorUtils.DrawListHeader( bRect, keyEventKeys[ index ].serializedProperty );
-
-						bRect.y += lineHeight * 1.5f;
-					}
+					keyEventKeys[ index ].DrawCollapsableList( ref bRect );
 
 					SerializedProperty onDown = element.FindPropertyRelative( "onDown" );
 					SerializedProperty onUp = element.FindPropertyRelative( "onUp" );
@@ -350,22 +329,13 @@ namespace Tehelee.Baseline.Components.UI
 			);
 		}
 
-		public override float inspectorLeadingOffset => lineHeight * 0.5f;
-
 		public override float GetInspectorHeight()
 		{
 			float height = base.GetInspectorHeight();
 
-			height += lineHeight * 2f;
+			height += lineHeight * 3.5f;
 
-			if( keyEvents.serializedProperty.isExpanded )
-			{
-				height += keyEvents.GetHeight();
-			}
-			else
-			{
-				height += lineHeight * 1.5f;
-			}
+			height += keyEvents.CalculateCollapsableListHeight();
 
 			return height;
 		}
@@ -374,28 +344,18 @@ namespace Tehelee.Baseline.Components.UI
 		{
 			base.DrawInspector( ref rect );
 
-			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight * 1.5f );
+			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
 
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Key Events", "Provides UnityEvents executed on key input events." ) );
+			bRect.y += lineHeight * 1.5f;
+
+			bRect.height = lineHeight * 1.5f;
 			EditorUtils.BetterToggleField( bRect, new GUIContent( "Consume Key Events" ), consumeKeyEvents );
+			bRect.height = lineHeight;
 
 			bRect.y += lineHeight * 2f;
 
-			if( keyEvents.serializedProperty.isExpanded )
-			{
-				bRect.height = keyEvents.GetHeight();
-
-				keyEvents.DoList( bRect );
-
-				bRect.y += bRect.height;
-			}
-			else
-			{
-				bRect.height = lineHeight;
-
-				EditorUtils.DrawListHeader( bRect, keyEvents.serializedProperty );
-
-				bRect.y += lineHeight * 1.5f;
-			}
+			keyEvents.DrawCollapsableList( ref bRect );
 
 			rect.y = bRect.y;
 		}

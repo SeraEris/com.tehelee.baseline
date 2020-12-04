@@ -136,7 +136,7 @@ namespace Tehelee.Baseline
 						(
 							( UnityEngine.Object obj ) =>
 							{
-								if( object.Equals( null, obj ) || !obj )
+								if( !Utils.IsObjectAlive( obj ) )
 									return false;
 
 								if( !( obj is Texture2D ) )
@@ -192,7 +192,7 @@ namespace Tehelee.Baseline
 							if( GUILayout.Button( new GUIContent( texture.name ), GUILayout.Width( width ) ) )
 							{
 								Texture loadedTexture = (Texture)EditorGUIUtility.Load( texture.name );
-								if( !object.Equals( null, loadedTexture ) && loadedTexture )
+								if( Utils.IsObjectAlive( loadedTexture ) )
 								{
 									CopyText( "( Texture2D ) EditorGUIUtility.Load( \"" + texture.name + "\" )" );
 								}

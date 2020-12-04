@@ -47,34 +47,29 @@ namespace Tehelee.Baseline.DesignData
 
 			public static void PopulateSubTypes( SerializedProperty property )
 			{
-				System.Type[] types = Assembly.GetExecutingAssembly().GetTypes();
-
 				SerializedProperty subTypes = property.FindPropertyRelative( "subTypes" );
 				SerializedProperty typeFullName = property.FindPropertyRelative( "typeFullName" );
-				
+				SerializedProperty validated = property.FindPropertyRelative( "validated" );
+
+				validated.boolValue = false;
 				subTypes.ClearArray();
 
 				string wildcardFilter = typeFullName.stringValue;
-				if( string.IsNullOrWhiteSpace( wildcardFilter ) || !wildcardFilter.EndsWith( ".*" ) )
+				if( string.IsNullOrWhiteSpace( wildcardFilter ) )
 					return;
 
 				wildcardFilter = wildcardFilter.Substring( 0, wildcardFilter.Length - 1 );
 
-				string fullName;
-				
+				List<System.Type> types = Utils.FindSubTypes<Networking.Packet>( wildcardFilter );
+
 				foreach( System.Type type in types )
 				{
-					fullName = type.FullName;
-
-					if( fullName.StartsWith( wildcardFilter ) && typeof( Networking.Packet ).IsAssignableFrom( type ) )
-					{
-						int index = subTypes.arraySize;
-						subTypes.InsertArrayElementAtIndex( index );
-						subTypes.GetArrayElementAtIndex( index ).stringValue = fullName;
-					}
+					int index = subTypes.arraySize;
+					subTypes.InsertArrayElementAtIndex( index );
+					subTypes.GetArrayElementAtIndex( index ).stringValue = type.FullName;
 				}
 
-				property.FindPropertyRelative( "validated" ).boolValue = ( subTypes.arraySize > 0 );
+				validated.boolValue = ( subTypes.arraySize > 0 );
 			}
 
 			public override float CalculatePropertyHeight( ref SerializedProperty property )
@@ -281,6 +276,8 @@ namespace Tehelee.Baseline.DesignData
 
 			if( EditorUtils.BetterButton( bRect, new GUIContent( "Repopulate Packets" ) ) )
 			{
+				Utils.ClearTypeCache();
+
 				SerializedProperty _packetDefinitions = packetDefinitions.serializedProperty;
 				for( int i = 0, iC = _packetDefinitions.arraySize; i < iC; i++ )
 				{
