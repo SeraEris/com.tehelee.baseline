@@ -34,8 +34,8 @@ Additionally you can download and extract the zip to your project's Packages fol
 These are automatically referenced by the package manager, but are listed here for posterity:
 Package | Version
 --------|--------
-com.unity.burst | 1.2.3
-com.unity.collections | 0.3.0-preview.0
-com.unity.mathematics | 1.1.0
-com.unity.transport | 0.2.4-preview.0
-com.unity.textmeshpro | 3.0.1
+com.unity.burst | 1.3.9
+com.unity.collections | 0.14.0-preview.16
+com.unity.mathematics | 1.2.0
+com.unity.transport | 0.5.0-preview.5
+com.unity.textmeshpro | 3.0.3
