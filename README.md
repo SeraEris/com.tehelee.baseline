@@ -7,7 +7,7 @@ Additionally there are included utilities for runtime and editor usage, as well 
 
 ## Installation
 
-Using Unity's Package Manager ( in Unity 2019.1+ ) simply add this as a GIT-based package:
+Using Unity's Package Manager ( in **Unity 2020.1.2f1**+ ) simply add this as a GIT-based package:
 ```
 https://github.com/Tehelee/com.tehelee.baseline.git
 ```
