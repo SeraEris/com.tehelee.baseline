@@ -16,6 +16,19 @@ https://github.com/Tehelee/com.tehelee.baseline.git
 Additionally you can download and extract the zip to your project's Packages folder:
 ![Package Manager - Add ZIP Package](/.Github/PackageManager_Add-Through-Zip.png)
 
+## Included Examples
+
+### Network Chat Room
+* Password-Locked Servers
+* Usernames + Conflict Resolution
+* Admin Roles + Admin Commands
+  * Rename Users
+  * Kick & Ban Users ( Ban is currently untracked due to technical limitations )
+  * Remote Server Shutdown
+  * Broadcast Alert Messages
+
+![Example Chat Room](/.Github/Example_Chat-Room.png)
+
 ## Dependencies
 
 These are automatically referenced by the package manager, but are listed here for posterity:
