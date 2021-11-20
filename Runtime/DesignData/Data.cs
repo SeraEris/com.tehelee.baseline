@@ -13,26 +13,76 @@ namespace Tehelee.Baseline.DesignData
 	public class Data : ScriptableObject
 	{
 		public string path;
+		public string GetFullPath() => $"{path}/{name}";
 
-		[System.NonSerialized]
-		private ushort _dataHash = 0;
-		public ushort dataHash
+		[SerializeField]
+		private string _displayName;
+		public string displayName => string.IsNullOrEmpty( _displayName ) ? name : _displayName;
+
+		public string description;
+
+		private int _dataHash = 0;
+		public int dataHash
 		{
 			get
 			{
 				if( _dataHash == 0 )
-				{
-					_dataHash = GetDataHash();
-				}
-
+					_dataHash = GetFullPath().GetHashCode();
+				
 				return _dataHash;
 			}
 		}
-		
 
-		public ushort GetDataHash()
+		public int GetDataHash() => dataHash;
+
+		private static Dictionary<Data, HashSet<Object>> dataReservations = new Dictionary<Data, HashSet<Object>>();
+		
+		public static void ReserveData( Object obj, Data data )
 		{
-			return Utils.HashCRC( string.Format( "[{0}] {1}/{2}", this.GetType().FullName, path, this.name ) );
+			if( data is Collection )
+			{
+				foreach( Data _data in ( ( Collection ) data ).GetAllDatas() )
+					ReserveData( obj, _data );
+				return;
+			}
+
+			if( dataReservations.ContainsKey( data ) )
+				dataReservations[ data ].Add( obj );
+			else
+				dataReservations.Add( data, new HashSet<Object>() { obj } );
+		}
+
+		public static void ReleaseData( Object obj, Data data )
+		{
+			if( data is Collection )
+			{
+				foreach( Data _data in ( ( Collection ) data ).GetAllDatas() )
+					ReleaseData( obj, _data );
+				return;
+			}
+
+			if( dataReservations.ContainsKey( data ) )
+			{
+				HashSet<Object> reservations = dataReservations[ data ];
+				reservations.Remove( obj );
+				if( reservations.Count == 0 )
+					dataReservations.Remove( data );
+				else
+					dataReservations[ data ] = reservations;
+			}
+		}
+
+		public static List<T> FindDatasOfType<T>() where T : Data
+		{
+			System.Type compare = typeof( T );
+			List<T> datas = new List<T>();
+			foreach( Data data in dataReservations.Keys )
+			{
+				System.Type type = data.GetType();
+				if( type == compare || compare.IsAssignableFrom( type ) )
+					datas.Add( ( T ) data );
+			}
+			return datas;
 		}
 	}
 
@@ -47,11 +97,31 @@ namespace Tehelee.Baseline.DesignData
 		
 		protected SerializedProperty path;
 
+		protected SerializedProperty displayName;
+		protected SerializedProperty description;
+
 		Data data;
 
 		protected string populatedTypes;
 
 		protected bool internalData { get; private set; }
+
+		
+
+		private static GUIStyle _styleRichTextArea;
+		protected static GUIStyle styleRichTextArea
+		{
+			get
+			{
+				if( object.Equals( null, _styleRichTextArea ) )
+				{
+					_styleRichTextArea = new GUIStyle( EditorStyles.textArea );
+					_styleRichTextArea.richText = true;
+				}
+
+				return _styleRichTextArea;
+			}
+		}
 
 		public override bool saveAssetsOnDisable => true;
 
@@ -60,6 +130,8 @@ namespace Tehelee.Baseline.DesignData
 			base.Setup();
 			
 			path = serializedObject.FindProperty( "path" );
+			displayName = serializedObject.FindProperty( "_displayName" );
+			description = serializedObject.FindProperty( "description" );
 
 			data = ( Data ) target;
 
@@ -75,12 +147,12 @@ namespace Tehelee.Baseline.DesignData
 			}
 		}
 
-		public override float inspectorLeadingOffset => lineHeight * 0.5f;
-
 		public override float GetInspectorHeight()
 		{
 			float inspectorHeight = base.GetInspectorHeight();
 
+			inspectorHeight += lineHeight * 1.5f;
+			
 			int i = 0;
 
 			if( drawPath )
@@ -92,9 +164,9 @@ namespace Tehelee.Baseline.DesignData
 			if( drawTypes )
 				i++;
 
-			inspectorHeight += lineHeight * i;
+			inspectorHeight += lineHeight * 1.5f * i;
 
-			inspectorHeight += lineHeight * Mathf.Max( 0, ( i - 1 ) ) * 0.5f;
+			inspectorHeight += lineHeight * 4.5f + 4f;
 
 			return inspectorHeight;
 		}
@@ -108,6 +180,9 @@ namespace Tehelee.Baseline.DesignData
 			EditorGUIUtility.labelWidth = 50f;
 
 			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
+
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Data" ) );
+			bRect.y += lineHeight * 1.5f;
 
 			if( drawPath )
 			{
@@ -138,11 +213,11 @@ namespace Tehelee.Baseline.DesignData
 				cRect.width = ( cRect.width - 10f ) * 0.5f;
 
 				float width = rect.width - EditorGUIUtility.labelWidth;
-				EditorGUI.SelectableLabel( cRect, string.Format( "0x{0:X}", data.GetDataHash() ), EditorStyles.textField );
+				EditorGUI.SelectableLabel( cRect, $"0x{data.dataHash:X}", EditorStyles.textField );
 
 				cRect.x += cRect.width + 10f;
 
-				EditorGUI.SelectableLabel( cRect, data.GetDataHash().ToString(), EditorStyles.textField );
+				EditorGUI.SelectableLabel( cRect, data.dataHash.ToString(), EditorStyles.textField );
 
 				bRect.y += lineHeight * 1.5f;
 			}
@@ -160,10 +235,15 @@ namespace Tehelee.Baseline.DesignData
 
 			EditorGUIUtility.labelWidth = labelWidth;
 
-			if( drawPath || drawHash || drawTypes )
-			{
-				rect.y = bRect.y - lineHeight * 0.5f;
-			}
+			EditorUtils.BetterTextField( bRect, new GUIContent( "Display Name" ), displayName );
+			bRect.y += lineHeight + 4f;
+
+			bRect.height = lineHeight * 3f;
+			EditorUtils.BetterTextArea( bRect, new GUIContent( "Description" ), description );
+			bRect.y += bRect.height + lineHeight * 0.5f;
+			bRect.height = lineHeight;
+
+			rect.y = bRect.y;
 		}
 	}
 

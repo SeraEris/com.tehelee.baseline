@@ -88,22 +88,24 @@ namespace Tehelee.Baseline.Components.UI
 
 		#region Mirror Rect Transform
 
+		public static void PerformLayout( RectTransform target, RectTransform follower, bool matchSize = true )
+		{
+			if( !Utils.IsObjectAlive( target ) || !Utils.IsObjectAlive( follower ) )
+				return;
+			
+			Bounds bounds = RectTransformUtility.CalculateRelativeRectTransformBounds( follower, target );
+			follower.anchoredPosition = bounds.center;
+			if( matchSize )
+				follower.sizeDelta = bounds.extents * 2f;
+		}
+
 		private static void PerformLayout( MimicRectTransform mimicRectTransform ) => mimicRectTransform.PerformLayout();
 		public void PerformLayout()
 		{
-			if( !Utils.IsObjectAlive( target ) )
-				return;
-
 			if( !Utils.IsObjectAlive( rectTransform ) )
 				rectTransform = ( RectTransform ) transform;
 
-
-			rectTransform.anchoredPosition = Vector2.zero;
-			rectTransform.sizeDelta = Vector2.zero;
-			
-			Bounds bounds = RectTransformUtility.CalculateRelativeRectTransformBounds( rectTransform, target );
-			rectTransform.anchoredPosition = bounds.center;
-			rectTransform.sizeDelta = bounds.extents * 2f;
+			PerformLayout( target, rectTransform );
 		}
 
 		#endregion

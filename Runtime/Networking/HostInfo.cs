@@ -38,7 +38,7 @@ namespace Tehelee.Baseline
 		public string description = string.Empty;
 		public string adminPassword = string.Empty;
 		public int maxAdminAttempts = 1;
-		public bool maxAdminAttemptsPerMinute = false;
+		public bool adminAttemptsArePerMinute = false;
 
 		public HostInfo() { }
 
@@ -53,7 +53,7 @@ namespace Tehelee.Baseline
 			description = clone.description;
 			adminPassword = clone.adminPassword;
 			maxAdminAttempts = clone.maxAdminAttempts;
-			maxAdminAttemptsPerMinute = clone.maxAdminAttemptsPerMinute;
+			adminAttemptsArePerMinute = clone.adminAttemptsArePerMinute;
 		}
 	}
 	
