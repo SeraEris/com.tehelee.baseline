@@ -52,7 +52,7 @@ namespace Tehelee.Baseline.Networking
 
 		public float natReservationTime = 10f;
 
-		public bool natPunchThrough = false;
+		public bool useNatPunchThrough = false;
 
 		public HostInfo hostInfo = new HostInfo();
 
@@ -222,7 +222,7 @@ namespace Tehelee.Baseline.Networking
 			if( open )
 				return;
 			
-			if( natPunchThrough && object.Equals( null, natMapping ) )
+			if( useNatPunchThrough && object.Equals( null, natMapping ) )
 			{
 				natMapping = GenerateCurrentMapping();
 				OpenNatWrapper.CreatePortMapping( natMapping, OnPortMappingResult );
@@ -351,7 +351,7 @@ namespace Tehelee.Baseline.Networking
 						Debug.LogWarningFormat( "Server unable to use NAT punch-through, reason: {0}", portMappingResult.ToString() );
 
 					natMapping = null;
-					natPunchThrough = false;
+					useNatPunchThrough = false;
 					Open();
 					break;
 			}
@@ -1125,7 +1125,7 @@ namespace Tehelee.Baseline.Networking
 					{
 						adminAuthorizationAttempts[ clientId ].Add( Time.time );
 
-						if( hostInfo.maxAdminAttemptsPerMinute )
+						if( hostInfo.adminAttemptsArePerMinute )
 						{
 							List<float> attemptsInTheLastMinute = new List<float>();
 							float threshold = Mathf.Max( 0f, Time.time - 60f );
@@ -1341,7 +1341,7 @@ namespace Tehelee.Baseline.Networking
 			bRect.y += lineHeight + 4f;
 
 			bRect.height = lineHeight * 1.5f;
-			EditorUtils.BetterToggleField( bRect, new GUIContent( "NAT Punch-Through", "Uses Open.NAT to negotiate NAT port forwarding." ), this[ "natPunchThrough" ] );
+			EditorUtils.BetterToggleField( bRect, new GUIContent( "NAT Punch-Through", "Uses Open.NAT to negotiate NAT port forwarding." ), this[ "useNatPunchThrough" ] );
 			bRect.y += bRect.height + 4f;
 			bRect.height = lineHeight;
 			

@@ -4,6 +4,7 @@ using UnityEngine;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditorInternal;
 #endif
 
 namespace Tehelee.Baseline.Components.UI
@@ -14,6 +15,11 @@ namespace Tehelee.Baseline.Components.UI
 	[RequireComponent( typeof( RectTransform ) )]
 	public class LinearLayout : MonoBehaviour
 	{
+		////////////////////////////////
+		//	Attributes
+
+		#region Attributes
+		
 		public float paddingStart = 0f;
 		public float paddingMids = 0f;
 		public float paddingEnd = 0f;
@@ -30,6 +36,43 @@ namespace Tehelee.Baseline.Components.UI
 		public RectTransform rectTransform { get; private set; }
 
 		private RectTransform viewport = null;
+
+		public List<RectTransform> ignoreList = new List<RectTransform>();
+
+		#endregion
+
+		////////////////////////////////
+		//	Members
+
+		#region Members
+
+		private HashSet<RectTransform> ignoreHashSet = new HashSet<RectTransform>();
+
+		#endregion
+
+		////////////////////////////////
+		//	Mono Methods
+
+		#region Mono Methods
+		
+		protected virtual void Awake()
+		{
+			rectTransform = ( RectTransform ) transform;
+
+			CheckScrollRect();
+		}
+
+		protected virtual void OnEnable()
+		{
+			CheckScrollRect();
+
+			PerformLayout();
+		}
+
+		protected virtual void OnDisable()
+		{
+			viewport = null;
+		}
 
 		protected virtual void Update()
 		{
@@ -50,25 +93,15 @@ namespace Tehelee.Baseline.Components.UI
 			PerformLayout();
 		}
 
-		protected virtual void Awake()
-		{
-			rectTransform = ( RectTransform ) transform;
+		#endregion
 
-			CheckScrollRect();
-			
-		}
+		////////////////////////////////
+		//	LinearLayout
 
-		protected virtual void OnEnable()
-		{
-			CheckScrollRect();
+		#region LinearLayout
 
-			PerformLayout();
-		}
-
-		protected virtual void OnDisable()
-		{
-			viewport = null;
-		}
+		public void RebuildIgnoreHashSet() =>
+			ignoreHashSet = new HashSet<RectTransform>( ignoreList );
 
 		public void CheckScrollRect()
 		{
@@ -85,6 +118,9 @@ namespace Tehelee.Baseline.Components.UI
 				CheckScrollRect();
 			}
 
+			if( ignoreHashSet.Count != ignoreList.Count )
+				RebuildIgnoreHashSet();
+
 			RectTransform child;
 
 			float totalSize = paddingStart;
@@ -95,7 +131,7 @@ namespace Tehelee.Baseline.Components.UI
 					for( int i = 0, iC = rectTransform.childCount; i < iC; i++ )
 					{
 						child = ( RectTransform ) rectTransform.GetChild( i );
-						if( !child.gameObject.activeSelf )
+						if( !child.gameObject.activeSelf || ignoreHashSet.Contains( child ) )
 							continue;
 
 						child.anchorMin = new Vector2( 1f, child.anchorMin.y );
@@ -117,7 +153,7 @@ namespace Tehelee.Baseline.Components.UI
 					for( int i = 0, iC = rectTransform.childCount; i < iC; i++ )
 					{
 						child = ( RectTransform ) rectTransform.GetChild( i );
-						if( !child.gameObject.activeSelf )
+						if( !child.gameObject.activeSelf || ignoreHashSet.Contains( child ) )
 							continue;
 
 						child.anchorMin = new Vector2( 0f, child.anchorMin.y );
@@ -143,7 +179,7 @@ namespace Tehelee.Baseline.Components.UI
 					for( int i = 0, iC = rectTransform.childCount; i < iC; i++ )
 					{
 						child = ( RectTransform ) rectTransform.GetChild( i );
-						if( !child.gameObject.activeSelf )
+						if( !child.gameObject.activeSelf || ignoreHashSet.Contains( child ) )
 							continue;
 
 						child.anchorMin = new Vector2( child.anchorMin.x, 0f );
@@ -165,7 +201,7 @@ namespace Tehelee.Baseline.Components.UI
 					for( int i = 0, iC = rectTransform.childCount; i < iC; i++ )
 					{
 						child = ( RectTransform ) rectTransform.GetChild( i );
-						if( !child.gameObject.activeSelf )
+						if( !child.gameObject.activeSelf || ignoreHashSet.Contains( child ) )
 							continue;
 
 						child.anchorMin = new Vector2( child.anchorMin.x, 1f );
@@ -185,20 +221,82 @@ namespace Tehelee.Baseline.Components.UI
 					rectTransform.sizeDelta = new Vector2( rectTransform.sizeDelta.x, totalSize );
 			}
 		}
+
+		#endregion
 	}
 
 #if UNITY_EDITOR
 	[CustomEditor( typeof( LinearLayout ) )]
 	public class EditorLinearLayout : EditorUtils.InheritedEditor
 	{
-		public override float GetInspectorHeight()
+		ReorderableList ignoreList;
+
+		private static HashSet<Transform> validParents = new HashSet<Transform>();
+		private static HashSet<LinearLayout> targetLayouts = new HashSet<LinearLayout>();
+
+		public override void Setup()
 		{
-			float height = base.GetInspectorHeight();
+			base.Setup();
 
-			height += lineHeight * 7.5f;
+			validParents.Clear();
 
-			return height;
+			foreach( Object target in targets )
+			{
+				LinearLayout linearLayout = ( LinearLayout ) target;
+				targetLayouts.Add( linearLayout );
+				validParents.Add( linearLayout.transform );
+			}
+
+			ignoreList = EditorUtils.CreateReorderableList
+			(
+				serializedObject.FindProperty( "ignoreList" ),
+				( SerializedProperty list, int index, SerializedProperty element ) =>
+				{
+					return lineHeight * 1.5f;
+				},
+				( Rect rect, SerializedProperty list, int index, SerializedProperty element, bool isActive, bool isFocussed ) =>
+				{
+					EditorGUI.BeginChangeCheck();
+
+					EditorUtils.BetterObjectField( new Rect( rect.x, rect.y + lineHeight * 0.25f, rect.width, lineHeight ), new GUIContent(), element, typeof( RectTransform ), true );
+
+					if( EditorGUI.EndChangeCheck() )
+					{
+						RectTransform rectTransform = ( RectTransform ) element.objectReferenceValue;
+						if( Utils.IsObjectAlive( rectTransform ) )
+						{
+							if( !validParents.Contains( rectTransform.parent ) )
+							{
+								element.objectReferenceValue = null;
+							}
+							else
+							{
+								for( int i = 0, iC = list.arraySize; i < iC; i++ )
+								{
+									if( index == i )
+										continue;
+
+									SerializedProperty elementAtIndex = list.GetArrayElementAtIndex( i );
+									RectTransform rectTransformAtIndex = ( RectTransform ) elementAtIndex.objectReferenceValue;
+									if( rectTransformAtIndex == rectTransform )
+									{
+										element.objectReferenceValue = null;
+										break;
+									}
+								}
+							}
+						}
+
+						serializedObject.ApplyModifiedProperties();
+
+						foreach( LinearLayout linearLayout in targetLayouts )
+							linearLayout.RebuildIgnoreHashSet();
+					}
+				}
+			);
 		}
+
+		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 8f + ignoreList.CalculateCollapsableListHeight();
 
 		public override void DrawInspector( ref Rect rect )
 		{
@@ -260,6 +358,8 @@ namespace Tehelee.Baseline.Components.UI
 			DrawFloatField( cRect, this[ "paddingEnd" ] );
 
 			bRect.y += lineHeight * 1.5f;
+
+			ignoreList.DrawCollapsableList( ref bRect, new GUIContent( "Ignore Child RectTransforms" ) );
 
 			rect.y = bRect.y;
 		}

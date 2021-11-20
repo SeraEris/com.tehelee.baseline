@@ -151,6 +151,8 @@ namespace Tehelee.Baseline.Components.UI
 	[CustomEditor( typeof( Switcher ) )]
 	public class EditorSwitcher : EditorUtils.InheritedEditor
 	{
+		Switcher switcher;
+
 		SerializedProperty allowNone;
 		SerializedProperty defaultIndex;
 		SerializedProperty toggleOnReselect;
@@ -162,6 +164,8 @@ namespace Tehelee.Baseline.Components.UI
 		public override void Setup()
 		{
 			base.Setup();
+
+			switcher = ( Switcher ) target;
 
 			allowNone = this[ "allowNone" ];
 			defaultIndex = this[ "defaultIndex" ];
@@ -257,7 +261,15 @@ namespace Tehelee.Baseline.Components.UI
 			{
 				EditorGUI.BeginDisabledGroup( !( defaultOnAwake.boolValue || defaultOnEnable.boolValue ) );
 
+				EditorGUI.BeginChangeCheck();
+
 				EditorGUI.IntSlider( cRect, defaultIndex, min, max, new GUIContent( string.Empty, "Default Index" ) );
+
+				if( EditorGUI.EndChangeCheck() )
+				{
+					serializedObject.ApplyModifiedProperties();
+					switcher.Select( defaultIndex.intValue );
+				}
 
 				EditorGUI.EndDisabledGroup();
 			}

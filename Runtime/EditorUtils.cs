@@ -16,6 +16,50 @@ namespace Tehelee.Baseline
 	public static class EditorUtils
 	{
 		////////////////////////////////
+		//	General
+
+		#region General
+
+		public static Rect GetSingleLineRect( float padding = 0f )
+		{
+			return EditorGUILayout.GetControlRect( GUILayout.Height( EditorGUIUtility.singleLineHeight * ( 1f + padding ) ) );
+		}
+
+		private static GUIContent _EmptyContent;
+		public static GUIContent EmptyContent
+		{
+			get
+			{
+				if( object.Equals( null, _EmptyContent ) )
+				{
+					_EmptyContent = new GUIContent();
+				}
+
+				return _EmptyContent;
+			}
+		}
+
+		public static bool IsEmptyContent( GUIContent guiContent ) => ( object.Equals( null, guiContent ) || string.IsNullOrWhiteSpace( guiContent.text ) );
+
+		public static void RevealInFinder( string path )
+		{
+			if( string.IsNullOrWhiteSpace( path ) )
+				return;
+
+			path = System.IO.Path.GetFullPath( path );
+			string fileName = string.Empty;
+			foreach( string file in System.IO.Directory.EnumerateFiles( path ) )
+				fileName = file;
+
+			if( !string.IsNullOrEmpty( fileName ) )
+				EditorUtility.RevealInFinder( System.IO.Path.Combine( path, fileName ) );
+			else
+				EditorUtility.RevealInFinder( path );
+		}
+
+		#endregion
+
+		////////////////////////////////
 		//	Reorderable List
 
 		#region ReorderableList
@@ -219,10 +263,10 @@ namespace Tehelee.Baseline
 			DrawListHeader( rect, new GUIContent( listProperty.displayName ), listProperty );
 		}
 
-		public static void DrawListHeader( Rect rect, GUIContent label, SerializedProperty listProperty )
+		public static void DrawListHeader( Rect rect, GUIContent label, SerializedProperty listProperty, int arraySize = -1 )
 		{
 			GUIContent _label;
-			if( listProperty.isArray )
+			if( arraySize < 0 && listProperty.isArray )
 			{
 				_label = new GUIContent
 				(
@@ -240,7 +284,7 @@ namespace Tehelee.Baseline
 			{
 				_label = new GUIContent
 				(
-					string.Format( listProperty.isExpanded ? "{0}" : "{0} (...)", label.text ),
+					string.Format( listProperty.isExpanded ? "{0}" : ( arraySize < 0 ? "{0} (...)" : "{0} ( {1} )" ), label.text, arraySize ),
 					label.image,
 					label.tooltip
 				);
@@ -312,25 +356,6 @@ namespace Tehelee.Baseline
 		}
 
 		#endregion
-
-		public static Rect GetSingleLineRect( float padding = 0f )
-		{
-			return EditorGUILayout.GetControlRect( GUILayout.Height( EditorGUIUtility.singleLineHeight * ( 1f + padding ) ) );
-		}
-
-		private static GUIContent _EmptyContent;
-		public static GUIContent EmptyContent
-		{
-			get
-			{
-				if( object.Equals( null, _EmptyContent ) )
-				{
-					_EmptyContent = new GUIContent();
-				}
-
-				return _EmptyContent;
-			}
-		}
 
 		////////////////////////////////
 		//	Better Object Field
@@ -577,6 +602,159 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
+		// Better TextField
+
+		#region BetterTextField
+
+		private static GUIStyle _styleRichTextField;
+		private static GUIStyle styleRichTextField
+		{
+			get
+			{
+				if( object.Equals( null, _styleRichTextField ) )
+				{
+					_styleRichTextField = new GUIStyle( EditorStyles.textField );
+					_styleRichTextField.richText = true;
+				}
+
+				return _styleRichTextField;
+			}
+		}
+
+		private static GUIStyle _styleRichTextLabel;
+		private static GUIStyle styleRichTextLabel
+		{
+			get
+			{
+				if( object.Equals( null, _styleRichTextLabel ) )
+				{
+					_styleRichTextLabel = new GUIStyle( EditorStyles.label );
+					_styleRichTextLabel.fontStyle = FontStyle.Italic;
+					_styleRichTextLabel.alignment = TextAnchor.UpperLeft;
+					_styleRichTextLabel.contentOffset = new Vector2( 3f, 1f );
+				}
+
+				return _styleRichTextLabel;
+			}
+		}
+
+		public static void BetterTextField( GUIContent label, SerializedProperty serializedProperty, bool infieldLabel = true )
+		{
+			Rect rect = EditorUtils.GetLayoutRect( EditorGUIUtility.singleLineHeight * 1.5f );
+			rect.height = EditorGUIUtility.singleLineHeight;
+
+			BetterTextField( rect, label, serializedProperty, infieldLabel );
+		}
+
+		public static void BetterTextField( Rect rect, GUIContent label, SerializedProperty serializedProperty, bool infieldLabel = true )
+		{
+			string input = serializedProperty.stringValue;
+			string output = BetterTextField( rect, label, input, infieldLabel );
+			if( !string.Equals( input, output ) )
+				serializedProperty.stringValue = output;
+		}
+
+		public static string BetterTextField( Rect rect, GUIContent label, string input, bool infieldLabel = true )
+		{
+			if( object.Equals( null, label ) )
+				label = EmptyContent;
+
+			GUIContent _label = new GUIContent( label );
+			if( infieldLabel )
+				_label.text = string.Empty;
+
+			string controlName = string.Format
+			(
+				"BetterTextField.{0}.{1}.{2}",
+				string.IsNullOrEmpty( label.text ) ? "NULL" : label.text,
+				string.IsNullOrEmpty( label.tooltip ) ? "NULL" : label.tooltip,
+				string.IsNullOrEmpty( input ) ? "NULL" : input
+			);
+			GUI.SetNextControlName( controlName );
+			string output = EditorGUI.TextField( rect, _label, input, string.Equals( controlName, GUI.GetNameOfFocusedControl() ) ? EditorStyles.textField : styleRichTextField );
+
+			if( infieldLabel && string.IsNullOrEmpty( output ) )
+			{
+				Color contentColor = GUI.contentColor;
+				GUI.contentColor = new Color( 1f, 1f, 1f, 0.5f );
+				EditorGUI.LabelField( rect, label, styleRichTextLabel );
+				GUI.contentColor = contentColor;
+			}
+
+			return output;
+		}
+
+		#endregion
+
+		////////////////////////////////
+		// Better TextField
+
+		#region BetterTextField
+
+		private static GUIStyle _styleRichTextArea;
+		private static GUIStyle styleRichTextArea
+		{
+			get
+			{
+				if( object.Equals( null, _styleRichTextArea ) )
+				{
+					_styleRichTextArea = new GUIStyle( EditorStyles.textArea );
+					_styleRichTextArea.richText = true;
+				}
+
+				return _styleRichTextArea;
+			}
+		}
+
+		public static void BetterTextArea( GUIContent label, SerializedProperty serializedProperty, bool infieldLabel = true )
+		{
+			Rect rect = EditorUtils.GetLayoutRect( EditorGUIUtility.singleLineHeight * 3.5f );
+			rect.height = EditorGUIUtility.singleLineHeight * 3f;
+
+			BetterTextArea( rect, label, serializedProperty, infieldLabel );
+		}
+
+		public static void BetterTextArea( Rect rect, GUIContent label, SerializedProperty serializedProperty, bool infieldLabel = true )
+		{
+			string input = serializedProperty.stringValue;
+			string output = BetterTextArea( rect, label, input, infieldLabel );
+			if( !string.Equals( input, output ) )
+				serializedProperty.stringValue = output;
+		}
+
+		public static string BetterTextArea( Rect rect, GUIContent label, string input, bool infieldLabel = true )
+		{
+			if( object.Equals( null, label ) )
+				label = EmptyContent;
+
+			GUIContent _label = new GUIContent( label );
+			if( infieldLabel )
+				_label.text = string.Empty;
+
+			string controlName = string.Format
+			(
+				"BetterTextArea.{0}.{1}.{2}",
+				string.IsNullOrEmpty( label.text ) ? "NULL" : label.text,
+				string.IsNullOrEmpty( label.tooltip ) ? "NULL" : label.tooltip,
+				string.IsNullOrEmpty( input ) ? "NULL" : input
+			);
+			GUI.SetNextControlName( controlName );
+			string output = EditorGUI.TextField( rect, _label, input, string.Equals( controlName, GUI.GetNameOfFocusedControl() ) ? EditorStyles.textField : styleRichTextArea );
+
+			if( infieldLabel && string.IsNullOrEmpty( output ) )
+			{
+				Color contentColor = GUI.contentColor;
+				GUI.contentColor = new Color( 1f, 1f, 1f, 0.5f );
+				EditorGUI.LabelField( rect, label, styleRichTextLabel );
+				GUI.contentColor = contentColor;
+			}
+
+			return output;
+		}
+
+		#endregion
+
+		////////////////////////////////
 		// Better Scene Field
 
 		#region BetterSceneField
@@ -633,6 +811,8 @@ namespace Tehelee.Baseline
 
 		#region BetterUnityEventField
 
+		private static UnityEventDrawer StaticUnityEventDrawer = new UnityEventDrawer();
+
 		public static float BetterUnityEventFieldHeight( SerializedProperty serializedProperty, float endSpacing = -1f )
 		{
 			if( endSpacing < 0f )
@@ -640,11 +820,11 @@ namespace Tehelee.Baseline
 
 			if( serializedProperty.isExpanded )
 			{
-				return EditorGUI.GetPropertyHeight( serializedProperty, true ) + endSpacing;
+				return StaticUnityEventDrawer.GetPropertyHeight( serializedProperty, EmptyContent ) + endSpacing;
 			}
 			else
 			{
-				return EditorGUIUtility.singleLineHeight  + endSpacing;
+				return EditorGUIUtility.singleLineHeight + endSpacing;
 			}
 		}
 
@@ -663,16 +843,9 @@ namespace Tehelee.Baseline
 				endSpacing = EditorGUIUtility.singleLineHeight * 0.5f;
 
 			if( serializedProperty.isExpanded )
-			{
-				EditorGUI.PropertyField( new Rect( rect.x, rect.y, rect.width, rect.height ), serializedProperty, true );
+				StaticUnityEventDrawer.OnGUI( rect, serializedProperty, new GUIContent( serializedProperty.displayName ) );
 
-				if( GUI.Button( new Rect( rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight ), EmptyContent, GUIStyle.none ) )
-					serializedProperty.isExpanded = !serializedProperty.isExpanded;
-			}
-			else
-			{
-				DrawListHeader( new Rect( rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight ), new GUIContent( serializedProperty.displayName ), serializedProperty );
-			}
+			DrawListHeader( new Rect( rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight ), new GUIContent( serializedProperty.displayName ), serializedProperty, serializedProperty.FindPropertyRelative( "m_PersistentCalls.m_Calls" ).arraySize );
 		}
 
 		#endregion
@@ -695,7 +868,13 @@ namespace Tehelee.Baseline
 
 			bool _foldout = EditorGUI.Foldout( new Rect( rect.x + indentOffset, rect.y, 0f, rect.height ), foldout, new GUIContent(), true );
 
-			if( GUI.Button( new Rect( rect.x + indentOffset, rect.y, rect.width - indentOffset, rect.height ), new GUIContent( string.Format( "{0}", guiContent.text ), guiContent.image, guiContent.tooltip ), style ) )
+			float labelWidth = EditorStyles.label.CalcSize( guiContent ).x + EditorStyles.label.contentOffset.x + 20f;
+
+			Rect buttonRect = new Rect( rect.x + indentOffset, rect.y, rect.width - indentOffset, rect.height );
+			if( !foldout )
+				buttonRect.width = Mathf.Min( labelWidth, buttonRect.width );
+
+			if( GUI.Button( buttonRect, guiContent, style ) )
 			{
 				_foldout = !foldout;
 			}
@@ -759,6 +938,46 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
+		//	BeginDisableGroup Toggle
+
+		#region BeginDisableGroup Toggle
+
+		public static Rect BeginDisabledGroupToggle( Rect rect, SerializedProperty booleanProperty, GUIContent guiContent = null, bool midlineToggle = false, bool toggleBeforeProperty = true, bool invertBoolean = false )
+		{
+			float labelWidth = EditorGUIUtility.labelWidth;
+			float toggleWidth = 20f;
+
+			if( !object.Equals( null, guiContent ) )
+			{
+				if( string.IsNullOrWhiteSpace( guiContent.text ) )
+				{
+					guiContent.text = string.Empty;
+				}
+				else
+				{
+					Vector2 guiContentSize = EditorStyles.label.CalcSize( guiContent );
+					toggleWidth = guiContentSize.x + 25f;
+					EditorGUIUtility.labelWidth = guiContentSize.x + 5f;
+					
+				}
+			}
+			else
+			{
+				guiContent = new GUIContent();
+			}
+
+			Rect bRect = new Rect( rect.x + ( toggleBeforeProperty ? 0f : rect.width - toggleWidth ), rect.y, toggleWidth, midlineToggle ? rect.height : EditorGUIUtility.singleLineHeight );
+			EditorGUI.PropertyField( bRect, booleanProperty, guiContent );
+			
+			EditorGUIUtility.labelWidth = labelWidth;
+			EditorGUI.BeginDisabledGroup( invertBoolean ? booleanProperty.boolValue : !booleanProperty.boolValue );
+
+			return new Rect( rect.x + ( toggleBeforeProperty ? toggleWidth + 5f : 0f ), rect.y, rect.width - ( toggleWidth + 5f ), rect.height );
+		}
+
+		#endregion
+
+		////////////////////////////////
 		//	Mask Field
 
 		#region MaskField
@@ -803,6 +1022,18 @@ namespace Tehelee.Baseline
 				maskProperty.intValue = _mask;
 
 			return changed;
+		}
+
+		#endregion
+
+		////////////////////////////////
+		//	LayerMask Field
+
+		#region LayerMask Field
+
+		public static void LayerMaskField( Rect rect, GUIContent guiContent, SerializedProperty layerMaskProperty )
+		{
+			layerMaskProperty.intValue = EditorGUI.MaskField( rect, guiContent, layerMaskProperty.intValue, InternalEditorUtility.layers );
 		}
 
 		#endregion
@@ -877,6 +1108,89 @@ namespace Tehelee.Baseline
 			object[] parameters = new object[] { recycledEditor, position, dragHotZone, controlID, value, "g7", style, true };
 
 			return ( float ) doFloatFieldMethod.Invoke( null, parameters );
+		}
+
+		#endregion
+
+		////////////////////////////////
+		// Vector2Field
+
+		#region Vector2Field
+		
+		public static void Vector2Field( Rect rect, GUIContent guiContent, SerializedProperty serializedProperty, bool disableX = false, bool disableY = false )
+		{
+			Vector2 vector = serializedProperty.vector2Value;
+			
+			Vector2 _vector = Vector2Field( rect, guiContent, vector, disableX, disableY );
+
+			if( ( _vector.x != vector.x ) || ( _vector.y != vector.y ) )
+				serializedProperty.vector2Value = _vector;
+		}
+
+		public static Vector2 Vector2Field( Rect rect, GUIContent guiContent, Vector2 vector, bool disableX = false, bool disableY = false )
+		{
+			float lineHeight = EditorGUIUtility.singleLineHeight;
+			Rect bRect = new Rect( rect.x, rect.y + ( rect.height - lineHeight ) * 0.5f, rect.width, lineHeight );
+
+			if( !IsEmptyContent( guiContent ) )
+				bRect = EditorGUI.PrefixLabel( bRect, guiContent );
+
+			float labelWidth = EditorGUIUtility.labelWidth;
+			EditorGUIUtility.labelWidth = 15f;
+
+			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 10f ) * 0.5f, lineHeight );
+
+			EditorGUI.BeginDisabledGroup( disableX );
+			float x = EditorGUI.FloatField( cRect, new GUIContent( "X" ), vector.x );
+			EditorGUI.EndDisabledGroup();
+			cRect.x += cRect.width + 10f;
+
+			EditorGUI.BeginDisabledGroup( disableY );
+			float y = EditorGUI.FloatField( cRect, new GUIContent( "Y" ), vector.y );
+			EditorGUI.EndDisabledGroup();
+			bRect.y += lineHeight;
+
+			EditorGUIUtility.labelWidth = labelWidth;
+
+			return new Vector2( x, y );
+		}
+
+		public static void Vector2IntField( Rect rect, GUIContent guiContent, SerializedProperty serializedProperty, bool disableX = false, bool disableY = false )
+		{
+			Vector2Int vector = serializedProperty.vector2IntValue;
+
+			Vector2Int _vector = Vector2IntField( rect, guiContent, vector, disableX, disableY );
+
+			if( ( _vector.x != vector.x ) || ( _vector.y != vector.y ) )
+				serializedProperty.vector2IntValue = _vector;
+		}
+
+		public static Vector2Int Vector2IntField( Rect rect, GUIContent guiContent, Vector2Int vector, bool disableX = false, bool disableY = false )
+		{
+			float lineHeight = EditorGUIUtility.singleLineHeight;
+			Rect bRect = new Rect( rect.x, rect.y + ( rect.height - lineHeight ) * 0.5f, rect.width, lineHeight );
+
+			if( !IsEmptyContent( guiContent ) )
+				bRect = EditorGUI.PrefixLabel( bRect, guiContent );
+
+			float labelWidth = EditorGUIUtility.labelWidth;
+			EditorGUIUtility.labelWidth = 15f;
+
+			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 10f ) * 0.5f, lineHeight );
+
+			EditorGUI.BeginDisabledGroup( disableX );
+			int x = EditorGUI.IntField( cRect, new GUIContent( "X" ), vector.x );
+			EditorGUI.EndDisabledGroup();
+			cRect.x += cRect.width + 10f;
+
+			EditorGUI.BeginDisabledGroup( disableY );
+			int y = EditorGUI.IntField( cRect, new GUIContent( "Y" ), vector.y );
+			EditorGUI.EndDisabledGroup();
+			bRect.y += lineHeight;
+
+			EditorGUIUtility.labelWidth = labelWidth;
+
+			return new Vector2Int( x, y );
 		}
 
 		#endregion
@@ -1019,6 +1333,48 @@ namespace Tehelee.Baseline
 				prop.floatValue = max;
 		}
 
+		public static void Clamp( this SerializedProperty prop, Vector2Int min, Vector2Int max )
+		{
+			Vector2Int vector = prop.vector2IntValue;
+			vector.x = Mathf.Clamp( vector.x, min.x, max.x );
+			vector.y = Mathf.Clamp( vector.y, min.y, max.y );
+
+			if( prop.vector2IntValue != vector )
+				prop.vector2IntValue = vector;
+		}
+
+		public static void Clamp( this SerializedProperty prop, Vector2 min, Vector2 max )
+		{
+			Vector2 vector = prop.vector2Value;
+			vector.x = Mathf.Clamp( vector.x, min.x, max.x );
+			vector.y = Mathf.Clamp( vector.y, min.y, max.y );
+
+			if( prop.vector2Value != vector )
+				prop.vector2Value = vector;
+		}
+
+		public static void Clamp( this SerializedProperty prop, Vector3Int min, Vector3Int max )
+		{
+			Vector3Int vector = prop.vector3IntValue;
+			vector.x = Mathf.Clamp( vector.x, min.x, max.x );
+			vector.y = Mathf.Clamp( vector.y, min.y, max.y );
+			vector.z = Mathf.Clamp( vector.z, min.z, max.z );
+
+			if( prop.vector3IntValue != vector )
+				prop.vector3IntValue = vector;
+		}
+
+		public static void Clamp( this SerializedProperty prop, Vector3 min, Vector3 max )
+		{
+			Vector3 vector = prop.vector3Value;
+			vector.x = Mathf.Clamp( vector.x, min.x, max.x );
+			vector.y = Mathf.Clamp( vector.y, min.y, max.y );
+			vector.z = Mathf.Clamp( vector.z, min.z, max.z );
+
+			if( prop.vector3Value != vector )
+				prop.vector3Value = vector;
+		}
+
 		public static void ClampMinimum( this SerializedProperty prop, int min )
 		{
 			if( prop.intValue < min )
@@ -1030,7 +1386,59 @@ namespace Tehelee.Baseline
 			if( prop.floatValue < min )
 				prop.floatValue = min;
 		}
-		
+
+		public static void ClampMinimum( this SerializedProperty prop, Vector2Int min, bool ignoreX = false, bool ignoreY = false )
+		{
+			Vector2Int vector = prop.vector2IntValue;
+			if( !ignoreX )
+				vector.x = Mathf.Max( vector.x, min.x );
+			if( !ignoreY )
+				vector.y = Mathf.Max( vector.y, min.y );
+
+			if( prop.vector2IntValue != vector )
+				prop.vector2IntValue = vector;
+		}
+
+		public static void ClampMinimum( this SerializedProperty prop, Vector2 min, bool ignoreX = false, bool ignoreY = false )
+		{
+			Vector2 vector = prop.vector2Value;
+			if( !ignoreX )
+				vector.x = Mathf.Max( vector.x, min.x );
+			if( !ignoreY )
+				vector.y = Mathf.Max( vector.y, min.y );
+
+			if( prop.vector2Value != vector )
+				prop.vector2Value = vector;
+		}
+
+		public static void ClampMinimum( this SerializedProperty prop, Vector3Int min, bool ignoreX = false, bool ignoreY = false, bool ignoreZ = false )
+		{
+			Vector3Int vector = prop.vector3IntValue;
+			if( !ignoreX )
+				vector.x = Mathf.Max( vector.x, min.x );
+			if( !ignoreY )
+				vector.y = Mathf.Max( vector.y, min.y );
+			if( !ignoreZ )
+				vector.z = Mathf.Max( vector.z, min.z );
+
+			if( prop.vector3IntValue != vector )
+				prop.vector3IntValue = vector;
+		}
+
+		public static void ClampMinimum( this SerializedProperty prop, Vector3 min, bool ignoreX = false, bool ignoreY = false, bool ignoreZ = false )
+		{
+			Vector3 vector = prop.vector3Value;
+			if( !ignoreX )
+				vector.x = Mathf.Max( vector.x, min.x );
+			if( !ignoreY )
+				vector.y = Mathf.Max( vector.y, min.y );
+			if( !ignoreZ )
+				vector.z = Mathf.Max( vector.z, min.z );
+
+			if( prop.vector3Value != vector )
+				prop.vector3Value = vector;
+		}
+
 		public static void ClampMaximum( this SerializedProperty prop, int max )
 		{
 			if( prop.intValue > max )
@@ -1043,11 +1451,102 @@ namespace Tehelee.Baseline
 				prop.floatValue = max;
 		}
 
+		public static void ClampMaximum( this SerializedProperty prop, Vector2Int max, bool ignoreX = false, bool ignoreY = false )
+		{
+			Vector2Int vector = prop.vector2IntValue;
+			if( !ignoreX )
+				vector.x = Mathf.Min( vector.x, max.x );
+			if( !ignoreY )
+				vector.y = Mathf.Min( vector.y, max.y );
+
+			if( prop.vector2IntValue != vector )
+				prop.vector2IntValue = vector;
+		}
+
+		public static void ClampMaximum( this SerializedProperty prop, Vector2 max, bool ignoreX = false, bool ignoreY = false )
+		{
+			Vector2 vector = prop.vector2Value;
+			if( !ignoreX )
+				vector.x = Mathf.Min( vector.x, max.x );
+			if( !ignoreY )
+				vector.y = Mathf.Min( vector.y, max.y );
+
+			if( prop.vector2Value != vector )
+				prop.vector2Value = vector;
+		}
+
+		public static void ClampMaximum( this SerializedProperty prop, Vector3Int max, bool ignoreX = false, bool ignoreY = false, bool ignoreZ = false )
+		{
+			Vector3Int vector = prop.vector3IntValue;
+			if( !ignoreX )
+				vector.x = Mathf.Min( vector.x, max.x );
+			if( !ignoreY )
+				vector.y = Mathf.Min( vector.y, max.y );
+			if( !ignoreZ )
+				vector.z = Mathf.Min( vector.z, max.z );
+
+			if( prop.vector3IntValue != vector )
+				prop.vector3IntValue = vector;
+		}
+
+		public static void ClampMaximum( this SerializedProperty prop, Vector3 max, bool ignoreX = false, bool ignoreY = false, bool ignoreZ = false )
+		{
+			Vector3 vector = prop.vector3Value;
+			if( !ignoreX )
+				vector.x = Mathf.Min( vector.x, max.x );
+			if( !ignoreY )
+				vector.y = Mathf.Min( vector.y, max.y );
+			if( !ignoreZ )
+				vector.z = Mathf.Min( vector.z, max.z );
+
+			if( prop.vector3Value != vector )
+				prop.vector3Value = vector;
+		}
+
+		public static void Normalize( this SerializedProperty prop )
+		{
+			switch( prop.propertyType )
+			{
+				case SerializedPropertyType.Vector2:
+
+					Vector2 vector2 = prop.vector2Value;
+					vector2.Normalize();
+
+					if( prop.vector2Value != vector2 )
+						prop.vector2Value = vector2;
+
+					break;
+
+				case SerializedPropertyType.Vector3:
+
+					Vector3 vector3 = prop.vector3Value;
+					vector3.Normalize();
+
+					if( prop.vector3Value != vector3 )
+						prop.vector3Value = vector3;
+
+					break;
+
+				case SerializedPropertyType.Vector4:
+
+					Vector4 vector4 = prop.vector4Value;
+					vector4.Normalize();
+
+					if( prop.vector4Value != vector4 )
+						prop.vector4Value = vector4;
+
+					break;
+			}
+		}
+
 		public static void Truncate( this SerializedProperty prop, int characterLimit )
 		{
 			if( prop.stringValue.Length > characterLimit )
 				prop.stringValue = prop.stringValue.Substring( 0, characterLimit );
 		}
+
+		public static void ToLower( this SerializedProperty prop ) => prop.stringValue = prop.stringValue.ToLowerInvariant();
+		public static void ToUpper( this SerializedProperty prop ) => prop.stringValue = prop.stringValue.ToUpperInvariant();
 
 		public static SerializedProperty GetParent( this SerializedProperty property )
 		{
@@ -1323,6 +1822,8 @@ namespace Tehelee.Baseline
 
 			public virtual bool saveAssetsOnDisable => false;
 
+			public bool multiTarget = false;
+
 			public Dictionary<string, SerializedProperty> propertyLookup = new Dictionary<string, SerializedProperty>();
 
 			public Dictionary<SerializedProperty, Dictionary<string, SerializedProperty>> subPropertyLookup = new Dictionary<SerializedProperty, Dictionary<string, SerializedProperty>>();
@@ -1416,6 +1917,8 @@ namespace Tehelee.Baseline
 
 			public override void OnInspectorGUI()
 			{
+				multiTarget = ( targets.Length > 1 );
+
 				GUILayout.Space( inspectorLeadingOffset );
 
 				float rectHeight = GetEditorHeight();
@@ -1679,6 +2182,12 @@ namespace Tehelee.Baseline
 				rect.width -= amount;
 			}
 
+			public virtual void DrawFoldoutOverlay( Rect totalRect, Rect unusedRect, SerializedProperty property )
+			{
+				if( GUI.Button( unusedRect, EditorUtils.EmptyContent, GUIStyle.none ) )
+					property.isExpanded = !property.isExpanded;
+			}
+
 			public override void OnGUI( Rect position, SerializedProperty property, GUIContent label )
 			{
 				lineHeight = EditorGUIUtility.singleLineHeight;
@@ -1705,9 +2214,16 @@ namespace Tehelee.Baseline
 					case LabelMode.Foldout:
 						property.isExpanded = EditorUtils.Foldout( rect, property.isExpanded, label, foldoutGUIStyle );
 						if( property.isExpanded )
+						{
 							rect = new Rect( rect.x + 15f, rect.y + lineHeight + offsetFoldoutGUI, rect.width - 15f, lineHeight );
+						}
 						else
+						{
+							float labelWidth = EditorStyles.label.CalcSize( label ).x + EditorStyles.label.contentOffset.x + 20f;
+							DrawFoldoutOverlay( rect, new Rect( rect.x + labelWidth, rect.y + 1f, rect.width - labelWidth, rect.height ), property );
+
 							drawGUI = false;
+						}
 						break;
 				}
 

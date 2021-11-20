@@ -1,6 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Security.Cryptography;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -12,164 +15,203 @@ using Type = System.Type;
 
 namespace Tehelee.Baseline.DesignData
 {
-	public class Lookup : MonoBehaviour
+	public static class Lookup
 	{
-		public List<Data> data = new List<Data>();
-
-		private void OnEnable()
+		private class Manifest
 		{
-			foreach( Data _data in data )
+			private List<Data> loaded = new List<Data>();
+			
+			private Dictionary<Type, HashSet<int>> typeHashes = new Dictionary<Type, HashSet<int>>();
+			private Dictionary<int, int> hashToIndex = new Dictionary<int, int>();
+			private Dictionary<string, int> pathToIndex = new Dictionary<string, int>();
+
+			public void Import( Data data, int depth = 0 )
 			{
-				Populate( _data );
+				if( !Utils.IsObjectAlive( data ) )
+					return;
+
+				Type type = data.GetType();
+				int hash = data.GetDataHash();
+				string path = data.GetFullPath();
+
+				int index = -1;
+
+				if( pathToIndex.ContainsKey( path ) )
+					index = pathToIndex[ path ];
+
+				if( index < 0 )
+				{
+					loaded.Add( data );
+					index = loaded.Count - 1;
+				}
+				else
+				{
+					loaded[ index ] = data;
+				}
+				
+				pathToIndex.InsertOrReplace( path, index );
+				hashToIndex.InsertOrReplace( hash, index );
+				
+				ImportByType( type, index );
+				
+				if( data is Collection collection )
+					foreach( Data _data in collection.datas )
+						Import( _data, depth + 1 );
+			}
+
+			private void ImportByType( Type type, int index )
+			{
+				if( object.Equals( null, type ) )
+					return;
+				
+				HashSet<int> hashes = typeHashes.ContainsKey( type ) ? typeHashes[ type ] ?? new HashSet<int>() : new HashSet<int>();
+				hashes.Add( index );
+				
+				typeHashes.InsertOrReplace( type, hashes );
+
+				if( type != typeof( Data ) )
+					ImportByType( type.BaseType, index );
+			}
+
+			public T Find<T>( string path ) where T : Data
+			{
+				if( !pathToIndex.ContainsKey( path ) )
+					return null;
+				
+				int index = pathToIndex[ path ];
+				if( index < 0 || index >= loaded.Count )
+				{
+					Debug.LogError
+					(
+						$"DesignData.Lookup path points to invalid index.\n" +
+						$"Path: {path}\n" +
+						$"Index: {index}"
+					);
+					return null;
+				}
+
+				Data data = loaded[ index ];
+
+				switch( data )
+				{
+					case null:
+						return null;
+					case T castData:
+						return castData;
+					default:
+						Debug.LogError
+						(
+							$"DesignData.Lookup cannot cast {data.GetType()} as {typeof(T)}\n" +
+							$"Hash: {data.GetDataHash()}\n" +
+							$"Path: {data.GetFullPath()}"
+						);
+
+						return null;
+				}
+			}
+			
+			public T Find<T>( int hash ) where T : Data
+			{
+				if( !hashToIndex.ContainsKey( hash ) )
+					return null;
+				
+				int index = hashToIndex[ hash ];
+				if( index < 0 || index >= loaded.Count )
+				{
+					Debug.LogError
+					(
+						$"DesignData.Lookup hash points to invalid index.\n" +
+						$"Hash: {hash}\n" +
+						$"Index: {index}"
+					);
+					return null;
+				}
+
+				Data data = loaded[ index ];
+
+				switch( data )
+				{
+					case null:
+						return null;
+					case T castData:
+						return castData;
+					default:
+						Debug.LogError
+						(
+							$"DesignData.Lookup cannot cast {data.GetType()} as {typeof(T)}\n" +
+							$"Hash: {data.GetDataHash()}\n" +
+							$"Path: {data.GetFullPath()}"
+						);
+
+						return null;
+				}
+			}
+
+			public List<T> GetList<T>() where T : Data
+			{
+				Type type = typeof( T );
+				List<T> list = new List<T>();
+
+				if( typeHashes.ContainsKey( type ) )
+				{
+					foreach( int index in typeHashes[ type ] )
+					{
+						if( index >= 0 && index < loaded.Count )
+						{
+							Data data = loaded[ index ];
+							if( data is T castData )
+								list.Add( castData  );
+						}
+					}
+				}
+
+				return list;
 			}
 		}
 
-		private static Dictionary<Type, List<Data>> lookup = new Dictionary<Type, List<Data>>();
-
-		private static Type typeData = typeof( Data ), typeCollection = typeof( Collection );
-
-		public static void Populate( Data data )
-		{
-			if( object.Equals( null, data ) )
-				return;
-
-			Type typeCurrent = data.GetType();
-
-			if( typeCollection.IsAssignableFrom( typeCurrent ) || typeCollection == typeCurrent )
-			{
-				Collection collection = ( Collection ) data;
-
-				PopulateCollection( ref collection );
-			}
-
-			PopulateData( ref data );
-		}
-
-		private static void PopulateCollection( ref Collection collection )
-		{
-			foreach( Data data in collection.data )
-			{
-				Populate( data );
-			}
-		}
-
-		private static void PopulateData( ref Data data )
-		{
-			Type typeCurrent = data.GetType();
-
-			while( typeData.IsAssignableFrom( typeCurrent ) || typeData == typeCurrent )
-			{
-				if( !lookup.ContainsKey( typeCurrent ) )
-					lookup.Add( typeCurrent, new List<Data>() );
-
-				lookup[ typeCurrent ].Add( data );
-
-				typeCurrent = typeCurrent.BaseType;
-			}
-		}
-
+		private static Manifest manifest = null;
 		
-		public static List<T> GetAllData<T>() where T : Data
+		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
+		private static void Init()
 		{
-			Type typeT = typeof( T );
-
-			if( !lookup.ContainsKey( typeT ) )
-				return new List<T>();
-
-			List<T> data = new List<T>();
-			List<Data> _lookup = lookup[ typeT ];
-
-			foreach( Data _data in _lookup )
-			{
-				Type typeCurrent = _data.GetType();
-
-				if( typeT.IsAssignableFrom( typeCurrent ) || typeT == typeCurrent )
-				{
-					data.Add( ( T ) _data );
-				}
-			}
-
-			return data;
-		}
-
-		public static T Find<T>( ushort hash ) where T : Data
-		{
-			Type typeT = typeof( T );
-
-			if( !lookup.ContainsKey( typeT ) )
-				return null;
-
-			List<Data> _lookup = lookup[ typeT ];
-
-			foreach( Data _data in _lookup )
-			{
-				if( _data.dataHash == hash )
-				{
-					return ( T ) _data;
-				}
-			}
-
-			return null;
+			manifest = new Manifest();
+			
+			Collection[] collections = Resources.LoadAll<Collection>( string.Empty );
+			foreach( Collection collection in collections )
+				manifest.Import( collection );
 		}
 
 		public static T Find<T>( string path ) where T : Data
 		{
-			Type typeT = typeof( T );
-
-			if( !lookup.ContainsKey( typeT ) )
-				return null;
-
-			List<Data> _lookup = lookup[ typeT ];
-
-			foreach( Data _data in _lookup )
+			if( object.Equals( null, manifest ) )
 			{
-				if( path == string.Format( "{0}/{1}", _data.path, _data.name ) )
-				{
-					return ( T ) _data;
-				}
+				Debug.LogError( "DesignData.Lookup invoked with NULL manifest." );
+				return null;
 			}
 
-			return null;
+			return manifest.Find<T>( path );
 		}
 
-		public static Data Search( ushort hash )
+		public static T Find<T>( int hash ) where T : Data
 		{
-			return Find<Data>( hash );
+			if( object.Equals( null, manifest ) )
+			{
+				Debug.LogError( "DesignData.Lookup invoked with NULL manifest." );
+				return null;
+			}
+
+			return manifest.Find<T>( hash );
 		}
 
-		public static Data Search( string path )
+		public static List<T> GetList<T>() where T : Data
 		{
-			return Find<Data>( path );
+			if( object.Equals( null, manifest ) )
+			{
+				Debug.LogError( "DesignData.Lookup invoked with NULL manifest." );
+				return new List<T>();
+			}
+
+			return manifest.GetList<T>();
 		}
 	}
-
-#if UNITY_EDITOR
-	[CustomEditor( typeof( Lookup ) )]
-	public class EditorLookup : EditorUtils.InheritedEditor
-	{
-		ReorderableList dataList;
-
-		Lookup lookup;
-		
-		public override void Setup()
-		{
-			base.Setup();
-
-			dataList = EditorUtils.CreateReorderableList
-			(
-				serializedObject.FindProperty( "data" ),
-				( SerializedProperty element ) =>
-				{
-					return lineHeight * 1.5f;
-				},
-				( Rect rect, SerializedProperty element ) =>
-				{
-					EditorUtils.BetterObjectField<Data>( new Rect( rect.x, rect.y + lineHeight * 0.25f, rect.width, lineHeight ), EditorUtils.EmptyContent, element );
-				}
-			);
-
-			lookup = ( Lookup ) target;
-		}
-	}
-#endif
 }
