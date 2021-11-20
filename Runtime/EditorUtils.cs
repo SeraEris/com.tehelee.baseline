@@ -1196,6 +1196,82 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
+		// ClickCopyLabel
+		
+		#region ClickCopyLabel
+
+		public static void DrawClickCopyLabel( Rect rect, string title, string text ) =>
+			DrawClickCopyLabel( rect, new GUIContent( title ), text );
+		
+		public static void DrawClickCopyLabel( Rect rect, GUIContent title, string text )
+		{
+			if( object.Equals( null, title ) )
+				title = EmptyContent;
+			
+			EditorGUI.LabelField( rect, text, EditorStyles.textField );
+			string tooltip, message;
+			if( string.IsNullOrEmpty( title.text ) )
+			{
+				tooltip = $"Copy '{text}'";
+				message = $"Copied '{text}' to system clipboard.";
+			}
+			else
+			{
+				tooltip = $"Copy {title.text}";
+				message = $"Copied {title.text} ( '{text}' ) to system clipboard.";
+			}
+				
+			if( GUI.Button( rect, new GUIContent( string.Empty, tooltip ), GUIStyle.none ) )
+			{
+				EditorGUIUtility.systemCopyBuffer = text;
+				Debug.Log( message );
+			}
+		}
+		
+		#endregion
+
+		////////////////////////////////
+		// BetterBackground
+		
+		#region BetterBackground
+		
+		private static GUIStyle _betterBackgroundStyle;
+		private static GUIStyle betterBackgroundStyle
+		{
+			get
+			{
+				if( object.Equals( null, _betterBackgroundStyle ) )
+				{
+					_betterBackgroundStyle = new GUIStyle( EditorStyles.helpBox );
+					_betterBackgroundStyle.stretchHeight = true;
+				}
+
+				return _betterBackgroundStyle;
+			}
+		}
+
+		public static Rect DrawBetterBackground( Rect rect, GUIContent label )
+		{
+			float lineHeight = EditorGUIUtility.singleLineHeight;
+
+			EditorGUI.LabelField( rect, EmptyContent, betterBackgroundStyle );
+
+			Rect bRect;
+			if( !string.IsNullOrEmpty( label.text ) )
+			{
+				bRect = new Rect( rect.x, rect.y - 2f, rect.width, lineHeight );
+				EditorGUI.LabelField( bRect, label, EditorStyles.miniBoldLabel );
+			}
+
+			bRect = new Rect( rect.x + 5f, rect.y, rect.width - 10f, Mathf.Max( lineHeight, rect.height - lineHeight ) );
+			bRect.y += ( rect.height - bRect.height ) * 0.5f;
+
+			return bRect;
+		}
+		
+		#endregion
+
+		////////////////////////////////
 		// Assets
 
 		#region Assets

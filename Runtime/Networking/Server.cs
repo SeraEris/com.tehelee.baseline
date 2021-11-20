@@ -1386,9 +1386,9 @@ namespace Tehelee.Baseline.Networking
 
 					foreach( ushort clientId in clientIds )
 					{
-						DrawClickCopyLabel( labelRect, "Username", server.GetUsername( clientId ) );
-						DrawClickCopyLabel( cRect, "Network Id", clientId.ToString() );
-						DrawClickCopyLabel( dRect, "Join Time", server.GetClientJoinTime( clientId ).ToString( "T" ).ToLower() );
+						EditorUtils.DrawClickCopyLabel( labelRect, "Username", server.GetUsername( clientId ) );
+						EditorUtils.DrawClickCopyLabel( cRect, "Network Id", clientId.ToString() );
+						EditorUtils.DrawClickCopyLabel( dRect, "Join Time", server.GetClientJoinTime( clientId ).ToString( "T" ).ToLower() );
 						
 						labelRect.y += lineHeight + 4f;
 						cRect.y += lineHeight + 4f;
@@ -1405,16 +1405,6 @@ namespace Tehelee.Baseline.Networking
 			}
 
 			rect.y = bRect.y;
-		}
-
-		private void DrawClickCopyLabel( Rect rect, string title, string text )
-		{
-			EditorGUI.LabelField( rect, text, EditorStyles.textField );
-			if( GUI.Button( rect, new GUIContent( string.Empty, string.Format( "Copy {0}", title ) ), GUIStyle.none ) )
-			{
-				Debug.LogFormat( "Copied {0} ( '{1}' ) to system clipboard.", title, text );
-				EditorGUIUtility.systemCopyBuffer = text;
-			}
 		}
 	}
 #endif

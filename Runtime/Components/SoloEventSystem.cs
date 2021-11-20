@@ -21,26 +21,11 @@ namespace Tehelee.Baseline
 	
 #if UNITY_EDITOR
 	[CustomEditor( typeof( SoloEventSystem ) )]
-	public class EditorSoloEventSystem : EditorUtils.InheritedEditor
+	public class EditorSoloEventSystem : EditorSolo
 	{
-		public override float GetInspectorHeight()
-		{
-			float inspectorHeight = base.GetInspectorHeight() + lineHeight * 1.5f;
-
-			return inspectorHeight;
-		}
-
-		public override void DrawInspector( ref Rect rect )
-		{
-			base.DrawInspector( ref rect );
-
-			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
-
-			EditorUtils.DrawDivider( bRect, new GUIContent( "SoloEventSystem" ) );
-			bRect.y += lineHeight * 1.5f;
-
-			rect.y = bRect.y;
-		}
+		protected override GUIContent label => new GUIContent( "Solo EventSystem" );
+		protected override bool suppressed => ( ( SoloEventSystem ) target ).suppressed;
+		protected override int count => SoloEventSystem.GetActiveCount();
 	}
 #endif
 }

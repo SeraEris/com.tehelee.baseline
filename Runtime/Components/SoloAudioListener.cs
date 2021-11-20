@@ -20,26 +20,11 @@ namespace Tehelee.Baseline
 	
 #if UNITY_EDITOR
 	[CustomEditor( typeof( SoloAudioListener ) )]
-	public class EditorSoloAudioListener : EditorUtils.InheritedEditor
+	public class EditorSoloAudioListener : EditorSolo
 	{
-		public override float GetInspectorHeight()
-		{
-			float inspectorHeight = base.GetInspectorHeight() + lineHeight * 1.5f;
-
-			return inspectorHeight;
-		}
-
-		public override void DrawInspector( ref Rect rect )
-		{
-			base.DrawInspector( ref rect );
-
-			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
-
-			EditorUtils.DrawDivider( bRect, new GUIContent( "SoloAudioListener" ) );
-			bRect.y += lineHeight * 1.5f;
-
-			rect.y = bRect.y;
-		}
+		protected override GUIContent label => new GUIContent( "Solo AudioListener" );
+		protected override bool suppressed => ( ( SoloAudioListener ) target ).suppressed;
+		protected override int count => SoloAudioListener.GetActiveCount();
 	}
 #endif
 }
