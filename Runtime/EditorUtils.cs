@@ -1200,15 +1200,24 @@ namespace Tehelee.Baseline
 		
 		#region ClickCopyLabel
 
-		public static void DrawClickCopyLabel( Rect rect, string title, string text ) =>
-			DrawClickCopyLabel( rect, new GUIContent( title ), text );
+		public static void DrawClickCopyLabel( Rect rect, string title, string text, bool showLabel = false ) =>
+			DrawClickCopyLabel( rect, new GUIContent( title ), text, showLabel );
 		
-		public static void DrawClickCopyLabel( Rect rect, GUIContent title, string text )
+		public static void DrawClickCopyLabel( Rect rect, GUIContent title, string text, bool showLabel = false )
 		{
 			if( object.Equals( null, title ) )
 				title = EmptyContent;
+
+			Rect bRect = new Rect( rect );
+			if( showLabel )
+			{
+				float labelWidth = EditorGUIUtility.labelWidth;
+				EditorGUI.LabelField( new Rect( bRect.x, bRect.y, labelWidth, bRect.height ), title );
+				bRect.x += labelWidth;
+				bRect.width -= labelWidth;
+			}
 			
-			EditorGUI.LabelField( rect, text, EditorStyles.textField );
+			EditorGUI.LabelField( bRect, text, EditorStyles.textField );
 			string tooltip, message;
 			if( string.IsNullOrEmpty( title.text ) )
 			{

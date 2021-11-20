@@ -95,10 +95,15 @@ namespace Tehelee.Baseline
 			EditorGUI.BeginDisabledGroup( true );
 			EditorGUI.showMixedValue = targets.Length > 1;
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Suppressed" ), suppressed );
+			EditorGUI.showMixedValue = false;
 			EditorGUI.EndDisabledGroup();
 
 			cRect.x += cRect.width + 10f;
-			EditorUtils.DrawClickCopyLabel( EditorUtils.DrawBetterBackground( cRect, emptyContent ), new GUIContent( "Active" ), count.ToString() );
+			EditorGUI.BeginDisabledGroup( !Application.isPlaying );
+			EditorGUI.showMixedValue = !Application.isPlaying;
+			EditorUtils.DrawClickCopyLabel( EditorUtils.DrawBetterBackground( cRect, emptyContent ), new GUIContent( "Active" ), count.ToString(), true );
+			EditorGUI.showMixedValue = false;
+			EditorGUI.EndDisabledGroup();
 
 			bRect.y = lineHeight * 2f;
 
