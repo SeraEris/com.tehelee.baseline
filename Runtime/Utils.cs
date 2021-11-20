@@ -176,6 +176,22 @@ namespace Tehelee.Baseline
 			return null;
 		}
 
+		public static Dictionary<string, string> GetArgsFromDictionary( params string[] keys )
+		{
+			Dictionary<string, string> lookup = new Dictionary<string, string>();
+			
+			if( object.Equals( null, keys ) || keys.Length == 0 )
+				return lookup;
+			
+			foreach( string key in keys )
+				if( !string.IsNullOrEmpty( key ) && !lookup.ContainsKey( key ) )
+					lookup.Add( key, null );
+
+			GetArgsFromDictionary( ref lookup );
+
+			return lookup;
+		}
+
 		public static void GetArgsFromDictionary( ref Dictionary<string, string> args )
 		{
 #if( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
