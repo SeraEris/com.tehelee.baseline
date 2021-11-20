@@ -866,6 +866,21 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
+		//	Password
+
+		#region Password
+
+		public void AuthWithPassword( string password )
+		{
+			if( !isConnected )
+				return;
+			
+			Send( new Packets.Password() { password = server.hostInfo.password }, true );
+		}
+		
+		#endregion
+
+		////////////////////////////////
 		//	Server Info
 
 		#region ServerInfo
@@ -884,7 +899,7 @@ namespace Tehelee.Baseline.Networking
 				Server server = this.server ?? Server.singleton.instance;
 				if( Utils.IsObjectAlive( server ) && server.open )
 				{
-					Send( new Packets.Password() { password = server.hostInfo.password }, true );
+					AuthWithPassword( server.hostInfo.password );
 				}
 				else
 				{
