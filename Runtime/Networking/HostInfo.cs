@@ -157,7 +157,7 @@ namespace Tehelee.Baseline
 
 			cRect = new Rect( cRect.x + cRect.width + 10f, cRect.y, 90f, cRect.height );
 			EditorGUIUtility.labelWidth = 70f;
-			EditorGUI.PropertyField( cRect, property.FindPropertyRelative( "maxAdminAttemptsPerMinute" ), new GUIContent( "Per Minute", "Authorization attempts can be repeated after a minute." ) );
+			EditorGUI.PropertyField( cRect, property.FindPropertyRelative( "adminAttemptsArePerMinute" ), new GUIContent( "Per Minute", "Authorization attempts can be repeated after a minute." ) );
 			EditorGUIUtility.labelWidth = labelWidth;
 			bRect.y += lineHeight;
 
