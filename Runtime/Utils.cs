@@ -176,7 +176,7 @@ namespace Tehelee.Baseline
 			return null;
 		}
 
-		public static Dictionary<string, string> GetArgsFromDictionary( params string[] keys )
+		public static Dictionary<string, string> GetArgs( params string[] keys )
 		{
 			Dictionary<string, string> lookup = new Dictionary<string, string>();
 			
