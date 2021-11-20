@@ -158,6 +158,24 @@ namespace Tehelee.Baseline
 
 		#region Args
 
+		public static string GetArg( string key )
+		{
+			if( string.IsNullOrEmpty( key ) )
+				return null;
+			
+#if( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
+			string[] _args = System.Environment.GetCommandLineArgs();
+			for( int i = 0; i < _args.Length; i++ )
+			{
+				if( $"-{key}".Equals( _args[ i ] ) )
+				{
+					return _args[ ++i ];
+				}
+			}
+#endif
+			return null;
+		}
+
 		public static void GetArgsFromDictionary( ref Dictionary<string, string> args )
 		{
 #if( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
