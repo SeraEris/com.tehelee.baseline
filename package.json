@@ -1,6 +1,6 @@
 {
   "name": "com.tehelee.baseline",
-  "version": "0.7.0",
+  "version": "0.7.2",
   "displayName": "Tehelee Baseline",
   "description": "A gameplay and packet-focused network baseline using the LLAPI of Unity Transport.\nIncludes general utilities, UI components, and editor helpers.",
   "unity": "2020.1",
