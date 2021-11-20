@@ -1211,7 +1211,7 @@ namespace Tehelee.Baseline
 			Rect bRect = new Rect( rect );
 			if( showLabel )
 			{
-				float labelWidth = EditorGUIUtility.labelWidth;
+				float labelWidth = bRect.width * 0.5f;
 				EditorGUI.LabelField( new Rect( bRect.x, bRect.y, labelWidth, bRect.height ), title );
 				bRect.x += labelWidth;
 				bRect.width -= labelWidth;
