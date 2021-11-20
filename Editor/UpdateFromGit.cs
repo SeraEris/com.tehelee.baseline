@@ -25,7 +25,7 @@ namespace Tehelee.Baseline
 		private static float lastProgress = 0f;
 		private static void ShowProgress( float progress )
 		{
-			EditorUtility.DisplayProgressBar( "Updating Package", "Tehelee - Baseline", progress );
+			EditorUtility.DisplayProgressBar( "Updating Package: Tehelee - Baseline", "https://github.com/Tehelee/com.tehelee.baseline.git", progress );
 			lastProgress = progress;
 		}
 
@@ -35,9 +35,7 @@ namespace Tehelee.Baseline
 			
 			if( request.IsCompleted )
 			{
-				if( request.Status == StatusCode.Success )
-					Debug.Log( "Updated Tehelee's Baseline" );
-				else if( request.Status >= StatusCode.Failure )
+				if( request.Status >= StatusCode.Failure )
 					Debug.LogError( request.Error.message );
 
 				EditorUtility.ClearProgressBar();
