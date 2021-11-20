@@ -91,7 +91,7 @@ namespace Tehelee.Baseline
 			EditorUtils.DrawDivider( bRect, label );
 			bRect.y += lineHeight * 1.5f;
 
-			Rect cRect = new Rect( bRect.x, bRect.y, bRect.width - 10f * 0.5f, lineHeight * 1.5f );
+			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 10f ) * 0.5f, lineHeight * 1.5f );
 			EditorGUI.BeginDisabledGroup( true );
 			EditorGUI.showMixedValue = targets.Length > 1;
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Suppressed" ), suppressed );
