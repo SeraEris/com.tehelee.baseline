@@ -1375,6 +1375,9 @@ namespace Tehelee.Baseline.Networking
 				if( clientCount > 0 )
 				{
 					bRect.y += 4f;
+
+					Rect labelRect = new Rect( bRect.x + 15f, bRect.y, labelWidth - 15f, bRect.height );
+					
 					bRect.x += labelWidth;
 					bRect.width -= labelWidth;
 
@@ -1383,9 +1386,11 @@ namespace Tehelee.Baseline.Networking
 
 					foreach( ushort clientId in clientIds )
 					{
+						EditorGUI.LabelField( labelRect, new GUIContent( server.GetUsername( clientId ) ) );
 						DrawClickCopyLabel( cRect, "Network Id", clientId.ToString() );
 						DrawClickCopyLabel( dRect, "Join Time", server.GetClientJoinTime( clientId ).ToString( "T" ).ToLower() );
 						
+						labelRect.y += lineHeight + 4f;
 						cRect.y += lineHeight + 4f;
 						dRect.y += lineHeight + 4f;
 					}
