@@ -98,7 +98,7 @@ namespace Tehelee.Baseline
 			EditorGUI.EndDisabledGroup();
 
 			cRect.x += cRect.width + 10f;
-			EditorUtils.DrawClickCopyLabel( EditorUtils.DrawBetterBackground( cRect, new GUIContent( "Active" ) ), emptyContent, count.ToString() );
+			EditorUtils.DrawClickCopyLabel( EditorUtils.DrawBetterBackground( cRect, emptyContent ), new GUIContent( "Active" ), count.ToString() );
 
 			bRect.y = lineHeight * 2f;
 

@@ -31,7 +31,7 @@ namespace Tehelee.Baseline
 
 		static void Progress()
 		{
-			ShowProgress( Mathf.Lerp( lastProgress, Random.value, 0.001f ) );
+			ShowProgress( Mathf.Lerp( lastProgress, Random.value, 0.01f ) );
 			
 			if( request.IsCompleted )
 			{
