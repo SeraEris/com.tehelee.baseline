@@ -1386,7 +1386,7 @@ namespace Tehelee.Baseline.Networking
 
 					foreach( ushort clientId in clientIds )
 					{
-						EditorGUI.LabelField( labelRect, new GUIContent( server.GetUsername( clientId ) ) );
+						DrawClickCopyLabel( labelRect, "Username", server.GetUsername( clientId ) );
 						DrawClickCopyLabel( cRect, "Network Id", clientId.ToString() );
 						DrawClickCopyLabel( dRect, "Join Time", server.GetClientJoinTime( clientId ).ToString( "T" ).ToLower() );
 						
