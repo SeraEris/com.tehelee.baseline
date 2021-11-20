@@ -10,9 +10,18 @@ namespace Tehelee.Baseline
 		public GroupUpdates( System.Action<T> invoke, float delay = 0f )
 		{
 			this.invoke = invoke;
+			this.fixedUpdate = false;
 			this.delay = delay;
 		}
 
+		public GroupUpdates( System.Action<T> invoke, bool fixedUpdate, float delay = 0f )
+		{
+			this.invoke = invoke;
+			this.fixedUpdate = fixedUpdate;
+			this.delay = delay;
+		}
+
+		private bool fixedUpdate = false;
 		private float delay = 0f;
 		private System.Action<T> invoke = null;
 
@@ -46,10 +55,17 @@ namespace Tehelee.Baseline
 		{
 			YieldInstruction yieldInstruction = null;
 
-			if( delay < 0f )
-				yieldInstruction = new WaitForEndOfFrame();
-			else if( delay > 0f )
-				yieldInstruction = new WaitForSeconds( 0f );
+			if( fixedUpdate )
+			{
+				yieldInstruction = new WaitForFixedUpdate();
+			}
+			else
+			{
+				if( delay < 0f )
+					yieldInstruction = new WaitForEndOfFrame();
+				else if( delay > 0f )
+					yieldInstruction = new WaitForSeconds( delay );
+			}
 
 			while( true )
 			{

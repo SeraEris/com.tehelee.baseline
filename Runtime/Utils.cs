@@ -1,6 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using UnityEngine;
 
@@ -14,23 +17,35 @@ namespace Tehelee.Baseline
 
 	public static class Utils
 	{
-		////////////////
+		////////////////////////
 		// DelayHelper
-		////////////////
+		////////////////////////
 
 		#region DelayHelper
+
+		public static bool IsShuttingDown { get; internal set; }
+
+		private static List<IEnumerator> pendingCoroutines = new List<IEnumerator>();
+
+		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterSceneLoad )]
+		private static void SpawnDelaySlave()
+		{
+			_delaySlave = new GameObject( "[Delay Slave]", typeof( DelaySlave ) ).GetComponent<DelaySlave>();
+			_delaySlave.gameObject.hideFlags = HideFlags.HideAndDontSave;
+			GameObject.DontDestroyOnLoad( _delaySlave.gameObject );
+
+			foreach( IEnumerator pendingCoroutine in pendingCoroutines )
+				if( !object.Equals( null, pendingCoroutine ) )
+					_delaySlave.StartCoroutine( pendingCoroutine );
+		}
 
 		private static DelaySlave _delaySlave = null;
 		private static DelaySlave delaySlave
 		{
 			get
 			{
-				if( !_delaySlave )
-				{
-					_delaySlave = new GameObject( "[Delay Slave]", typeof( DelaySlave ) ).GetComponent<DelaySlave>();
-					_delaySlave.gameObject.hideFlags = HideFlags.HideAndDontSave;
-					GameObject.DontDestroyOnLoad( _delaySlave.gameObject );
-				}
+				if( !Utils.IsObjectAlive( _delaySlave ) )
+					SpawnDelaySlave();
 
 				return _delaySlave;
 			}
@@ -61,9 +76,9 @@ namespace Tehelee.Baseline
 
 		#endregion
 
-		////////////////
+		////////////////////////
 		// Hashing
-		////////////////
+		////////////////////////
 
 		#region Hashing
 
@@ -301,9 +316,9 @@ namespace Tehelee.Baseline
 
 		#endregion
 
-		////////////////
+		////////////////////////
 		// HashSet Helpers
-		////////////////
+		////////////////////////
 
 		#region HashSet
 
@@ -318,9 +333,9 @@ namespace Tehelee.Baseline
 
 		#endregion
 
-		////////////////
+		////////////////////////
 		// List Helpers
-		////////////////
+		////////////////////////
 
 		#region List
 
@@ -338,9 +353,25 @@ namespace Tehelee.Baseline
 
 		#endregion
 
-		////////////////
+		////////////////////////
+		// Dictionary Helpers
+		////////////////////////
+
+		#region Dictionary
+
+		public static void InsertOrReplace<K,V>( this IDictionary<K,V> dictionary, K key, V value )
+		{
+			if( dictionary.ContainsKey( key ) )
+				dictionary[ key ] = value;
+			else
+				dictionary.Add( key, value );
+		}
+
+		#endregion
+
+		////////////////////////
 		// String Helpers
-		////////////////
+		////////////////////////
 
 		#region StringHelpers
 
@@ -356,25 +387,30 @@ namespace Tehelee.Baseline
 			if( string.IsNullOrEmpty( input ) )
 				return string.Empty;
 
-			string s, output = "";
-			string[] split = input.Split( splitSpace, System.StringSplitOptions.RemoveEmptyEntries );
+			if( input.Length <= 3 )
+				return input.ToUpper();
 
-			for( int i = 0, c = split.Length; i < c; i++ )
-			{
-				s = split[ i ];
+			Regex invalidCharsRgx = new Regex( "[^_a-zA-Z0-9]" );
+			Regex whiteSpace = new Regex( @"(?<=\s)" );
+			Regex startsWithLowerCaseChar = new Regex( "^[a-z]" );
+			Regex firstCharFollowedByUpperCasesOnly = new Regex( "(?<=[A-Z])[A-Z0-9]+$" );
+			Regex lowerCaseNextToNumber = new Regex( "(?<=[0-9])[a-z]" );
+			Regex upperCaseInside = new Regex( "(?<=[A-Z])[A-Z]+?((?=[A-Z][a-z])|(?=[0-9]))" );
 
-				if( s.Length <= 3 )
-					s = s.ToUpper();
-				else
-					s = char.ToUpper( s[ 0 ] ) + s.Substring( 1 ).ToLower();
+			// replace white spaces with undescore, then replace all invalid chars with empty string
+			var pascalCase = invalidCharsRgx.Replace( whiteSpace.Replace( input, "_" ), string.Empty )
+				// split by underscores
+				.Split( new char[] { '_' }, System.StringSplitOptions.RemoveEmptyEntries )
+				// set first letter to uppercase
+				.Select( w => startsWithLowerCaseChar.Replace( w, m => m.Value.ToUpper() ) )
+				// replace second and all following upper case letters to lower if there is no next lower (ABC -> Abc)
+				.Select( w => firstCharFollowedByUpperCasesOnly.Replace( w, m => m.Value.ToLower() ) )
+				// set upper case the first lower case following a number (Ab9cd -> Ab9Cd)
+				.Select( w => lowerCaseNextToNumber.Replace( w, m => m.Value.ToUpper() ) )
+				// lower second and next upper case letters except the last if it follows by any lower (ABcDEf -> AbcDef)
+				.Select( w => upperCaseInside.Replace( w, m => m.Value.ToLower() ) );
 
-				output += s;
-
-				if( underscoreSpaces && ( i < ( c - 1 ) ) )
-					output += "_";
-			}
-
-			return output;
+			return string.Concat( pascalCase );
 		}
 
 		/// <summary>
@@ -510,10 +546,97 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
+		// Safe Parse
+		////////////////////////
+
+		#region Safe Parse
+
+		// 8-bit
+
+		public static sbyte SafeParse( string value, sbyte defaultValue = 0 )
+		{
+			sbyte _value = defaultValue;
+			sbyte.TryParse( value, out _value );
+			return _value;
+		}
+
+		public static byte SafeParse( string value, byte defaultValue = 0 )
+		{
+			byte _value = defaultValue;
+			byte.TryParse( value, out _value );
+			return _value;
+		}
+
+		// 16-bit
+
+		public static short SafeParse( string value, short defaultValue = 0 )
+		{
+			short _value = defaultValue;
+			short.TryParse( value, out _value );
+			return _value;
+		}
+
+		public static ushort SafeParse( string value, ushort defaultValue = 0 )
+		{
+			ushort _value = defaultValue;
+			ushort.TryParse( value, out _value );
+			return _value;
+		}
+
+		// 32-bit
+
+		public static uint SafeParse( string value, uint defaultValue = 0 )
+		{
+			uint _value = defaultValue;
+			uint.TryParse( value, out _value );
+			return _value;
+		}
+
+		public static int SafeParse( string value, int defaultValue = 0 )
+		{
+			int _value = defaultValue;
+			int.TryParse( value, out _value );
+			return _value;
+		}
+
+		// 64-bit
+
+		public static long SafeParse( string value, long defaultValue = 0 )
+		{
+			long _value = defaultValue;
+			long.TryParse( value, out _value );
+			return _value;
+		}
+
+		public static ulong SafeParse( string value, ulong defaultValue = 0 )
+		{
+			ulong _value = defaultValue;
+			ulong.TryParse( value, out _value );
+			return _value;
+		}
+
+		#endregion
+
+		////////////////////////
 		// Component Helpers
 		////////////////////////
 
-		#region ComponentHelpers
+		#region Component Helpers
+
+		public static void DestroyEditorSafe( Object obj )
+		{
+			if( !IsObjectAlive( obj ) )
+				return;
+
+#if UNITY_EDITOR
+			if( Application.isPlaying )
+				Object.Destroy( obj );
+			else
+				Object.DestroyImmediate( obj );
+#else
+			Object.Destroy( obj );
+#endif
+		}
 
 		public static T[] FindInScene<T>( UnityEngine.SceneManagement.Scene scene ) where T : Component
 		{
@@ -530,7 +653,7 @@ namespace Tehelee.Baseline
 			return foundObjects.ToArray();
 		}
 
-		#endregion
+#endregion
 
 		////////////////////////
 		// Unity Object Helpers
@@ -714,13 +837,33 @@ namespace Tehelee.Baseline
 		////////////////////////
 
 		#region Threading
+			
+		public static void WaitForTask( Task task, System.Action callback = null )
+		{
+			if( IsShuttingDown )
+			{
+				if( !task.IsCompleted )
+					if( task.Status == TaskStatus.Created )
+						task.Start();
 
-		public static void WaitForTask( System.Threading.Tasks.Task task, System.Action callback ) => StartCoroutine( IWaitForTask( task, callback ) );
+				task.Wait();
 
-		public static IEnumerator IWaitForTask( System.Threading.Tasks.Task task, System.Action callback )
+				callback?.Invoke();
+			}
+			else if( !Utils.IsObjectAlive( delaySlave ) )
+			{
+				pendingCoroutines.Add( IWaitForTask( task, callback ) );
+			}
+			else
+			{
+				StartCoroutine( IWaitForTask( task, callback ) );
+			}
+		}
+
+		private static IEnumerator IWaitForTask( Task task, System.Action callback = null )
 		{
 			if( !task.IsCompleted )
-				if( task.Status == System.Threading.Tasks.TaskStatus.Created )
+				if( task.Status == TaskStatus.Created )
 					task.Start();
 
 			do
@@ -732,13 +875,35 @@ namespace Tehelee.Baseline
 			yield break;
 		}
 
-		public static void WaitForTask<T>( System.Threading.Tasks.Task<T> task, System.Action<T> callback ) => StartCoroutine( IWaitForTask( task, callback ) );
+		public static void WaitForTask<T>( Task<T> task, System.Action<T> callback = null )
+		{
+			if( IsShuttingDown )
+			{
+				if( !task.IsCompleted )
+					if( task.Status == TaskStatus.Created )
+						task.Start();
 
-		public static IEnumerator IWaitForTask<T>( System.Threading.Tasks.Task<T> task, System.Action<T> callback )
+				task.Wait();
+
+				callback?.Invoke( task.Result );
+			}
+			else if( !Utils.IsObjectAlive( delaySlave ) )
+			{
+				pendingCoroutines.Add( IWaitForTask( task, callback ) );
+			}
+			else
+			{
+				StartCoroutine( IWaitForTask( task, callback ) );
+			}
+		}
+
+		private static IEnumerator IWaitForTask<T>( Task<T> task, System.Action<T> callback = null )
 		{
 			if( !task.IsCompleted )
-				if( task.Status == System.Threading.Tasks.TaskStatus.Created )
+				if( task.Status == TaskStatus.Created )
 					task.Start();
+
+			
 
 			do
 				yield return null;
@@ -749,7 +914,7 @@ namespace Tehelee.Baseline
 			yield break;
 		}
 
-		#endregion
+#endregion
 
 		////////////////////////
 		// Types
@@ -796,11 +961,134 @@ namespace Tehelee.Baseline
 
 			List<System.Type> types = new List<System.Type>();
 
-			foreach( KeyValuePair<string,System.Type> kvp in typeDictionary )
+			foreach( KeyValuePair<string, System.Type> kvp in typeDictionary )
 				if( kvp.Key.StartsWith( fullNameStartsWith ) && typeof( T ).IsAssignableFrom( kvp.Value ) )
 					types.Add( kvp.Value );
 
 			return types;
+		}
+
+		public static bool EqualsOrAssignable( this System.Type type, System.Type assignable ) =>
+			( ( type == assignable ) || type.IsAssignableFrom( assignable ) );
+
+		#endregion
+
+		////////////////////////
+		// Scene
+		////////////////////////
+
+		#region Scene
+
+		public static List<T> FindAllObjectsOfType<T>( this UnityEngine.SceneManagement.Scene scene ) where T : Component
+		{
+			List<T> list = new List<T>();
+			
+			if( scene.IsValid() && ( scene.isLoaded || !Application.isPlaying ) )
+			{
+				foreach( GameObject gameObject in scene.GetRootGameObjects() )
+					if( Utils.IsObjectAlive( gameObject ) )
+						list.AddRange( gameObject.GetComponentsInChildren<T>() );
+			}
+
+			return list;
+		}
+
+#endregion
+
+		////////////////////////
+		// Bezier Curve
+		////////////////////////
+
+		#region Bezier Curve
+
+		// A = startPoint.position;
+		// B = controlPointStart.position;
+		// C = controlPointEnd.position;
+		// D = endPoint.position;
+
+		// DeCasteljausAlgorithm
+		public static Vector3 SampleBezierCurve( Vector3 start, Vector3 startControl, Vector3 end, Vector3 endControl, float t )
+		{
+			//Linear interpolation = lerp = (1 - t) * a + t * b
+			//Could use Vector3.Lerp(a, b, t)
+
+			//To make it faster
+			float oneMinusT = 1f - t;
+
+			//Layer 1
+			Vector3 q = oneMinusT * start + t * startControl;
+			Vector3 r = oneMinusT * startControl + t * endControl;
+			Vector3 s = oneMinusT * endControl + t * end;
+
+			//Layer 2
+			Vector3 p = oneMinusT * q + t * r;
+			Vector3 u = oneMinusT * r + t * s;
+
+			//Final interpolated position
+			Vector3 v = oneMinusT * p + t * u;
+
+			return v;
+		}
+
+		public static Vector3 GetBezierNormal( Vector3 start, Vector3 startControl, Vector3 end, Vector3 endControl, float t, float offset = 0.1f )
+		{
+			Vector3 previous = SampleBezierCurve( start, startControl, end, endControl, Mathf.Clamp( t - offset, 0f, 1f ) );
+			Vector3 current = SampleBezierCurve( start, startControl, end, endControl, Mathf.Clamp( t, 0f, 1f ) );
+			Vector3 next = SampleBezierCurve( start, startControl, end, endControl, Mathf.Clamp( t + offset, 0f, 1f ) );
+
+			Vector3 forward = next - current;
+			Vector3 back = current - previous;
+
+			return ( forward + back ) * 0.5f;
+		}
+
+		public static float EstimateBezierLength( Vector3 start, Vector3 startControl, Vector3 end, Vector3 endControl, int samples = 10 )
+		{
+			float length = 0f;
+			Vector3 lastPoint = start;
+			for( int i = 0; i < samples; i++ )
+			{
+				Vector3 point = SampleBezierCurve( start, startControl, end, endControl, ( i + 1 ) / ( float ) samples );
+				length += ( point - lastPoint ).magnitude;
+				lastPoint = point;
+			}
+
+			return length;
+		}
+
+		public static void DrawBezierGizmo( Vector3 start, Vector3 startControl, Vector3 end, Vector3 endControl, float distance = 0.25f, byte limit = 0 )
+		{
+			float length = EstimateBezierLength( start, startControl, end, endControl );
+			int desiredCount = length <= distance ? 1 : Mathf.FloorToInt( length / distance );
+			if( limit > 0)
+				desiredCount = Mathf.Min( limit, desiredCount );
+
+			float step = 1f / desiredCount;
+
+			for( int i = 0; i < desiredCount; i++ )
+			{
+				Vector3 s = SampleBezierCurve( start, startControl, end, endControl, i * step );
+				Vector3 e = SampleBezierCurve( start, startControl, end, endControl, ( i + 1 ) * step );
+				Gizmos.DrawLine( s, e );
+			}
+
+			Color color = Gizmos.color;
+
+			Gizmos.DrawSphere( start, distance * 0.5f );
+			Gizmos.DrawSphere( end, distance * 0.5f );
+			
+			Gizmos.color = new Color( color.r, color.g, color.b, color.a * 0.5f );
+			Gizmos.DrawLine( start, startControl );
+			Gizmos.DrawLine( end, endControl );
+
+			if( color.r == color.g && color.g == color.b )
+				Gizmos.color = Color.yellow;
+			else
+				Gizmos.color = new Color( color.b, color.r, color.g, color.a);
+			Gizmos.DrawSphere( startControl, distance * 0.5f );
+			Gizmos.DrawSphere( endControl, distance * 0.5f );
+
+			Gizmos.color = color;
 		}
 
 		#endregion
@@ -840,6 +1128,11 @@ namespace Tehelee.Baseline
 				action();
 
 			yield break;
+		}
+
+		private void OnApplicationQuit()
+		{
+			Utils.IsShuttingDown = true;
 		}
 	}
 }

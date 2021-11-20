@@ -477,16 +477,24 @@ namespace Tehelee.Baseline.Components
 				element.FindPropertyRelative( "reference" ).objectReferenceValue = null;
 			};
 		}
+		
+		public override float GetInspectorHeight() => base.GetInspectorHeight() + objectReferences.GetHeight() + lineHeight * 1.5f;
 
-		public override void DrawInspectorLayout()
+		public override void DrawInspector( ref Rect rect )
 		{
-			base.DrawInspectorLayout();
+			base.DrawInspector( ref rect );
 
-			GUILayout.Space( lineHeight * 0.5f );
+			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
 
-			objectReferences.DoLayoutList();
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Object Lookup" ) );
+			bRect.y += lineHeight * 1.5f;
+			
+			bRect.height = objectReferences.GetHeight();
+			objectReferences.DoList( bRect );
 
-			GUILayout.Space( lineHeight * 0.5f );
+			bRect.y += bRect.height;
+			
+			rect.y = bRect.y;
 		}
 	}
 #endif

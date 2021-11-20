@@ -15,12 +15,29 @@ namespace Tehelee.Baseline.DesignData
 	[CreateAssetMenu( fileName = "Data Collection", menuName = "Design Data Collection", order = 200 )]
 	public class Collection : Data
 	{
-		public List<Data> data = new List<Data>();
+		public List<Data> datas = new List<Data>();
 
 #if UNITY_EDITOR
 		public string directory { get { return Path.Combine( Application.dataPath, path, name ); } }
 		public string localDirectory { get { return Path.Combine( "Assets", path, name ); } }
 #endif
+
+		public HashSet<Data> GetAllDatas()
+		{
+			HashSet<Data> _datas = new HashSet<Data>();
+			foreach( Data data in datas )
+			{
+				if( object.Equals( null, data ) )
+					continue;
+
+				if( data is Collection )
+					_datas.AddRange( ( ( Collection ) data ).GetAllDatas() );
+				else
+					_datas.Add( data );
+			}
+
+			return _datas;
+		}
 	}
 
 #if UNITY_EDITOR
@@ -57,7 +74,7 @@ namespace Tehelee.Baseline.DesignData
 
 			dataList = EditorUtils.CreateReorderableList
 			(
-				serializedObject.FindProperty( "data" ),
+				serializedObject.FindProperty( "datas" ),
 				( SerializedProperty element ) =>
 				{
 					return lineHeight * 1.5f;
@@ -73,15 +90,13 @@ namespace Tehelee.Baseline.DesignData
 			CheckFolder();
 		}
 		
-		public override float inspectorPostInspectorOffset => lineHeight * 0.5f;
-
 		public override float GetInspectorHeight()
 		{
 			float height = base.GetInspectorHeight();
 
-			height += lineHeight * 0.5f;
+			height += lineHeight * 1.5f;
 
-			height += dataList.GetHeight();
+			height += dataList.CalculateCollapsableListHeight();
 
 			return height;
 		}
@@ -95,11 +110,12 @@ namespace Tehelee.Baseline.DesignData
 		{
 			base.DrawInspector( ref rect );
 
-			Rect bRect = new Rect( rect.x, rect.y + lineHeight * 0.5f, rect.width, dataList.GetHeight() );
+			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
 
-			dataList.DoList( bRect );
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Data Collection" ) );
+			bRect.y += lineHeight * 1.5f;
 
-			bRect.y += bRect.height;
+			dataList.DrawCollapsableList( ref bRect );
 
 			rect.y = bRect.y;
 		}
@@ -158,6 +174,15 @@ namespace Tehelee.Baseline.DesignData
 
 		private void PopulateFromFolder( ref Collection collection )
 		{
+			if( !Utils.IsObjectAlive( collection ) )
+				return;
+
+			if( !Directory.Exists( collection.directory ) )
+			{
+				collection.path = string.Empty;
+				return;
+			}
+
 			string[] assetPaths = Directory.GetFiles( collection.directory, "*.asset" );
 
 			string pathPrefix = Application.dataPath;
@@ -205,7 +230,7 @@ namespace Tehelee.Baseline.DesignData
 				}
 			}
 
-			collection.data = data;
+			collection.datas = data;
 
 			EditorUtility.SetDirty( collection );
 

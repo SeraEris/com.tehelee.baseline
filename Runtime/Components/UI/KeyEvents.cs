@@ -1,9 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -23,6 +27,9 @@ namespace Tehelee.Baseline.Components.UI
 
 		private static KeyCode[] allKeys = new KeyCode[ 0 ];
 		private static bool[] keyState = new bool[ 0 ];
+
+		public static bool editingInput { get; private set; } = false;
+		private static bool resetEditingInput = false;
 
 		public static void Register( KeyEvents keyEvents )
 		{
@@ -122,10 +129,49 @@ namespace Tehelee.Baseline.Components.UI
 		private static Coroutine _IKeyWatcher = null;
 		private static IEnumerator IKeyWatcher()
 		{
+			while( !KeyBindings.hasLoaded )
+				yield return null;
+
 			while( true )
 			{
 				triggerKeyDownEvents.Clear();
 				triggerKeyUpEvents.Clear();
+
+				bool _editingInput = false;
+				UnityEngine.UI.Selectable selectable = EventSystem.current?.currentSelectedGameObject?.GetComponent<UnityEngine.UI.Selectable>() ?? null;
+				
+				if( Utils.IsObjectAlive( selectable ) )
+				{
+					System.Type selectableType = selectable.GetType();
+					
+					if( ( typeof( TMPro.TMP_InputField ).EqualsOrAssignable( selectableType ) ) )
+					{
+						TMPro.TMP_InputField inputField = ( TMPro.TMP_InputField ) selectable;
+						_editingInput = inputField.gameObject.activeSelf && inputField.enabled && inputField.isFocused;
+					}
+					else if( typeof( UnityEngine.UI.InputField ).EqualsOrAssignable( selectableType ) )
+					{
+						UnityEngine.UI.InputField inputField = ( UnityEngine.UI.InputField ) selectable;
+						_editingInput = inputField.gameObject.activeSelf && inputField.enabled && inputField.isFocused;
+					}
+				}
+
+				if( resetEditingInput )
+				{
+					if( _editingInput )
+						editingInput = true;
+					else
+						editingInput = false;
+
+					resetEditingInput = false;
+				}
+				else if( editingInput != _editingInput )
+				{
+					if( _editingInput )
+						editingInput = true;
+					else
+						resetEditingInput = true;
+				}
 
 				bool pressed = false;
 				for( int i = 0, iC = allKeys.Length; i < iC; i++ )
@@ -152,7 +198,7 @@ namespace Tehelee.Baseline.Components.UI
 								return -registerTime[ a ].CompareTo( registerTime[ b ] );
 							}
 						);
-						
+
 						if( pressed )
 							triggerKeyDownEvents.Add( keyCode, triggers );
 						else
@@ -177,12 +223,207 @@ namespace Tehelee.Baseline.Components.UI
 		}
 	}
 
+	public class KeyBindings
+	{
+		private const string jsonFileName = "KeyBindings.json";
+
+		public static bool hasLoaded { get; private set; }
+		private static bool loading = false;
+		private static int saveRequests = 0;
+
+		public static string GetJsonFilePath() =>
+			System.IO.Path.Combine( Application.persistentDataPath, jsonFileName );
+
+		private static int enabledCount = 0;
+		public static Dictionary<string, KeyCode[]> binds = new Dictionary<string, KeyCode[]>();
+		
+		public static KeyCode[] GetKeyCodes( string key )
+		{
+			if( binds.ContainsKey( key ) )
+				return new List<KeyCode>( binds[ key ] ).ToArray();
+			else
+				return new KeyCode[ 0 ];
+		}
+
+		public static void SetKeyCodes( string key, KeyCode[] keyCodes )
+		{
+			if( string.IsNullOrWhiteSpace( key ) )
+				return;
+
+			HashSet<KeyCode> hashSet = new HashSet<KeyCode>();
+			for( int i = 0, iC = keyCodes.Length; i < iC; i++ )
+				if( keyCodes[ i ] != KeyCode.None )
+					hashSet.Add( keyCodes[ i ] );
+
+			keyCodes = new List<KeyCode>( hashSet ).ToArray();
+
+			if( keyCodes.Length == 0 )
+			{
+				if( binds.ContainsKey( key ) )
+					binds.Remove( key );
+			}
+			else
+			{
+				if( binds.ContainsKey( key ) )
+					binds[ key ] = keyCodes;
+				else
+					binds.Add( key, keyCodes );
+			}
+		}
+
+		public static void OnEnable()
+		{
+			if( enabledCount++ == 0 )
+			{
+				Load();
+			}
+		}
+
+		public static void OnDisable()
+		{
+			Save();
+		}
+
+		public static void Save()
+		{
+			saveRequests++;
+
+			if( saveRequests > 1 )
+				return;
+
+			_Save();
+		}
+
+		private static void _Save()
+		{
+			string jsonFilePath = GetJsonFilePath();
+
+			Utils.WaitForTask( new Task( () =>
+			{
+				string jsonFileDirectory = Path.GetDirectoryName( jsonFilePath );
+
+				if( File.Exists( jsonFilePath ) )
+					File.Delete( jsonFilePath );
+
+				if( !Directory.Exists( jsonFileDirectory ) )
+					Directory.CreateDirectory( jsonFileDirectory );
+
+				if( Directory.Exists( jsonFileDirectory ) && !File.Exists( jsonFilePath ) )
+				{
+					using( StreamWriter streamWriter = File.CreateText( jsonFilePath ) )
+					{
+						JsonTextWriter jsonWriter = new JsonTextWriter( streamWriter );
+						jsonWriter.Formatting = Formatting.Indented;
+
+						JObject jObj = new JObject();
+
+						List<string> bindKeys = new List<string>( binds.Keys );
+						bindKeys.Sort();
+
+						foreach( string bindKey in bindKeys )
+						{
+							KeyCode[] keyCodes = binds[ bindKey ];
+
+							if( keyCodes.Length > 0 )
+							{
+								JArray jArray = new JArray();
+
+								foreach( KeyCode keyCode in keyCodes )
+									jArray.Add( keyCode.ToString() );
+
+								jObj.Add( bindKey, jArray );
+							}
+						}
+
+						jObj.WriteTo( jsonWriter );
+					}
+				}
+
+				saveRequests--;
+
+			} ), () =>
+			{
+				if( saveRequests > 0 )
+					_Save();
+			} );
+		}
+
+		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.BeforeSceneLoad )]
+		public static void Load()
+		{
+			if( loading )
+				return;
+
+			loading = true;
+
+			string jsonFilePath = GetJsonFilePath();
+
+			Utils.WaitForTask( new Task<Dictionary<string,KeyCode[]>>( () =>
+			{
+				Dictionary<string, KeyCode[]> binds = new Dictionary<string, KeyCode[]>();
+
+				if( File.Exists( jsonFilePath ) )
+				{
+					using( StreamReader streamReader = new StreamReader( jsonFilePath ) )
+					{
+						JsonTextReader jsonReader = new JsonTextReader( streamReader );
+
+						JObject jObj = null;
+
+						try
+						{
+							jObj = ( JObject ) JToken.ReadFrom( jsonReader );
+							
+							foreach( KeyValuePair<string, JToken> kvp in jObj )
+							{
+								JArray jArray = ( JArray ) kvp.Value;
+
+								HashSet<KeyCode> hashSet = new HashSet<KeyCode>();
+								foreach( JToken jToken in jArray )
+								{
+									string keyCodeString = jToken.Value<string>();
+
+									if( !string.IsNullOrEmpty( keyCodeString ) )
+									{
+										KeyCode key;
+										if( System.Enum.TryParse( keyCodeString, out key ) && key != KeyCode.None )
+											hashSet.Add( key );
+									}
+								}
+
+								if( hashSet.Count > 0 )
+									binds.Add( kvp.Key, new List<KeyCode>( hashSet ).ToArray() );
+							}
+						}
+						catch { }
+					}
+				}
+
+				hasLoaded = true;
+				loading = false;
+
+				return binds;
+			} ),
+			( Dictionary<string,KeyCode[]> binds ) =>
+			{
+				foreach( KeyValuePair<string, KeyCode[]> kvp in binds )
+				{
+					SetKeyCodes( kvp.Key, kvp.Value );
+				}
+			} );
+		}
+	}
+
 	public class KeyEvents : MonoBehaviour
 	{
 		[System.Serializable]
 		public class KeyEvent
 		{
+			public string preferencesKey = string.Empty;
+
 			public KeyCode[] keys;
+
+			public bool invokeDuringInput = false;
 
 			public UnityEvent onDown = new UnityEvent();
 			public UnityEvent onUp = new UnityEvent();
@@ -196,10 +437,22 @@ namespace Tehelee.Baseline.Components.UI
 		
 		protected virtual void OnEnable()
 		{
+			KeyBindings.OnEnable();
+
 			lookup.Clear();
 			for( int i = 0, iC = keyEvents.Length; i < iC; i++ )
 			{
+				if( !string.IsNullOrWhiteSpace( keyEvents[ i ].preferencesKey ) )
+				{
+					KeyCode[] keyCodes = KeyBindings.GetKeyCodes( keyEvents[ i ].preferencesKey );
+					if( keyCodes.Length > 0 )
+						keyEvents[ i ].keys = keyCodes;
+					else if( keyEvents[ i ].keys.Length > 0 )
+						KeyBindings.SetKeyCodes( keyEvents[ i ].preferencesKey, keyEvents[ i ].keys );
+				}
+
 				KeyCode[] keys = keyEvents[ i ].keys;
+
 				for( int j = 0, jC = keys.Length; j < jC; j++ )
 				{
 					if( !lookup.ContainsKey( keys[ j ] ) )
@@ -215,14 +468,19 @@ namespace Tehelee.Baseline.Components.UI
 		protected virtual void OnDisable()
 		{
 			KeyEventSingleton.UnRegister( this );
+
+			KeyBindings.OnDisable();
 		}
 
 		public bool OnKeyDown( KeyCode keyCode )
 		{
+			bool editingInput = KeyEventSingleton.editingInput;
+			
 			List<KeyEvent> keyEvents = lookup[ keyCode ];
 			foreach( KeyEvent keyEvent in keyEvents )
 			{
-				keyEvent.onDown.Invoke();
+				if( keyEvent.invokeDuringInput || !editingInput )
+					keyEvent.onDown.Invoke();
 			}
 
 			return consumeKeyEvents;
@@ -230,10 +488,13 @@ namespace Tehelee.Baseline.Components.UI
 
 		public bool OnKeyUp( KeyCode keyCode )
 		{
+			bool editingInput = KeyEventSingleton.editingInput;
+			
 			List<KeyEvent> keyEvents = lookup[ keyCode ];
 			foreach( KeyEvent keyEvent in keyEvents )
 			{
-				keyEvent.onUp.Invoke();
+				if( keyEvent.invokeDuringInput || !editingInput )
+					keyEvent.onUp.Invoke();
 			}
 
 			return consumeKeyEvents;
@@ -297,6 +558,8 @@ namespace Tehelee.Baseline.Components.UI
 
 					height += keyEventKeys[ index ].CalculateCollapsableListHeight();
 
+					height += lineHeight * 3.5f;
+
 					height += EditorUtils.BetterUnityEventFieldHeight( element.FindPropertyRelative( "onDown" ) );
 
 					height += EditorUtils.BetterUnityEventFieldHeight( element.FindPropertyRelative( "onUp" ) );
@@ -311,6 +574,19 @@ namespace Tehelee.Baseline.Components.UI
 						RebuildKeyEventKeys();
 
 					keyEventKeys[ index ].DrawCollapsableList( ref bRect );
+
+					bRect.height = lineHeight * 1.5f;
+					EditorUtils.BetterToggleField( bRect, new GUIContent( "Invoke During Input" ), element.FindPropertyRelative( "invokeDuringInput" ) );
+					bRect.y += lineHeight * 2f;
+
+					float labelWidth = EditorGUIUtility.labelWidth;
+					EditorGUIUtility.labelWidth = 110f;
+
+					bRect.height = lineHeight;
+					EditorGUI.PropertyField( bRect, element.FindPropertyRelative( "preferencesKey" ), new GUIContent( "Preferences Key" ) );
+					bRect.y += lineHeight * 1.5f;
+
+					EditorGUIUtility.labelWidth = labelWidth;
 
 					SerializedProperty onDown = element.FindPropertyRelative( "onDown" );
 					SerializedProperty onUp = element.FindPropertyRelative( "onUp" );

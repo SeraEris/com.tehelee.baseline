@@ -255,23 +255,28 @@ namespace Tehelee.Baseline.DesignData
 
 		public override float GetInspectorHeight()
 		{
-			float propertyHeight = base.GetInspectorHeight();
+			float inspectorHeight = base.GetInspectorHeight();
 
-			propertyHeight += packetDefinitions.GetHeight() + lineHeight * 2f;
+			inspectorHeight += lineHeight * 1.5f;
 
-			return propertyHeight;
+			inspectorHeight += packetDefinitions.CalculateCollapsableListHeight();
+
+			inspectorHeight += lineHeight * 2f;
+
+			return inspectorHeight;
 		}
 
 		public override void DrawInspector( ref Rect rect )
 		{
 			base.DrawInspector( ref rect );
 
-			Rect bRect = new Rect( rect.x, rect.y + lineHeight * 0.5f, rect.width, packetDefinitions.GetHeight() );
+			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
 
-			packetDefinitions.DoList( bRect );
+			EditorUtils.DrawDivider( bRect, new GUIContent( "Packet Data" ) );
+			bRect.y += lineHeight * 1.5f;
 
-			bRect.y += bRect.height + lineHeight * 0.5f;
-
+			packetDefinitions.DrawCollapsableList( ref bRect );
+			
 			bRect.height = lineHeight * 1.5f;
 
 			if( EditorUtils.BetterButton( bRect, new GUIContent( "Repopulate Packets" ) ) )
