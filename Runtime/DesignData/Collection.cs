@@ -169,6 +169,8 @@ namespace Tehelee.Baseline.DesignData
 		{
 			Directory.CreateDirectory( collection.directory );
 
+			AssetDatabase.Refresh();
+
 			CheckFolder();
 		}
 
@@ -216,6 +218,7 @@ namespace Tehelee.Baseline.DesignData
 						Collection _collection = AssetDatabase.LoadAssetAtPath<Collection>( _assetPath );
 
 						PopulateFromFolder( ref _collection );
+						EditorUtility.SetDirty( _collection );
 					}
 
 					Data _data = AssetDatabase.LoadAssetAtPath<Data>( _assetPath );
