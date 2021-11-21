@@ -49,5 +49,21 @@ namespace Tehelee.Baseline.Networking.Packets
 		}
 
 		////////////////////////////////
+
+		public static Bundle Pack<T>( IEnumerable<T> packets, NetworkConnection networkConnection ) where T : Packet =>
+			new Bundle()
+			{
+				packets = new List<Packet>( packets ),
+				targets = new List<NetworkConnection>() { networkConnection }
+			};
+		
+		public static Bundle Pack<T>( IEnumerable<T> packets, IEnumerable<NetworkConnection> networkConnections ) where T : Packet =>
+			new Bundle()
+			{
+				packets = new List<Packet>( packets ),
+				targets = new List<NetworkConnection>( networkConnections )
+			};
+		
+		////////////////////////////////
 	}
 }

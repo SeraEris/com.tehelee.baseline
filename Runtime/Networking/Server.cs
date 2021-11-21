@@ -387,6 +387,18 @@ namespace Tehelee.Baseline.Networking
 		protected NativeList<NetworkConnection> networkConnectionsNative;
 		protected List<NetworkConnection> networkConnections = new List<NetworkConnection>();
 		public List<NetworkConnection> GetNetworkConnections() => new List<NetworkConnection>( networkConnections );
+		public List<NetworkConnection> GetNetworkConnections( IEnumerable<ushort> clientIds )
+		{
+			List<NetworkConnection> networkConnections = new List<NetworkConnection>();
+			foreach( ushort clientId in clientIds )
+			{
+				NetworkConnection networkConnection = GetNetworkConnection( clientId );
+				if( !object.Equals( null, networkConnection ) )
+					networkConnections.Add( networkConnection );
+			}
+
+			return networkConnections;
+		}
 
 		// NetworkConnection => NetworkId
 		protected Dictionary<NetworkConnection, ushort> networkIdsByNetworkConnection = new Dictionary<NetworkConnection, ushort>();
