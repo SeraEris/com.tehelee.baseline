@@ -11,7 +11,19 @@ namespace Tehelee.Baseline
 	{
 		private static readonly string NamespacePrefix = ""; // Replaces the default, which is the PascalCase of the project name.
 
-		public static void OnWillCreateAsset( string path )
+		public static void OnWillCreateAsset( string path ) =>
+			ProcessFile( path, false );
+
+		[MenuItem( "CONTEXT/MonoScript/Rebuild From Template" )]
+		private static void RebuildFromTemplate( MenuCommand menuCommand )
+		{
+			MonoScript monoScript = ( MonoScript ) menuCommand.context;
+
+			if( Utils.IsObjectAlive( monoScript ) )
+				ProcessFile( AssetDatabase.GetAssetPath( monoScript ), true );
+		}
+		
+		private static void ProcessFile( string path, bool force )
 		{
 			////////////////////////////////
 
@@ -58,12 +70,14 @@ namespace Tehelee.Baseline
 			}
 
 			string templatePath = System.IO.Path.Combine( System.IO.Path.GetDirectoryName( EditorApplication.applicationPath ), "Data/Resources/ScriptTemplates/81-C# Script-NewBehaviourScript.cs.txt" );
-			if( System.IO.File.Exists( templatePath ) )
+			if( !force && System.IO.File.Exists( templatePath ) )
 			{
 				string templateText = System.IO.File.ReadAllText( templatePath );
 				templateText = templateText.Replace( "#SCRIPTNAME#", scriptName );
 				templateText = templateText.Replace( "#PRINTNAME#", printName );
 				templateText = templateText.Replace( "#NOTRIM#", string.Empty );
+				templateText = templateText.Replace( "#ROOTNAMESPACEBEGIN#", string.Empty );
+				templateText = templateText.Replace( "#ROOTNAMESPACEEND#", string.Empty );
 
 				if( !string.IsNullOrWhiteSpace( templateText ) && !templateText.Equals( fileText ) )
 				{
