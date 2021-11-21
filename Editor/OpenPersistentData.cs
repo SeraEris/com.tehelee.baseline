@@ -9,7 +9,7 @@ namespace Tehelee.Baseline
 {
 	public static class OpenPersistentData
 	{
-		[MenuItem( "Tehelee/Open Persistent Data", priority = 10 )]
+		[MenuItem( "Tehelee/Open Persistent Data", priority = 100 )]
 		private static void Open( MenuCommand menuCommand ) =>
 			EditorUtils.RevealInFinder( Application.persistentDataPath );
 	}
