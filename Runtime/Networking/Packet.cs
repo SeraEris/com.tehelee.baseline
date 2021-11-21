@@ -201,6 +201,27 @@ namespace Tehelee.Baseline.Networking
 			return new string( _str );
 		}
 
+		public static void WriteVector3( ref DataStreamWriter writer, Vector3 vector )
+		{
+			writer.WriteFloat( vector.x );
+			writer.WriteFloat( vector.y );
+			writer.WriteFloat( vector.z );
+		}
+
+		public static Vector3 ReadVector3( ref PacketReader reader ) =>
+			new Vector3( reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat() );
+		
+		public static void WriteQuaternion( ref DataStreamWriter writer, Quaternion quaternion )
+		{
+			writer.WriteFloat( quaternion.w );
+			writer.WriteFloat( quaternion.x );
+			writer.WriteFloat( quaternion.y );
+			writer.WriteFloat( quaternion.z );
+		}
+
+		public static Quaternion ReadQuaternion( ref PacketReader reader ) =>
+			new Quaternion( reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat() );
+
 		#endregion
 	}
 }
