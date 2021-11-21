@@ -76,7 +76,7 @@ namespace Tehelee.Baseline
 				templateText = templateText.Replace( "#SCRIPTNAME#", scriptName );
 				templateText = templateText.Replace( "#PRINTNAME#", printName );
 				templateText = templateText.Replace( "#NOTRIM#", string.Empty );
-				templateText = templateText.Replace( "#ROOTNAMESPACEBEGIN#", string.Empty );
+				templateText = templateText.Replace( "    #ROOTNAMESPACEBEGIN#", string.Empty );
 				templateText = templateText.Replace( "#ROOTNAMESPACEEND#", string.Empty );
 
 				if( !string.IsNullOrWhiteSpace( templateText ) && !templateText.Equals( fileText ) )
