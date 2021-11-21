@@ -141,7 +141,8 @@ namespace Tehelee.Baseline.Components.Cinematographer
 
 		protected virtual void OnEnable()
 		{
-			camera.fieldOfView = fieldOfView;
+			if( Utils.IsObjectAlive( camera ) )
+				camera.fieldOfView = fieldOfView;
 
 			CameraAnchor.onAnchorSwitching += OnAnchorSwitching;
 
