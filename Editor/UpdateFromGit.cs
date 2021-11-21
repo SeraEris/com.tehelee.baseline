@@ -13,7 +13,7 @@ namespace Tehelee.Baseline
 	{
 		static AddRequest request;
 		
-		[MenuItem( "Tehelee/Baseline/Update From Git", priority = 0 )]
+		[MenuItem( "Tehelee/Update From Git", priority = 0 )]
 		private static void Update( MenuCommand menuCommand )
 		{
 			request = Client.Add( "https://github.com/Tehelee/com.tehelee.baseline.git" );

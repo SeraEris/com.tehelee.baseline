@@ -48,7 +48,7 @@ namespace Tehelee.Baseline
 				{ "layers.Array.data[9]", "Skip Renderer" }
 			};
 
-			[MenuItem( "Tehelee/Baseline/Setup Layer Assignments", priority = 100 )]
+			[MenuItem( "Tehelee/Setup Layer Assignments", priority = 20 )]
 			public static void SetupLayers( MenuCommand menuCommand )
 			{
 				Object[] objects = AssetDatabase.LoadAllAssetsAtPath( "ProjectSettings/TagManager.asset" );
