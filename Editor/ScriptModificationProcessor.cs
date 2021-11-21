@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -76,12 +77,23 @@ namespace Tehelee.Baseline
 				templateText = templateText.Replace( "#SCRIPTNAME#", scriptName );
 				templateText = templateText.Replace( "#PRINTNAME#", printName );
 				templateText = templateText.Replace( "#NOTRIM#", string.Empty );
-				templateText = templateText.Replace( "\n\r    #ROOTNAMESPACEBEGIN#", string.Empty );
-				templateText = templateText.Replace( "\n\r#ROOTNAMESPACEEND#", string.Empty );
+				templateText = templateText.Replace( "\n    #ROOTNAMESPACEBEGIN#", string.Empty );
+				templateText = templateText.Replace( "\n#ROOTNAMESPACEEND#", string.Empty );
 
 				if( !string.IsNullOrWhiteSpace( templateText ) && !templateText.Equals( fileText ) )
 				{
-					Debug.LogWarningFormat( "ScriptModificationProcessor: A new script was found without the native unity template content; skipping...\nPath: {0}", path );
+					int missmatch = -1;
+					string missmatchClip = string.Empty;
+					for( int i = 0, iC = Math.Min( templateText.Length, fileText.Length ); i < iC; i++ )
+					{
+						if( templateText[ i ] != fileText[ i ] )
+						{
+							missmatch = i;
+							missmatchClip = templateText.Substring( Mathf.Max( 0, i - 10 ), Mathf.Min( iC - ( i + 1 ), 10 ) );
+							break;
+						}
+					}
+					Debug.LogWarning( $"ScriptModificationProcessor: A new script was found without the native unity template content; skipping...\nPath: {path} : {missmatch} ( {missmatchClip} )" );
 					return;
 				}
 			}
