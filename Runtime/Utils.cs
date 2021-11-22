@@ -347,10 +347,7 @@ namespace Tehelee.Baseline
 			Debug.DrawLine( point + Vector3.forward * -size, point + Vector3.forward * size, color, time );
 			Debug.DrawLine( point + Vector3.up * -size, point + Vector3.up * size, color, time );
 		}
-
-		public static string SerializedObjectToString( object obj ) => JsonConvert.SerializeObject( obj );
-		public static object StringToSerializedObject( string str ) => JsonConvert.DeserializeObject( str );
-
+		
 		#endregion
 
 		////////////////////////
