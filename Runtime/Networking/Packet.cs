@@ -140,6 +140,12 @@ namespace Tehelee.Baseline.Networking
 
 		#region TransportHelpers
 
+		public static void WriteBool( ref DataStreamWriter writer, bool value ) =>
+			writer.WriteByte( ( byte ) ( value ? 1 : 0 ) );
+
+		public static bool ReadBool( ref PacketReader reader ) =>
+			reader.ReadByte() != 0;
+
 		public static void WriteFloatSafe( ref DataStreamWriter writer, float value )
 		{
 			writer.WriteFloat( ( float.IsNaN( value ) || float.IsInfinity( value ) ) ? 0f : value );
