@@ -151,7 +151,7 @@ namespace Tehelee.Baseline.Networking
 		
 		public static void WriteFloatSafe( ref DataStreamWriter writer, float value )
 		{
-			writer.WriteFloat( ValidateFloat( value ) ? value : 0f );
+			writer.WriteUInt( ( uint ) ( ValidateFloat( value ) ? value : 0f) );
 		}
 
 		private static float[] precisionCompress = new[] { 10f, 100f, 1000f, 10000f };
@@ -215,9 +215,9 @@ namespace Tehelee.Baseline.Networking
 			if( !ValidateFloat( vector.x ) || !ValidateFloat( vector.y ) || !ValidateFloat( vector.z ) )
 				vector = Vector3.zero;
 			
-			writer.WriteFloat( vector.x );
-			writer.WriteFloat( vector.y );
-			writer.WriteFloat( vector.z );
+			WriteFloatSafe( ref writer, vector.x );
+			WriteFloatSafe( ref writer, vector.y );
+			WriteFloatSafe( ref writer, vector.z );
 		}
 
 		public static Vector3 ReadVector3( ref PacketReader reader ) =>
@@ -228,10 +228,10 @@ namespace Tehelee.Baseline.Networking
 			if( !ValidateFloat( quaternion.x ) || !ValidateFloat( quaternion.y ) || !ValidateFloat( quaternion.z ) || !ValidateFloat( quaternion.w ) )
 				quaternion = Quaternion.identity;
 
-			writer.WriteFloat( quaternion.x );
-			writer.WriteFloat( quaternion.y );
-			writer.WriteFloat( quaternion.z );
-			writer.WriteFloat( quaternion.w );
+			WriteFloatSafe( ref writer, quaternion.x );
+			WriteFloatSafe( ref writer, quaternion.y );
+			WriteFloatSafe( ref writer, quaternion.z );
+			WriteFloatSafe( ref writer, quaternion.w );
 		}
 
 		public static Quaternion ReadQuaternion( ref PacketReader reader ) =>
