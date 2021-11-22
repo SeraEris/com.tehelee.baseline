@@ -209,9 +209,9 @@ namespace Tehelee.Baseline.Networking
 
 		public static void WriteVector3( ref DataStreamWriter writer, Vector3 vector )
 		{
-			writer.WriteFloat( vector.x );
-			writer.WriteFloat( vector.y );
-			writer.WriteFloat( vector.z );
+			WriteFloatSafe( ref writer, vector.x );
+			WriteFloatSafe( ref writer, vector.y );
+			WriteFloatSafe( ref writer, vector.z );
 		}
 
 		public static Vector3 ReadVector3( ref PacketReader reader ) =>
@@ -219,10 +219,10 @@ namespace Tehelee.Baseline.Networking
 		
 		public static void WriteQuaternion( ref DataStreamWriter writer, Quaternion quaternion )
 		{
-			writer.WriteFloat( quaternion.w );
-			writer.WriteFloat( quaternion.x );
-			writer.WriteFloat( quaternion.y );
-			writer.WriteFloat( quaternion.z );
+			WriteFloatSafe( ref writer, quaternion.w );
+			WriteFloatSafe( ref writer, quaternion.x );
+			WriteFloatSafe( ref writer, quaternion.y );
+			WriteFloatSafe( ref writer, quaternion.z );
 		}
 
 		public static Quaternion ReadQuaternion( ref PacketReader reader ) =>
