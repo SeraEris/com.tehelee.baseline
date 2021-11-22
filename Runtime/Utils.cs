@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+using Newtonsoft.Json;
 using UnityEngine;
 
 #if( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
@@ -347,6 +347,9 @@ namespace Tehelee.Baseline
 			Debug.DrawLine( point + Vector3.forward * -size, point + Vector3.forward * size, color, time );
 			Debug.DrawLine( point + Vector3.up * -size, point + Vector3.up * size, color, time );
 		}
+
+		public static string SerializedObjectToString( object obj ) => JsonConvert.SerializeObject( obj );
+		public static object StringToSerializedObject( string str ) => JsonConvert.DeserializeObject( str );
 
 		#endregion
 
