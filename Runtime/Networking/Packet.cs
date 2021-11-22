@@ -235,7 +235,7 @@ namespace Tehelee.Baseline.Networking
 		}
 
 		public static Quaternion ReadQuaternion( ref PacketReader reader ) =>
-			new Quaternion( reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat() ).normalized;
+			new Quaternion( reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat() );
 
 		#endregion
 	}

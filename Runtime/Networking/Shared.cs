@@ -477,10 +477,19 @@ namespace Tehelee.Baseline.Networking
 				{
 					int preRoutingIndex = reader.readIndex;
 
-					if( packetRouting.Process( this, connection, ref reader ) == ReadResult.Consumed )
+					ReadResult readResult = packetRouting.Process( this, connection, ref reader );
+
+					if( readResult == ReadResult.Consumed )
+					{
+						if( debug )
+							Debug.Log( $"{networkScopeLabel}.Read( {Packet.LookupType( packetId )?.FullName} ) [ {packetId} ] read {reader.readIndex - preRoutingIndex} bytes." );
+						
 						return ReadResult.Consumed;
+					}
 					else
+					{
 						reader.readIndex = preRoutingIndex;
+					}
 				}
 			}
 
