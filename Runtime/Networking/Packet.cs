@@ -219,10 +219,10 @@ namespace Tehelee.Baseline.Networking
 		
 		public static void WriteQuaternion( ref DataStreamWriter writer, Quaternion quaternion )
 		{
-			WriteFloatSafe( ref writer, quaternion.w );
 			WriteFloatSafe( ref writer, quaternion.x );
 			WriteFloatSafe( ref writer, quaternion.y );
 			WriteFloatSafe( ref writer, quaternion.z );
+			WriteFloatSafe( ref writer, quaternion.w );
 		}
 
 		public static Quaternion ReadQuaternion( ref PacketReader reader ) =>
