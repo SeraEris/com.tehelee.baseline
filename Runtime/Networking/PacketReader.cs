@@ -93,7 +93,7 @@ namespace Tehelee.Baseline.Networking
 		public float ReadFloat()
 		{
 			uint data = ReadUInt();
-			return *((float*) &data);
+			return *( ( float* ) &data );
 		}
 	}
 }
