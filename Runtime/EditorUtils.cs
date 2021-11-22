@@ -2388,7 +2388,14 @@ namespace Tehelee.Baseline
 			BuildSummary buildSummary = buildReport.summary;
 			
 			if( buildSummary.result == BuildResult.Succeeded )
-				Debug.LogFormat( "{0} Build Succeeded!\nSize: {1:0.00} MB\nTime Elapsed: {2}\nWarnings: {3}\nPath: {4}", title, buildSummary.totalSize * 0.000001, string.Format( "{0:00}:{1:00}:{2:00}", buildSummary.totalTime.Hours, buildSummary.totalTime.Minutes, buildSummary.totalTime.Seconds ), buildSummary.totalWarnings, buildSummary.outputPath );
+				Debug.Log
+				(
+					$"{title} Build Succeeded!\n" +
+					$"Size: {(buildSummary.totalSize * 0.000001):0.00} MB\n" +
+					$"Time Elapsed: {buildSummary.totalTime.Hours:00}:{buildSummary.totalTime.Minutes:00}:{buildSummary.totalTime.Seconds:00}\n" +
+					$"Warnings: {buildSummary.totalWarnings}\n" +
+					$"Path: {buildSummary.outputPath}"
+				);
 			else if( buildSummary.result == BuildResult.Failed )
 				Debug.LogError( "Build Encounter Server Failed!" );
 

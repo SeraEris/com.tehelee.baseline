@@ -90,7 +90,7 @@ namespace Tehelee.Baseline
 								{
 									iterator.stringValue = newLayerName;
 									changed++;
-									Debug.LogFormat( "Updated layer #{0} to '{1}'.", layerIndex, newLayerName );
+									Debug.Log( $"Updated layer #{layerIndex} to '{newLayerName}'." );
 								}
 								else if
 								(
@@ -105,7 +105,7 @@ namespace Tehelee.Baseline
 								{
 									iterator.stringValue = layerAssignments[ propertyPath ];
 									changed++;
-									Debug.LogFormat( "Updated layer #{0} from '{1}' to '{2}'.", layerIndex, oldLayerName, newLayerName );
+									Debug.Log( $"Updated layer #{layerIndex} from '{oldLayerName}' to '{newLayerName}'." );
 								}
 							}
 						}
@@ -119,7 +119,7 @@ namespace Tehelee.Baseline
 							EditorUtility.SetDirty( tagManager.targetObject );
 							EditorUtils.SaveDirtyAssets();
 
-							Debug.LogFormat( "Updated 'ProjectSettings/TagManager.asset' with {0} layer assignments.", changed );
+							Debug.Log( $"Updated 'ProjectSettings/TagManager.asset' with {changed} layer assignments." );
 						}
 
 						if( !differenceFound )

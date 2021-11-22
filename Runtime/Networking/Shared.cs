@@ -181,7 +181,7 @@ namespace Tehelee.Baseline.Networking
 			open = true;
 
 			if( debug )
-				Debug.LogFormat( "{0}.Open() {1} on {2} with {3}", networkScopeLabel, this.address, this.port, networkParameters.ToString() );
+				Debug.Log( $"{networkScopeLabel}.Open() {this.address} on {this.port} with {networkParameters.ToString()}" );
 		}
 
 		public virtual void Close()
@@ -202,7 +202,7 @@ namespace Tehelee.Baseline.Networking
 			UnregisterPacketDatas();
 
 			if( debug )
-				Debug.LogFormat( "{0}.Close()", networkScopeLabel );
+				Debug.Log( $"{networkScopeLabel}.Close()" );
 		}
 
 		#endregion
@@ -365,7 +365,7 @@ namespace Tehelee.Baseline.Networking
 
 			if( object.Equals( null, Packet.LookupType( packet.id ) ) )
 			{
-				Debug.LogErrorFormat( "Packet type ( {0} ) not registered!", packet.GetType().FullName );
+				Debug.LogError( $"Packet type ( {packet.GetType()?.FullName} ) [ {packet.id} ] not registered!" );
 				return;
 			}
 
@@ -389,7 +389,7 @@ namespace Tehelee.Baseline.Networking
 				packetQueue.unreliable.Enqueue( packet );
 
 			if( debug )
-				Debug.LogWarningFormat( "{0}.Write( {1} ) using {2} channel.{3}", networkScopeLabel, packet.GetType().FullName, reliable ? "verified" : "fast", !object.Equals( null, packet.targets ) && packet.targets.Count > 0 ? string.Format( " Sent only to {0} connections.", packet.targets.Count ) : string.Empty );
+				Debug.LogWarning( $"{networkScopeLabel}.Write( {packet.GetType()?.FullName} ) [ {packet.id} ] using {(reliable ? "verified" : "fast")} channel.{(packet.targets.Count > 0 ? string.Format( " Sent only to {0} connections.", packet.targets.Count ) : string.Empty)}" );
 		}
 
 		private void UpdateSendMonitors( Packet packet, bool reliable )
@@ -436,7 +436,7 @@ namespace Tehelee.Baseline.Networking
 				int count = reader.ReadUShort();
 
 				if( debug )
-					Debug.LogFormat( "{0}.ReadPacketBundle() with {1} packets.", networkScopeLabel, count );
+					Debug.Log( $"{networkScopeLabel}.ReadPacketBundle() with {count} packets." );
 
 				for( int i = 0; i < count; i++ )
 					if( Read( connection, ref reader ) == ReadResult.Error )
@@ -461,7 +461,7 @@ namespace Tehelee.Baseline.Networking
 				case ReadResult.Consumed:
 
 					if( debug )
-						Debug.LogFormat( "{0}.InternalRead( {1} ).", networkScopeLabel, Packet.LookupType( packetId ).FullName );
+						Debug.Log( $"{networkScopeLabel}.InternalRead( {Packet.LookupType( packetId )?.FullName} )." );
 
 					return ReadResult.Consumed;
 			}
@@ -481,9 +481,6 @@ namespace Tehelee.Baseline.Networking
 
 					if( readResult == ReadResult.Consumed )
 					{
-						if( debug )
-							Debug.Log( $"{networkScopeLabel}.Read( {Packet.LookupType( packetId )?.FullName} ) [ {packetId} ] read {reader.readIndex - preRoutingIndex} bytes." );
-						
 						return ReadResult.Consumed;
 					}
 					else
@@ -506,13 +503,13 @@ namespace Tehelee.Baseline.Networking
 			if( listenerCount == 0 )
 			{
 				if( debug )
-					Debug.LogWarningFormat( "{0}.Read( {1} ) [ {2} ] skipped; no associated listeners.", networkScopeLabel, Packet.LookupType( packetId )?.FullName, packetId );
+					Debug.LogWarning( $"{networkScopeLabel}.Read( {Packet.LookupType( packetId )?.FullName} ) [ {packetId} ] skipped; no associated listeners." );
 				
 				return ReadResult.Skipped;
 			}
 
 			if( debug )
-				Debug.LogFormat( "{0}.Read( {1} ) with {2} listeners.", networkScopeLabel, Packet.LookupType( packetId ).FullName, listenerCount );
+				Debug.Log( $"{networkScopeLabel}.Read( {Packet.LookupType( packetId )?.FullName} ) with {listenerCount} listeners." );
 
 			bool processed = false;
 
@@ -541,17 +538,17 @@ namespace Tehelee.Baseline.Networking
 						{
 							case ReadResult.Processed:
 								if( debug )
-									Debug.LogFormat( "{0}.Read( {1} ) processed by listener {2}.", networkScopeLabel, Packet.LookupType( packetId ).FullName, i );
+									Debug.Log( $"{networkScopeLabel}.Read( {Packet.LookupType( packetId )?.FullName} ) processed by listener {i}.\nBytes Read: {reader.readIndex - iterationContext}" );
 								processedContext = reader.readIndex;
 								reader.readIndex = iterationContext;
 								processed = true;
 								break;
 							case ReadResult.Consumed:
 								if( debug )
-									Debug.LogFormat( "{0}.Read( {1} ) consumed by listener {2}.", networkScopeLabel, Packet.LookupType( packetId ).FullName, i );
+									Debug.Log( $"{networkScopeLabel}.Read( {Packet.LookupType( packetId )?.FullName} ) consumed by listener {i}.\nBytes Read: {reader.readIndex - iterationContext}" );
 								return ReadResult.Consumed;
 							case ReadResult.Error:
-								Debug.LogErrorFormat( "{0}.Read( {1} ) encountered an error on listener {2}.{3}", networkScopeLabel, Packet.LookupType( packetId ).FullName, i, readHandlerErrorMessage != null ? string.Format( "\nError Message: {0}", readHandlerErrorMessage ) : string.Empty );
+								Debug.LogError( $"{networkScopeLabel}.Read( {Packet.LookupType( packetId )?.FullName} ) encountered an error on listener {i}.\nError: {readHandlerErrorMessage}\nBytes Read: {reader.readIndex - iterationContext}" );
 								reader.readIndex = iterationContext;
 								return ReadResult.Error;
 						}
@@ -567,7 +564,7 @@ namespace Tehelee.Baseline.Networking
 			}
 			
 			if( debug )
-				Debug.LogWarningFormat( "{0}.Read( {1} ) failed to be consumed by one of the {2} listeners.", networkScopeLabel, Packet.LookupType( packetId ).FullName, listenerCount );
+				Debug.LogWarning( $"{networkScopeLabel}.Read( {Packet.LookupType( packetId )?.FullName} ) failed to be consumed by one of the {listenerCount} listeners." );
 			
 			return ReadResult.Error;
 		}

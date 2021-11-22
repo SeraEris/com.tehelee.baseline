@@ -245,18 +245,18 @@ namespace Tehelee.Baseline.Networking
 
 			int bind = -1;
 			for( int i = 0; ( i < 10 ) && ( bind != 0 ); i++ )
-				bind = driver.Bind( NetworkEndPoint.Parse( this.address ?? string.Empty, this.port ) );
+				bind = driver.Bind( NetworkEndPoint.Parse( address ?? string.Empty, port ) );
 			
 			if( bind != 0 )
 			{
-				Debug.LogErrorFormat( "Server: Failed to bind to '{0}' on port {1}.", this.address, port );
+				Debug.LogError( $"Server: Failed to bind to '{address}' on port {port}." );
 			}
 			else
 			{
 				driver.Listen();
 
 				if( debug )
-					Debug.LogFormat( "Server: Bound to '{0}' on port {1}.", this.address, port );
+					Debug.Log( $"Server: Bound to '{address}' on port {port}." );
 			}
 
 			networkConnectionsNative = new NativeList<NetworkConnection>( hostInfo.maxPlayers, Allocator.Persistent );
@@ -348,7 +348,7 @@ namespace Tehelee.Baseline.Networking
 					break;
 				default:
 					if( debug )
-						Debug.LogWarningFormat( "Server unable to use NAT punch-through, reason: {0}", portMappingResult.ToString() );
+						Debug.LogWarning( $"Server unable to use NAT punch-through, reason: {portMappingResult}" );
 
 					natMapping = null;
 					useNatPunchThrough = false;
@@ -514,7 +514,7 @@ namespace Tehelee.Baseline.Networking
 			Send( new Packets.ServerInfo( hostInfo ), true );
 			
 			if( debug )
-				Debug.LogWarningFormat( "Server: Added client {0}", networkConnection.InternalId );
+				Debug.LogWarning( $"Server: Added client {networkConnection.InternalId}" );
 
 			if( isPrivate )
 				pendingInternalIds.Add( networkConnection.InternalId, 0 );
@@ -578,7 +578,7 @@ namespace Tehelee.Baseline.Networking
 			}
 
 			if( debug )
-				Debug.LogWarningFormat( "Server: Removed client {0}", networkConnection.InternalId );
+				Debug.LogWarning( "Server: Removed client {networkConnection.InternalId}" );
 		}
 
 		#endregion
@@ -615,7 +615,7 @@ namespace Tehelee.Baseline.Networking
 				int attempts = pendingInternalIds[ id ];
 
 				if( debug )
-					Debug.LogWarningFormat( "Server: Denied client {0} ( {1} / {2} )", id, attempts, hostInfo.maxPasswordAttempts );
+					Debug.LogWarning( $"Server: Denied client {id} ( {attempts} / {hostInfo.maxPasswordAttempts} )" );
 
 				if( attempts < hostInfo.maxPasswordAttempts )
 				{
@@ -659,7 +659,7 @@ namespace Tehelee.Baseline.Networking
 			UpdateClientReady( clientId );
 
 			if( debug )
-				Debug.LogWarningFormat( "Server: Approved client {0}", clientInfo.networkConnection.InternalId );
+				Debug.LogWarning( $"Server: Approved client {clientInfo.networkConnection.InternalId}" );
 		}
 
 		#endregion
@@ -842,7 +842,7 @@ namespace Tehelee.Baseline.Networking
 						ReliableUtility.ErrorCodes error = ( ReliableUtility.ErrorCodes ) errorId;
 
 						if( error != ReliableUtility.ErrorCodes.OutgoingQueueIsFull )
-							Debug.LogErrorFormat( "Reliability Error: {0}", error );
+							Debug.LogError( $"Reliability Error: {error}" );
 						else
 							break;
 					}
@@ -966,7 +966,7 @@ namespace Tehelee.Baseline.Networking
 			OnClientReady( clientInfo.networkConnection );
 			
 			if( debug )
-				Debug.LogWarningFormat( "Server: Client {0} is Ready", clientInfo.networkConnection.InternalId );
+				Debug.LogWarning( "Server: Client {clientInfo.networkConnection.InternalId} is Ready" );
 
 			return true;
 		}
@@ -1189,7 +1189,7 @@ namespace Tehelee.Baseline.Networking
 
 			if( !adminIds.Contains( clientId ) )
 			{
-				Debug.LogErrorFormat( "Client {0} ( {1} ) is attempting to issue admin operations without permissions.", clientId, GetUsername( clientId ) );
+				Debug.LogError( "Client {clientId} ( {GetUsername( clientId )} ) is attempting to issue admin operations without permissions." );
 				return ReadResult.Consumed;
 			}
 			

@@ -404,7 +404,7 @@ namespace Tehelee.Baseline.Networking
 					ReliableUtility.ErrorCodes error = ( ReliableUtility.ErrorCodes ) errorId;
 
 					if( error != ReliableUtility.ErrorCodes.OutgoingQueueIsFull )
-						Debug.LogErrorFormat( "Reliability Error: {0}", error );
+						Debug.LogError( $"Reliability Error: {error}" );
 					else
 						break;
 				}
@@ -549,7 +549,7 @@ namespace Tehelee.Baseline.Networking
 			onHandshake?.Invoke( this.networkId );
 
 			if( debug )
-				Debug.LogFormat( "Client handshake completed. NetworkId: {0}", this.networkId );
+				Debug.Log( $"Client handshake completed. NetworkId: {networkId}" );
 		}
 
 		protected virtual void SetupOtherId( ushort clientId )
@@ -561,11 +561,11 @@ namespace Tehelee.Baseline.Networking
 				onOtherClientConnected?.Invoke( clientId );
 
 				if( debug )
-					Debug.LogFormat( "Other client added. NetworkId: {0}", clientId );
+					Debug.Log( $"Other client added. NetworkId: {clientId}" );
 			}
 			else
 			{
-				Debug.LogErrorFormat( "Requested to add other client but it's already present in client hashset! NetworkId: {0}", clientId );
+				Debug.LogError( $"Requested to add other client but it's already present in client hashset! NetworkId: {clientId}" );
 			}
 		}
 
@@ -576,11 +576,11 @@ namespace Tehelee.Baseline.Networking
 				onOtherClientDisconnected?.Invoke( clientId );
 
 				if( debug )
-					Debug.LogFormat( "Other client removed. NetworkId: {0}", clientId );
+					Debug.Log( $"Other client removed. NetworkId: {clientId}" );
 			}
 			else
 			{
-				Debug.LogErrorFormat( "Requested to remove other client not present in client hashset! NetworkId: {0}", clientId );
+				Debug.LogError( $"Requested to remove other client not present in client hashset! NetworkId: {clientId}" );
 			}
 		}
 
@@ -600,7 +600,7 @@ namespace Tehelee.Baseline.Networking
 				onPasswordRequested?.Invoke( packetPassword.password );
 
 				if( debug )
-					Debug.LogFormat( "Password not accepted, reason: {0}", packetPassword.password );
+					Debug.Log( $"Password not accepted, reason: {packetPassword.password}" );
 
 				return ReadResult.Consumed;
 			}
