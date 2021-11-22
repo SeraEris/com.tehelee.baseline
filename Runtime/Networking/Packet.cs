@@ -227,6 +227,8 @@ namespace Tehelee.Baseline.Networking
 		{
 			if( !ValidateFloat( quaternion.x ) || !ValidateFloat( quaternion.y ) || !ValidateFloat( quaternion.z ) || !ValidateFloat( quaternion.w ) )
 				quaternion = Quaternion.identity;
+
+			quaternion = Quaternion.Normalize( quaternion );
 			
 			WriteFloatSafe( ref writer, quaternion.x );
 			WriteFloatSafe( ref writer, quaternion.y );
