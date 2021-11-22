@@ -17,7 +17,7 @@ namespace Tehelee.Baseline.Networking.Packets
 		{
 			get
 			{
-				int bytes = 4;
+				int bytes = 2;
 
 				foreach( Packet packet in packets )
 					bytes += ( packet.bytes + 2 );
