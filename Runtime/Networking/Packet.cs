@@ -220,8 +220,15 @@ namespace Tehelee.Baseline.Networking
 			WriteFloatSafe( ref writer, vector.z );
 		}
 
-		public static Vector3 ReadVector3( ref PacketReader reader ) =>
-			new Vector3( reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat() );
+		public static Vector3 ReadVector3( ref PacketReader reader )
+		{
+			float x = reader.ReadFloat();
+			float y = reader.ReadFloat();
+			float z = reader.ReadFloat();
+			
+			return new Vector3( x, y, z );
+		}
+			
 		
 		public static void WriteQuaternion( ref DataStreamWriter writer, Quaternion quaternion )
 		{
@@ -234,8 +241,15 @@ namespace Tehelee.Baseline.Networking
 			WriteFloatSafe( ref writer, quaternion.w );
 		}
 
-		public static Quaternion ReadQuaternion( ref PacketReader reader ) =>
-			new Quaternion( reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat() );
+		public static Quaternion ReadQuaternion( ref PacketReader reader )
+		{
+			float x = reader.ReadFloat();
+			float y = reader.ReadFloat();
+			float z = reader.ReadFloat();
+			float w = reader.ReadFloat();
+			
+			return new Quaternion( x, y, z, w );
+		}
 
 		#endregion
 	}
