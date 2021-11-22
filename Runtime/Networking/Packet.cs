@@ -151,7 +151,13 @@ namespace Tehelee.Baseline.Networking
 		
 		public static void WriteFloatSafe( ref DataStreamWriter writer, float value )
 		{
-			writer.WriteUInt( ( uint ) ( ValidateFloat( value ) ? value : 0f) );
+			if( float.IsNaN( value ) || float.IsInfinity( value ) )
+			{
+				Debug.LogWarning( $"WriteFloatSafe converted {value} into 0f." );
+				value = 0f;
+			}
+
+			writer.WriteUInt( ( uint ) value );
 		}
 
 		private static float[] precisionCompress = new[] { 10f, 100f, 1000f, 10000f };
@@ -212,9 +218,6 @@ namespace Tehelee.Baseline.Networking
 
 		public static void WriteVector3( ref DataStreamWriter writer, Vector3 vector )
 		{
-			if( !ValidateFloat( vector.x ) || !ValidateFloat( vector.y ) || !ValidateFloat( vector.z ) )
-				vector = Vector3.zero;
-			
 			WriteFloatSafe( ref writer, vector.x );
 			WriteFloatSafe( ref writer, vector.y );
 			WriteFloatSafe( ref writer, vector.z );
@@ -232,9 +235,6 @@ namespace Tehelee.Baseline.Networking
 		
 		public static void WriteQuaternion( ref DataStreamWriter writer, Quaternion quaternion )
 		{
-			if( !ValidateFloat( quaternion.x ) || !ValidateFloat( quaternion.y ) || !ValidateFloat( quaternion.z ) || !ValidateFloat( quaternion.w ) )
-				quaternion = Quaternion.identity;
-
 			WriteFloatSafe( ref writer, quaternion.x );
 			WriteFloatSafe( ref writer, quaternion.y );
 			WriteFloatSafe( ref writer, quaternion.z );
