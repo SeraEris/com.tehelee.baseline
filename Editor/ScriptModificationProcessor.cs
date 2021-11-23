@@ -12,6 +12,13 @@ namespace Tehelee.Baseline
 	{
 		private static readonly string NamespacePrefix = ""; // Replaces the default, which is the PascalCase of the project name.
 
+		private static readonly string[] SkipFolderNamesInNamespace = new string[]
+		{
+			"Plugins",
+			"Editor",
+			"Globals"
+		};
+		
 		public static void OnWillCreateAsset( string path ) =>
 			ProcessFile( path, false );
 
@@ -341,10 +348,17 @@ namespace Tehelee.Baseline
 					continue;
 				}
 
-				if( folderSplit[ i ].Equals( "Plugins" ) )
-					continue;
+				bool skip = false;
+				foreach( string s in SkipFolderNamesInNamespace )
+				{
+					if( folderSplit[ i ].Equals( s ) )
+					{
+						skip = true;
+						break;
+					}
+				}
 
-				if( folderSplit[ i ].Equals( "Editor" ) )
+				if( skip )
 					continue;
 
 				scriptFolders.Add( folderSplit[ i ] );
