@@ -218,6 +218,20 @@ namespace Tehelee.Baseline.Networking
 
 			return new string( _str );
 		}
+		
+		public static void WriteVector2( ref DataStreamWriter writer, Vector2 vector )
+		{
+			WriteFloatSafe( ref writer, vector.x );
+			WriteFloatSafe( ref writer, vector.y );
+		}
+
+		public static Vector2 ReadVector2( ref PacketReader reader )
+		{
+			float x = reader.ReadFloat();
+			float y = reader.ReadFloat();
+			
+			return new Vector2( x, y );
+		}
 
 		public static void WriteVector3( ref DataStreamWriter writer, Vector3 vector )
 		{
@@ -234,7 +248,6 @@ namespace Tehelee.Baseline.Networking
 			
 			return new Vector3( x, y, z );
 		}
-			
 		
 		public static void WriteQuaternion( ref DataStreamWriter writer, Quaternion quaternion )
 		{
