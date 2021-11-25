@@ -139,7 +139,7 @@ namespace Tehelee.Baseline.Components
 			bRect.y += lineHeight + 4f;
 			EditorGUI.PropertyField( bRect, this[ "offsetRotation" ], new GUIContent( "Offset Rotation" ) );
 			bRect.y += lineHeight + 4f;
-			EditorGUI.PropertyField( bRect, this[ "offsetScale" ], new GUIContent( "Offset Scale" ) );
+			EditorGUI.PropertyField( bRect, this[ "multiplyScale" ], new GUIContent( "Offset Scale" ) );
 			bRect.y += lineHeight * 1.5f;
 
 			rect.y = bRect.y;
