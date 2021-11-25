@@ -77,15 +77,17 @@ namespace Tehelee.Baseline.Components
 			if( hasFollowTarget )
 			{
 				Transform t = transform;
-				Transform parent = t.parent;
-				t.SetParent( followTarget, true );
+				
 				if( mimicPosition )
-					t.localPosition = offsetPosition;
+					t.position = followTarget.TransformPoint( offsetPosition );
 				if( mimicRotation )
-					t.localRotation = Quaternion.Euler( offsetRotation );
+					t.rotation = followTarget.rotation * Quaternion.Euler( offsetRotation );
 				if( mimicScale )
-					t.localScale = multiplyScale;
-				t.SetParent( parent, true );
+				{
+					Transform parent = t.parent;
+					Vector3 lossyScale = followTarget.TransformVector( multiplyScale );
+					t.localScale = Utils.IsObjectAlive( parent ) ? parent.InverseTransformVector( lossyScale ) : lossyScale;
+				}
 			}
 		}
 		
