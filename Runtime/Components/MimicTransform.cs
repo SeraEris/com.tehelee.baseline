@@ -25,6 +25,7 @@ namespace Tehelee.Baseline.Components
 
 		public Vector3 offsetPosition = Vector3.zero;
 		public Vector3 offsetRotation = Vector3.zero;
+		public Vector3 multiplyScale = Vector3.one;
 
 		#endregion
 		
@@ -83,7 +84,7 @@ namespace Tehelee.Baseline.Components
 				if( mimicRotation )
 					t.localRotation = Quaternion.Euler( offsetRotation );
 				if( mimicScale )
-					t.localScale = Vector3.one;
+					t.localScale = multiplyScale;
 				t.SetParent( parent, true );
 			}
 		}
@@ -105,7 +106,7 @@ namespace Tehelee.Baseline.Components
 	[CustomEditor( typeof( MimicTransform ) )]
 	public class EditorMimicTransform : EditorUtils.InheritedEditor
 	{
-		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 5.0f;
+		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 8.5f + 8f;
 
 		public override void DrawInspector( ref Rect rect )
 		{
@@ -133,6 +134,13 @@ namespace Tehelee.Baseline.Components
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Scale" ), this[ "mimicScale" ] );
 			
 			bRect.y += lineHeight * 2.0f;
+
+			EditorGUI.PropertyField( bRect, this[ "offsetPosition" ], new GUIContent( "Offset Position" ) );
+			bRect.y += lineHeight + 4f;
+			EditorGUI.PropertyField( bRect, this[ "offsetRotation" ], new GUIContent( "Offset Rotation" ) );
+			bRect.y += lineHeight + 4f;
+			EditorGUI.PropertyField( bRect, this[ "offsetScale" ], new GUIContent( "Offset Scale" ) );
+			bRect.y += lineHeight * 1.5f;
 
 			rect.y = bRect.y;
 		}
