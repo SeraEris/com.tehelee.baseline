@@ -23,6 +23,9 @@ namespace Tehelee.Baseline.Components
 		public bool mimicRotation = true;
 		public bool mimicScale = false;
 
+		public Vector3 offsetPosition = Vector3.zero;
+		public Vector3 offsetRotation = Vector3.zero;
+
 		#endregion
 		
 		////////////////////////////////
@@ -30,20 +33,8 @@ namespace Tehelee.Baseline.Components
 		
 		#region Properties
 
-		public bool hasParent { get; private set; } = false;
 		public bool hasFollowTarget { get; private set; } = false;
-		public bool hasFollowParent { get; private set; } = false;
 
-		#endregion
-		
-		////////////////////////////////
-		//	Members
-		
-		#region Members
-
-		private Transform parent;
-		private Transform followParent;
-		
 		#endregion
 		
 		////////////////////////////////
@@ -53,12 +44,7 @@ namespace Tehelee.Baseline.Components
 
 		protected virtual void OnEnable()
 		{
-			parent = transform.parent;
-			followParent = followTarget.parent;
-			
-			hasParent = Utils.IsObjectAlive( parent );
 			hasFollowTarget = Utils.IsObjectAlive( followTarget );
-			hasFollowParent = hasFollowTarget && Utils.IsObjectAlive( followParent );
 
 			if( Application.isPlaying )
 			{
@@ -74,9 +60,7 @@ namespace Tehelee.Baseline.Components
 				_IFollow = null;
 			}
 
-			hasParent = false;
 			hasFollowTarget = false;
-			hasFollowParent = false;
 		}
 
 		#if UNITY_EDITOR
@@ -92,19 +76,15 @@ namespace Tehelee.Baseline.Components
 			if( hasFollowTarget )
 			{
 				Transform t = transform;
+				Transform parent = t.parent;
+				t.SetParent( followTarget, true );
 				if( mimicPosition )
-					t.position = followTarget.position;
+					t.localPosition = offsetPosition;
 				if( mimicRotation )
-					t.rotation = followTarget.rotation;
+					t.localRotation = Quaternion.Euler( offsetRotation );
 				if( mimicScale )
-				{
-					Vector3 followScale = followTarget.localScale;
-					t.localScale = hasParent
-						? parent.InverseTransformVector( hasFollowParent ? followParent.TransformVector( followScale ) : followScale )
-						: hasFollowParent
-							? followParent.TransformVector( followScale )
-							: followScale;
-				}
+					t.localScale = Vector3.one;
+				t.SetParent( parent, true );
 			}
 		}
 		
