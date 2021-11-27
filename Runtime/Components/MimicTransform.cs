@@ -68,7 +68,10 @@ namespace Tehelee.Baseline.Components
 		private void Update()
 		{
 			if( !Application.isPlaying && executeInEditMode )
+			{
+				hasFollowTarget = Utils.IsObjectAlive( followTarget );
 				UpdateFollow();
+			}
 		}
 		#endif
 		
@@ -77,6 +80,11 @@ namespace Tehelee.Baseline.Components
 			if( hasFollowTarget )
 			{
 				Transform t = transform;
+
+#if UNITY_EDITOR
+				if( !Utils.IsObjectAlive( t ) ) // Runtime state t should never be null, but editor.
+					return;
+#endif
 				
 				if( mimicPosition )
 					t.position = followTarget.TransformPoint( offsetPosition );
