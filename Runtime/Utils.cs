@@ -385,6 +385,70 @@ namespace Tehelee.Baseline
 			}
 		}
 
+		public static void RemoveEmptyEntries<T>( this IList<T> list ) where T : class
+		{
+			List<T> _list = new List<T>( list );
+			list.Clear();
+			foreach( T entry in _list )
+				if( !object.Equals( null, entry ) )
+					list.Add( entry );
+		}
+		
+		public static IEnumerable<List<T>> SplitList<T>(List<T> locations, int nSize=30)  
+		{        
+			for (int i = 0; i < locations.Count; i += nSize) 
+			{ 
+				yield return locations.GetRange(i, Mathf.Min(nSize, locations.Count - i)); 
+			}  
+		}
+
+		public static T GetFirst<T>( this IList<T> list, bool returnNulls = false ) where T : class
+		{
+			if( list.Count == 0 )
+				return null;
+
+			foreach( T entry in list )
+			{
+				if( object.Equals( null, entry ) && !returnNulls )
+					continue;
+				
+				return entry;
+			}
+
+			return null;
+		}
+		
+		public static T GetLast<T>( this IList<T> list, bool returnNulls = false ) where T : class
+		{
+			int count = list.Count;
+			
+			if( count == 0 )
+				return null;
+
+			for( int i = count - 1; i >= 0; i-- )
+			{
+				T entry = list[ i ];
+				
+				if( object.Equals( null, entry ) && !returnNulls )
+					continue;
+				
+				return entry;
+			}
+
+			return null;
+		}
+		
+		public static T GetRandom<T>( this IList<T> list, bool returnNulls = false ) where T : class
+		{
+			if( list.Count == 0 )
+				return null;
+
+			List<T> _list = new List<T>( list );
+			_list.Shuffle();
+
+			return _list.GetFirst( returnNulls );
+		}
+
 		#endregion
 
 		////////////////////////
@@ -399,6 +463,23 @@ namespace Tehelee.Baseline
 				dictionary[ key ] = value;
 			else
 				dictionary.Add( key, value );
+		}
+		
+		public static T MergeLeft<T, K, V>( this T me, params IDictionary<K, V>[] others ) where T : IDictionary<K, V>, new()
+		{
+			T newMap = new T();
+			List<IDictionary<K, V>> list = new List<IDictionary<K, V>>();
+			list.Add( me );
+			list.AddRange( others );
+
+			foreach( IDictionary<K, V> src in list )
+			{
+				foreach( KeyValuePair<K, V> p in src )
+				{
+					newMap[ p.Key ] = p.Value;
+				}
+			}
+			return newMap;
 		}
 
 		#endregion
