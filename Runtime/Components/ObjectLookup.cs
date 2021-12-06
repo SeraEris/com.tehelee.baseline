@@ -66,6 +66,16 @@ namespace Tehelee.Baseline.Components
 
 			objectTypes.Add( "Physics", physics );
 
+			HashSet<System.Type> physics2D = new HashSet<System.Type>();
+
+			physics2D.Add( typeof( Rigidbody2D ) );
+			physics2D.Add( typeof( Collider2D ) );
+			physics2D.Add( typeof( BoxCollider2D ) );
+			physics2D.Add( typeof( CircleCollider2D ) );
+			physics2D.Add( typeof( CapsuleCollider2D ) );
+
+			objectTypes.Add( "Physics 2D", physics2D );
+
 			HashSet<System.Type> resources = new HashSet<System.Type>();
 
 			resources.Add( typeof( Sprite ) );
@@ -130,6 +140,12 @@ namespace Tehelee.Baseline.Components
 			public static implicit operator BoxCollider( ObjectReference objectReference ) => Convert<BoxCollider>( objectReference );
 			public static implicit operator SphereCollider( ObjectReference objectReference ) => Convert<SphereCollider>( objectReference );
 			public static implicit operator CapsuleCollider( ObjectReference objectReference ) => Convert<CapsuleCollider>( objectReference );
+
+			public static implicit operator Rigidbody2D( ObjectReference objectReference ) => Convert<Rigidbody2D>( objectReference );
+			public static implicit operator Collider2D( ObjectReference objectReference ) => Convert<Collider2D>( objectReference );
+			public static implicit operator BoxCollider2D( ObjectReference objectReference ) => Convert<BoxCollider2D>( objectReference );
+			public static implicit operator CircleCollider2D( ObjectReference objectReference ) => Convert<CircleCollider2D>( objectReference );
+			public static implicit operator CapsuleCollider2D( ObjectReference objectReference ) => Convert<CapsuleCollider2D>( objectReference );
 
 			public static implicit operator Sprite( ObjectReference objectReference ) => Convert<Sprite>( objectReference );
 			public static implicit operator Texture2D( ObjectReference objectReference ) => Convert<Texture2D>( objectReference );
