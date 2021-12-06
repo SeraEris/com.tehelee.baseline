@@ -22,6 +22,7 @@ namespace Tehelee.Baseline
 			}
 		}
 
+		public static implicit operator T( SafeObject<T> obj ) => obj.value;
 	}
 
 	public class SafeObject : SafeObject<Object>{ }
