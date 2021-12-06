@@ -392,7 +392,7 @@ namespace Tehelee.Baseline
 
 			fileText = fileText.Replace( "#PRODUCT_NAMESPACE#", namespacePrefix );
 
-			fileText = fileText.Replace( "#FOLDERSPACE_SKIP_FIRST#", folderSpaceSkipFirst );
+			fileText = fileText.Replace( "#FOLDERSPACE_SKIP_FIRST#", string.IsNullOrWhiteSpace( folderSpaceSkipFirst ) ? namespacePrefix : folderSpaceSkipFirst );
 			fileText = fileText.Replace( "#FOLDERSPACE#", folderSpace );
 			
 			fileText = fileText.Replace( "#SCRIPTNAME#", scriptName );
