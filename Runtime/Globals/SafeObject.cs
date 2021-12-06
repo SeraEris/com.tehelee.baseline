@@ -21,146 +21,51 @@ namespace Tehelee.Baseline
 				obj = value;
 			}
 		}
+
+		public static implicit operator T( SafeObject<T> obj ) => obj.value;
+
+		public static implicit operator bool( SafeObject<T> obj ) => obj.hasValue;
 	}
 
-	public class SafeObject : SafeObject<Object>
-	{
-		public static implicit operator Object( SafeObject obj ) => obj.value;
-	}
-	public class SafeGameObject : SafeObject<GameObject>
-	{
-		public static implicit operator GameObject( SafeGameObject obj ) => obj.value;
-	}
-	public class SafeTransform : SafeObject<Transform>
-	{
-		public static implicit operator Transform( SafeTransform obj ) => obj.value;
-	}
+	public class SafeObject : SafeObject<Object>{ }
+	public class SafeGameObject : SafeObject<GameObject>{ }
+	public class SafeTransform : SafeObject<Transform>{ }
 
-	public class SafeRectTransform : SafeObject<RectTransform>
-	{
-		public static implicit operator RectTransform( SafeRectTransform obj ) => obj.value;
-	}
-	public class SafeImage : SafeObject<Image>
-	{
-		public static implicit operator Image( SafeImage obj ) => obj.value;
-	}
-	public class SafeText : SafeObject<Text>
-	{
-		public static implicit operator Text( SafeText obj ) => obj.value;
-	}
-	public class SafeSlider : SafeObject<Slider>
-	{
-		public static implicit operator Slider( SafeSlider obj ) => obj.value;
-	}
-	public class SafeButton : SafeObject<Button>
-	{
-		public static implicit operator Button( SafeButton obj ) => obj.value;
-	}
-	public class SafeInputField : SafeObject<InputField>
-	{
-		public static implicit operator InputField( SafeInputField obj ) => obj.value;
-	}
-	public class SafeScrollRect : SafeObject<ScrollRect>
-	{
-		public static implicit operator ScrollRect( SafeScrollRect obj ) => obj.value;
-	}
+	public class SafeRectTransform : SafeObject<RectTransform>{ }
+	public class SafeImage : SafeObject<Image>{ }
+	public class SafeText : SafeObject<Text>{ }
+	public class SafeSlider : SafeObject<Slider>{ }
+	public class SafeButton : SafeObject<Button>{ }
+	public class SafeInputField : SafeObject<InputField>{ }
+	public class SafeScrollRect : SafeObject<ScrollRect>{ }
 
-	public class SafeAnimator : SafeObject<Animator>
-	{
-		public static implicit operator Animator( SafeAnimator obj ) => obj.value;
-	}
-	public class SafeAnimation : SafeObject<Animation>
-	{
-		public static implicit operator Animation( SafeAnimation obj ) => obj.value;
-	}
-	public class SafeCamera : SafeObject<Camera>
-	{
-		public static implicit operator Camera( SafeCamera obj ) => obj.value;
-	}
+	public class SafeAnimator : SafeObject<Animator>{ }
+	public class SafeAnimation : SafeObject<Animation>{ }
+	public class SafeCamera : SafeObject<Camera>{ }
 
-	public class SafeMeshFilter : SafeObject<MeshFilter>
-	{
-		public static implicit operator MeshFilter( SafeMeshFilter obj ) => obj.value;
-	}
-	public class SafeMeshRenderer : SafeObject<MeshRenderer>
-	{
-		public static implicit operator MeshRenderer( SafeMeshRenderer obj ) => obj.value;
-	}
-	public class SafeMeshCollider : SafeObject<MeshCollider>
-	{
-		public static implicit operator MeshCollider( SafeMeshCollider obj ) => obj.value;
-	}
+	public class SafeMeshFilter : SafeObject<MeshFilter>{ }
+	public class SafeMeshRenderer : SafeObject<MeshRenderer>{ }
+	public class SafeMeshCollider : SafeObject<MeshCollider>{ }
 
-	public class SafeRigidbody : SafeObject<Rigidbody>
-	{
-		public static implicit operator Rigidbody( SafeRigidbody obj ) => obj.value;
-	}
-	public class SafeCollider : SafeObject<Collider>
-	{
-		public static implicit operator Collider( SafeCollider obj ) => obj.value;
-	}
-	public class SafeBoxCollider : SafeObject<BoxCollider>
-	{
-		public static implicit operator BoxCollider( SafeBoxCollider obj ) => obj.value;
-	}
-	public class SafeSphereCollider : SafeObject<SphereCollider>
-	{
-		public static implicit operator SphereCollider( SafeSphereCollider obj ) => obj.value;
-	}
-	public class SafeCapsuleCollider : SafeObject<CapsuleCollider>
-	{
-		public static implicit operator CapsuleCollider( SafeCapsuleCollider obj ) => obj.value;
-	}
+	public class SafeRigidbody : SafeObject<Rigidbody>{ }
+	public class SafeCollider : SafeObject<Collider>{ }
+	public class SafeBoxCollider : SafeObject<BoxCollider>{ }
+	public class SafeSphereCollider : SafeObject<SphereCollider>{ }
+	public class SafeCapsuleCollider : SafeObject<CapsuleCollider>{ }
 	
-	public class SafeRigidbody2D : SafeObject<Rigidbody2D>
-	{
-		public static implicit operator Rigidbody2D( SafeRigidbody2D obj ) => obj.value;
-	}
-	public class SafeCollider2D : SafeObject<Collider2D>
-	{
-		public static implicit operator Collider2D( SafeCollider2D obj ) => obj.value;
-	}
-	public class SafeBoxCollider2D : SafeObject<BoxCollider2D>
-	{
-		public static implicit operator BoxCollider2D( SafeBoxCollider2D obj ) => obj.value;
-	}
-	public class SafeCircleCollider2D : SafeObject<CircleCollider2D>
-	{
-		public static implicit operator CircleCollider2D( SafeCircleCollider2D obj ) => obj.value;
-	}
-	public class SafeCapsuleCollider2D : SafeObject<CapsuleCollider2D>
-	{
-		public static implicit operator CapsuleCollider2D( SafeCapsuleCollider2D obj ) => obj.value;
-	}
+	public class SafeRigidbody2D : SafeObject<Rigidbody2D>{ }
+	public class SafeCollider2D : SafeObject<Collider2D>{ }
+	public class SafeBoxCollider2D : SafeObject<BoxCollider2D>{ }
+	public class SafeCircleCollider2D : SafeObject<CircleCollider2D>{ }
+	public class SafeCapsuleCollider2D : SafeObject<CapsuleCollider2D>{ }
 
-	public class SafeSprite : SafeObject<Sprite>
-	{
-		public static implicit operator Sprite( SafeSprite obj ) => obj.value;
-	}
-	public class SafeTexture2D : SafeObject<Texture2D>
-	{
-		public static implicit operator Texture2D( SafeTexture2D obj ) => obj.value;
-	}
-	public class SafeMaterial : SafeObject<Material>
-	{
-		public static implicit operator Material( SafeMaterial obj ) => obj.value;
-	}
-	public class SafeShader : SafeObject<Shader>
-	{
-		public static implicit operator Shader( SafeShader obj ) => obj.value;
-	}
-	public class SafeMesh : SafeObject<Mesh>
-	{
-		public static implicit operator Mesh( SafeMesh obj ) => obj.value;
-	}
-	public class SafeAnimationClip : SafeObject<AnimationClip>
-	{
-		public static implicit operator AnimationClip( SafeAnimationClip obj ) => obj.value;
-	}
-	public class SafeAudioClip : SafeObject<AudioClip>
-	{
-		public static implicit operator AudioClip( SafeAudioClip obj ) => obj.value;
-	}
+	public class SafeSprite : SafeObject<Sprite>{ }
+	public class SafeTexture2D : SafeObject<Texture2D>{ }
+	public class SafeMaterial : SafeObject<Material>{ }
+	public class SafeShader : SafeObject<Shader>{ }
+	public class SafeMesh : SafeObject<Mesh>{ }
+	public class SafeAnimationClip : SafeObject<AnimationClip>{ }
+	public class SafeAudioClip : SafeObject<AudioClip>{ }
 
 #if UNITY_EDITOR
 	public class SafeObjectTPropertyDrawer : EditorUtils.InheritedPropertyDrawer
