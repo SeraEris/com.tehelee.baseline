@@ -14,7 +14,18 @@ namespace Tehelee.Baseline
 	[System.Serializable]
 	public class SafeObject<T> : SafeObjectBase where T : Object
 	{
-		public bool hasValue { get; private set; }
+		private int _hasValue = -1;
+
+		public bool hasValue
+		{
+			get
+			{
+				if( _hasValue < 0 || _hasValue > 1 )
+					_hasValue = Utils.IsObjectAlive( obj ) ? 1 : 0;
+
+				return _hasValue == 1;
+			}
+		}
 
 		[SerializeField]
 		private T obj;
@@ -23,8 +34,8 @@ namespace Tehelee.Baseline
 			get => obj;
 			set
 			{
-				hasValue = Utils.IsObjectAlive( obj );
 				obj = value;
+				_hasValue = Utils.IsObjectAlive( obj ) ? 1 : 0;
 			}
 		}
 
