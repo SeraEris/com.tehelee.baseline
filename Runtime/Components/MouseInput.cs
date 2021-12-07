@@ -47,6 +47,9 @@ namespace Tehelee.Baseline.Components
 		public Texture2D cursorRegular;
 		public Texture2D cursorReleased;
 
+		public string inputMouseX = "Mouse X";
+		public string inputMouseY = "Mouse Y";
+
 		#endregion
 
 		////////////////////////////////
@@ -123,7 +126,7 @@ namespace Tehelee.Baseline.Components
 
 			if( locked )
 			{
-				delta = new Vector2( Input.GetAxisRaw( "Mouse X" ), Input.GetAxisRaw( "Mouse Y" ) );
+				delta = new Vector2( Input.GetAxisRaw( inputMouseX ), Input.GetAxisRaw( inputMouseY ) );
 
 				if( Input.GetMouseButtonDown( 0 ) )
 					onPrimaryClick?.Invoke();
@@ -231,7 +234,7 @@ namespace Tehelee.Baseline.Components
 		{
 			float inspectorHeight = base.GetInspectorHeight();
 
-			inspectorHeight += lineHeight * 5.5f + 4f;
+			inspectorHeight += lineHeight * 8.0f + 8f;
 
 			if( Application.isPlaying )
 				inspectorHeight += lineHeight * 1.5f;
@@ -261,6 +264,12 @@ namespace Tehelee.Baseline.Components
 			bRect.y += lineHeight + 4f;
 
 			EditorUtils.BetterObjectField( bRect, new GUIContent( "Cursor Released" ), this[ "cursorReleased" ], typeof( Texture2D ) );
+			bRect.y += lineHeight * 1.5f;
+
+			EditorGUI.PropertyField( bRect, this[ "inputMouseX" ], new GUIContent( "Input Mouse X" ) );
+			bRect.y += lineHeight + 4f;
+			
+			EditorGUI.PropertyField( bRect, this[ "inputMouseY" ], new GUIContent( "Input Mouse Y" ) );
 			bRect.y += lineHeight;
 
 			if( Application.isPlaying )
