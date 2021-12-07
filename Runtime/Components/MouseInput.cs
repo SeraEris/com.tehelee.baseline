@@ -31,7 +31,7 @@ namespace Tehelee.Baseline.Components
 
 		public static void ReturnCursor()
 		{
-			if( Utils.IsObjectAlive( singleton.instance ) && singleton.instance.lockOnEnable )
+			if( Utils.IsObjectAlive( singleton.instance ) )
 				singleton.instance.Lock();
 
 			releaseRequests--;
