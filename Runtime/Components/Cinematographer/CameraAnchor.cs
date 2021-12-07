@@ -13,8 +13,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 	public class CameraAnchor : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		private static Coroutine anchorRoutine = null;
@@ -32,8 +30,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public bool _isPerspective = false;
@@ -62,8 +58,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		public virtual void OnEnable()
@@ -87,8 +81,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	CameraAnchor
-
 		#region CameraAnchor
 
 		private static IEnumerator IAnchorRoutine()

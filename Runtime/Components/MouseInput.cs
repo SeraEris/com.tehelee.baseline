@@ -13,8 +13,6 @@ namespace Tehelee.Baseline.Components
 	public class MouseInput : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		public static Singleton<MouseInput> singleton = new Singleton<MouseInput>();
@@ -42,8 +40,6 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public bool lockOnEnable;
@@ -54,8 +50,6 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 		
 		public Vector2 delta = Vector2.zero;
@@ -63,8 +57,6 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		private bool forceReleased = false;
@@ -72,8 +64,6 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	Events
-
 		#region Events
 
 		public event System.Action onLock;
@@ -93,9 +83,7 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
-		#region MonoMethods
+		#region Mono Methods
 
 		private void OnEnable()
 		{
@@ -176,9 +164,7 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	CursorLock
-
-		#region CursorLock
+		#region MouseInput
 		
 		private void Lock()
 		{

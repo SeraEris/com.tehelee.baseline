@@ -17,8 +17,6 @@ namespace Tehelee.Baseline.Components.UI
 	public class RectStretcher : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		private static GroupUpdates<RectStretcher> groupUpdates = new GroupUpdates<RectStretcher>( PerformLayout );
@@ -26,8 +24,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public bool horizontal = false;
@@ -41,8 +37,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		private RectTransform rectParent;
@@ -51,8 +45,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		protected virtual void Awake()
@@ -86,6 +78,7 @@ namespace Tehelee.Baseline.Components.UI
 
 		#endregion
 
+		////////////////////////////////
 		#region RectStretcher
 
 		private static void PerformLayout( RectStretcher rectStretcher ) =>

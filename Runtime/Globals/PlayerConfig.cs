@@ -13,8 +13,6 @@ namespace Tehelee.Baseline
 	public class PlayerConfig
 	{
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		public delegate void ConfigCallback( PlayerConfig config );
@@ -148,8 +146,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		public string name { get; private set; } = null;
@@ -157,8 +153,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		Dictionary<string, string> strings = new Dictionary<string, string>();
@@ -169,8 +163,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Constructor
-
 		#region Constructor
 
 		private PlayerConfig() { }
@@ -200,8 +192,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Get-Set
-
 		#region Get-Set
 
 			////////////////
@@ -321,8 +311,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Save-Load
-
 		#region Save-Load
 
 		public void Save() =>

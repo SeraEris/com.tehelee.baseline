@@ -16,8 +16,6 @@ namespace Tehelee.Baseline
 	public static class EditorUtils
 	{
 		////////////////////////////////
-		//	General
-
 		#region General
 
 		public static Rect GetSingleLineRect( float padding = 0f )
@@ -60,8 +58,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Reorderable List
-
 		#region ReorderableList
 
 		public delegate float ReorderableElementHeightExpanded( SerializedProperty list, int index, SerializedProperty element );
@@ -358,8 +354,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Better Object Field
-
 		#region BetterObjectField
 
 		public static Object BetterObjectField( Rect rect, GUIContent label, Object obj, System.Type type, bool allowSceneObjects = false )
@@ -412,8 +406,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Better Toggle Field
-
 		#region BetterToggleField
 
 		private static GUIStyle _betterToggleStyle;
@@ -488,8 +480,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Toggle Rocker Field
-
 		#region ToggleRockerField
 
 		private static GUIContent ToggleRockerFieldContentFalse = new GUIContent( "False" );
@@ -567,8 +557,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Better Button
-
 		#region BetterButton
 
 		private static GUIStyle _betterButtonStyle;
@@ -602,8 +590,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Better TextField
-
 		#region BetterTextField
 
 		private static GUIStyle _styleRichTextField;
@@ -687,9 +673,7 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Better TextField
-
-		#region BetterTextField
+		#region BetterTextArea
 
 		private static GUIStyle _styleRichTextArea;
 		private static GUIStyle styleRichTextArea
@@ -755,8 +739,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Better Scene Field
-
 		#region BetterSceneField
 
 		public static string BetterSceneField( GUIContent label, string path )
@@ -807,8 +789,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Better Unity Event Field
-
 		#region BetterUnityEventField
 
 		private static UnityEventDrawer StaticUnityEventDrawer = new UnityEventDrawer();
@@ -851,8 +831,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Foldout
-
 		#region Foldout
 
 		public static bool Foldout( Rect rect, bool foldout, GUIContent guiContent, GUIStyle style = default( GUIStyle ) )
@@ -892,8 +870,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Divider
-
 		#region Divider
 
 		private static readonly Color DividerLabel = new Color( 1f, 1f, 1f, 0.75f );
@@ -938,8 +914,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	BeginDisableGroup Toggle
-
 		#region BeginDisableGroup Toggle
 
 		public static Rect BeginDisabledGroupToggle( Rect rect, SerializedProperty booleanProperty, GUIContent guiContent = null, bool midlineToggle = false, bool toggleBeforeProperty = true, bool invertBoolean = false )
@@ -978,8 +952,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Mask Field
-
 		#region MaskField
 
 		private static Dictionary<System.Type, string[]> CachedEnumNames = new Dictionary<System.Type, string[]>();
@@ -1027,8 +999,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	LayerMask Field
-
 		#region LayerMask Field
 
 		public static void LayerMaskField( Rect rect, GUIContent guiContent, SerializedProperty layerMaskProperty )
@@ -1039,8 +1009,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Snap Slider
-
 		#region SnapSlider
 
 		public static float snapSliderFraction = 1f;
@@ -1086,8 +1054,6 @@ namespace Tehelee.Baseline
 		#endregion
 		
 		////////////////////////////////
-		// Float Field Draggable
-
 		#region FloatFieldDraggable
 
 		public static float FloatFieldDraggable( Rect position, Rect dragHotZone, float value, GUIStyle style = null )
@@ -1113,8 +1079,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Vector2Field
-
 		#region Vector2Field
 		
 		public static void Vector2Field( Rect rect, GUIContent guiContent, SerializedProperty serializedProperty, bool disableX = false, bool disableY = false )
@@ -1196,8 +1160,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// ClickCopyLabel
-		
 		#region ClickCopyLabel
 
 		public static void DrawClickCopyLabel( Rect rect, string title, string text, bool showLabel = false ) =>
@@ -1240,8 +1202,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// BetterBackground
-		
 		#region BetterBackground
 		
 		private static GUIStyle _betterBackgroundStyle;
@@ -1281,8 +1241,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Assets
-
 		#region Assets
 
 		public static bool IsCheckedOut( Object target, string assetPath = null )
@@ -1381,8 +1339,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// SerializedProperty
-
 		#region SerializedProperty
 
 		public static int GetIndex( this SerializedProperty prop )
@@ -1877,8 +1833,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Inherited Editor
-
 		#region InheritedEditor
 
 		public class InheritedEditor : Editor
@@ -2083,8 +2037,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Inherited Property Drawer
-
 		#region InheritedPropertyDrawer
 
 		public class InheritedPropertyDrawer : PropertyDrawer
@@ -2345,8 +2297,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Layout Rects
-
 		#region LayoutRects
 
 		public static Rect GetLayoutRect( float lineHeight = -1f )
@@ -2362,8 +2312,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		// Build Helper
-
 		#region Build Helper
 
 		public static BuildResult BuildHelper( string title, BuildTarget buildTarget, bool debug, string[] sceneAssetPaths, string defaultDirectory = null )

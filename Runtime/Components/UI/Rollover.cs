@@ -17,8 +17,6 @@ namespace Tehelee.Baseline.Components.UI
 	public class Rollover : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public List<GameObject> rollover = new List<GameObject>();
@@ -30,8 +28,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		public RectTransform rectTransform { get; private set; }
@@ -57,8 +53,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		private static GroupUpdates<Rollover> groupUpdates = new GroupUpdates<Rollover>( CheckHover );
@@ -66,8 +60,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		private void Awake()
@@ -94,8 +86,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Rollover
-
 		#region Rollover
 
 		private static void CheckHover( Rollover rollover )

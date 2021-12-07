@@ -19,6 +19,7 @@ namespace Tehelee.Baseline.Components.UI
 	[RequireComponent( typeof( RectTransform ) )]
 	public class SizeToText : MonoBehaviour
 	{
+		////////////////////////////////
 		#region Attributes
 
 		public Text text;
@@ -36,6 +37,7 @@ namespace Tehelee.Baseline.Components.UI
 
 		#endregion
 
+		////////////////////////////////
 		#region Properties
 
 		private RectTransform _rectTransform = null;
@@ -51,6 +53,7 @@ namespace Tehelee.Baseline.Components.UI
 
 		#endregion
 
+		////////////////////////////////
 		#region Mono Methods
 
 		private void OnEnable()
@@ -73,6 +76,7 @@ namespace Tehelee.Baseline.Components.UI
 
 		#endregion
 
+		////////////////////////////////
 		#region SizeToText
 
 		private void PerformLayout( string value ) => PerformLayout();

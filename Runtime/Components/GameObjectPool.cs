@@ -7,8 +7,6 @@ namespace Tehelee.Baseline.Components
 	public class GameObjectPool : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public bool poolOnAwake = false;
@@ -24,8 +22,6 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		private bool initialized = false;
@@ -46,9 +42,7 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	MonoMethods
-
-		#region MonoMethods
+		#region Mono Methods
 
 		private void Awake()
 		{
@@ -132,9 +126,7 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	Pool
-
-		#region Pool
+		#region GameObjectPool
 
 		public GameObject Pop()
 		{

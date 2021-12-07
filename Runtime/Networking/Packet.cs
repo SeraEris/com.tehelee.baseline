@@ -13,8 +13,8 @@ namespace Tehelee.Baseline.Networking
 	public abstract class Packet
 	{
 		////////////////////////////////
-		//	Packet
-		//
+		#region Packet
+		
 		//	Override:
 		//		bytes { get }
 		//			Used to marshal packets from server to client; this should match what you're writing.
@@ -22,8 +22,6 @@ namespace Tehelee.Baseline.Networking
 		//			Used to write data values to the write stream to be sent to targets.
 		//		<Packet>( ref PacketReader reader );
 		//			Used to re-construct this packet from the read stream on targets.
-
-		#region Packet
 
 		public ushort id { get { return Hash( this.GetType() ); } }
 
@@ -40,8 +38,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Byte Limits
-
 		#region ByteLimits
 
 		public static readonly ushort maxBytes = NetworkParameterConstants.MTU - 16;
@@ -50,8 +46,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	HashToType
-
 		#region HashToType
 
 		private static Dictionary<ushort, System.Type> HashToType = new Dictionary<ushort, System.Type>();
@@ -136,8 +130,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Transport Helpers
-
 		#region TransportHelpers
 
 		public static void WriteBool( ref DataStreamWriter writer, bool value ) =>

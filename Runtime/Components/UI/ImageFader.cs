@@ -14,8 +14,6 @@ namespace Tehelee.Baseline.Components.UI
 	public class ImageFader : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public Image image;
@@ -25,8 +23,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 		
 		[SerializeField]
@@ -45,8 +41,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		private Coroutine transitionCoroutine = null;
@@ -55,8 +49,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		protected virtual void OnEnable()
@@ -86,8 +78,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	ImageFader
-
 		#region ImageFader
 
 		public void OnSpriteChanged()

@@ -16,8 +16,6 @@ namespace Tehelee.Baseline.Components.UI
 	public class LinearLayout : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 		
 		public float paddingStart = 0f;
@@ -42,8 +40,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		private HashSet<RectTransform> ignoreHashSet = new HashSet<RectTransform>();
@@ -51,8 +47,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 		
 		protected virtual void Awake()
@@ -96,8 +90,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	LinearLayout
-
 		#region LinearLayout
 
 		public void RebuildIgnoreHashSet() =>

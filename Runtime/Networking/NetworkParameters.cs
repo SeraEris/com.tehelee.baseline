@@ -12,8 +12,6 @@ namespace Tehelee.Baseline
 	public class NetworkParamters
 	{
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		public int connectTimeoutMS = 1000; // If no response recieved for this long, couldn't connect.
@@ -32,8 +30,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		public bool useSimulator => ( packetDelayMS > 0 ) || ( packetJitterMS != 0 ) || ( packetDropPercent > 0 ) || ( packetDropInterval > 0 );
@@ -41,8 +37,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	SimulatorUtility.Parameters
-
 		#region SimulatorUtilityParameters
 
 		public static implicit operator SimulatorUtility.Parameters( NetworkParamters networkParamters ) => new SimulatorUtility.Parameters()
@@ -58,8 +52,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	ToString()
-
 		#region ToString
 
 		public override string ToString() => string.Format

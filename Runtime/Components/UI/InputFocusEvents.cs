@@ -17,8 +17,6 @@ namespace Tehelee.Baseline
 	public class InputFocusEvents : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		[System.Serializable]
@@ -30,8 +28,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		private InputField inputField;
@@ -42,8 +38,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		private void Awake()

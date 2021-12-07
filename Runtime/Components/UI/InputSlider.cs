@@ -18,8 +18,6 @@ namespace Tehelee.Baseline.Components.UI
 	public class InputSlider : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		private static readonly string[] decimalPrecisionFormats = new string[]
@@ -39,8 +37,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public Slider slider;
@@ -60,8 +56,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 #if UNITY_EDITOR
@@ -75,6 +69,7 @@ namespace Tehelee.Baseline.Components.UI
 
 		#endregion
 
+		////////////////////////////////
 		#region Properties
 
 		public bool isReady => ( Utils.IsObjectAlive( slider ) && Utils.IsObjectAlive( input ) );
@@ -100,9 +95,7 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
-		#region MonoMethods
+		#region Mono Methods
 
 		protected virtual void Awake()
 		{
@@ -174,8 +167,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Input Slider
-
 		#region InputSlider
 			
 		public void ApplySettings( bool skipAssignments = false )

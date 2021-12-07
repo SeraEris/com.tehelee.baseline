@@ -28,8 +28,6 @@ namespace Tehelee.Baseline.Networking
 	public class Shared : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public const string LoopbackAddress = "127.0.0.1";
@@ -46,8 +44,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		public virtual string networkScopeLabel { get { return "Shared"; } }
@@ -61,8 +57,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		public Pipeline pipeline;
@@ -72,8 +66,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		protected virtual void Awake() { }
@@ -95,8 +87,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Open & Close
-
 		#region Open & Close
 
 		public virtual void Open()
@@ -208,8 +198,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Packet Datas
-
 		#region Packet Datas
 
 		private List<System.Type> builtInPacketTypes = new List<System.Type>()
@@ -278,8 +266,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Pipeline
-
 		#region Pipeline
 
 		[System.Serializable]
@@ -308,8 +294,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Reliability Error
-
 		#region ReliabilityError
 
 		protected unsafe int GetReliabilityError( NetworkConnection connection )
@@ -336,9 +320,7 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Send & Recieve
-
-		#region SendRecieve
+		#region Send & Recieve
 
 		[System.Serializable]
 		protected struct PacketQueue
@@ -572,8 +554,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Processing
-
 		#region Processing
 
 		protected virtual void NetworkUpdate() { }
@@ -584,10 +564,9 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Listeners
-		//		Callback On Recieve
-
 		#region Listeners
+		
+		//		Callback On Recieve
 
 		public delegate ReadResult ReadHandler( NetworkConnection connection, ref PacketReader reader );
 
@@ -645,10 +624,9 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Monitors
-		//		Callback On Send
-
 		#region Monitors
+		
+		//		Callback On Send
 
 		public delegate void SendMonitor( Packet packet, bool reliable );
 
@@ -703,10 +681,9 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Packet Routing
-		//		Quick redirect instead of callback
-
 		#region Packet Routing
+		
+		//		Quick redirect instead of callback
 
 		public class PacketRouting
 		{
@@ -813,8 +790,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Ping
-
 		#region Ping
 
 		protected Dictionary<ushort, ushort> pingTimingsByNetworkId = new Dictionary<ushort, ushort>();
@@ -832,8 +807,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Usernames
-
 		#region Usernames
 
 		protected Dictionary<ushort, string> usernamesByNetworkId = new Dictionary<ushort, string>();
@@ -851,8 +824,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Admins
-
 		#region Admins
 
 		protected HashSet<ushort> adminIds = new HashSet<ushort>();

@@ -16,8 +16,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 	public class CameraOperator : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		public static float fieldOfView = 85f;
@@ -38,8 +36,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public new Camera camera;
@@ -52,8 +48,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 		
 		private bool recordAvailable = false;
@@ -119,8 +113,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		protected virtual void Awake()
@@ -187,8 +179,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	CameraAnchor
-
 		#region CameraOperator
 		
 		private void SaveReturn()

@@ -13,8 +13,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 	public class CameraRegistry : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		private static Dictionary<string, CameraAnchor> anchorRegistry = new Dictionary<string, CameraAnchor>();
@@ -53,8 +51,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		[System.Serializable]
@@ -68,8 +64,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		private void OnEnable()
@@ -85,8 +79,6 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		#endregion
 
 		////////////////////////////////
-		//	CameraRegistry
-
 		#region CameraRegistry
 
 		public void Register()

@@ -8,8 +8,6 @@ namespace Tehelee.Baseline.Components
 	public class StaticAudio : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		private static Dictionary<string, StaticAudio> lookup = new Dictionary<string, StaticAudio>();
@@ -97,9 +95,7 @@ namespace Tehelee.Baseline.Components
 		#endregion
 
 		////////////////////////////////
-		//	Component
-
-		#region Component
+		#region StaticAudio
 
 		public string key;
 

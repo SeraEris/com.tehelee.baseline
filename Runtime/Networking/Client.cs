@@ -17,8 +17,6 @@ namespace Tehelee.Baseline.Networking
 	public class Client : Shared
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public Server server = null;
@@ -33,8 +31,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		public override string networkScopeLabel => "Client";
@@ -76,8 +72,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Events
-
 		#region Events
 
 		public event System.Action onOpen;
@@ -115,8 +109,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		protected override void Awake()
@@ -176,8 +168,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Open & Close
-
 		#region Open & Close
 
 		public override void Open()
@@ -259,8 +249,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	NetworkUpdate
-
 		#region NetworkUpdate
 
 		protected override void NetworkUpdate()
@@ -316,8 +304,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	QueryForEvents
-
 		#region QueryForEvents
 
 		protected override void QueryForEvents()
@@ -370,8 +356,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	SendQueue
-
 		#region SendQueue
 
 		public override void Send( Packet packet, bool reliable = false )
@@ -429,8 +413,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Heartbeat & Loopback
-
 		#region Heartbeat & Loopback
 
 		private Queue<float> loopbackTimings = new Queue<float>();
@@ -488,8 +470,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Ping
-
 		#region Ping
 
 		private ReadResult OnPing( NetworkConnection connection, ref PacketReader reader )
@@ -508,8 +488,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Handshake & Setup
-
 		#region Handshake & Setup
 
 		private ReadResult OnHandshake( NetworkConnection connection, ref PacketReader reader )
@@ -587,8 +565,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Password
-
 		#region Password
 
 		private ReadResult OnPassword( NetworkConnection networkConnection, ref PacketReader reader )
@@ -627,8 +603,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Usernames
-
 		#region Usernames
 
 		public void SetUsername( string username )
@@ -685,8 +659,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Admins
-
 		#region Admins
 
 		public void AdminAuthorize( string password )
@@ -743,8 +715,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Administration
-
 		#region Administration
 
 		private ReadResult OnAdministration( NetworkConnection networkConnection, ref PacketReader reader )
@@ -788,8 +758,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Admin Operations
-
 		#region Admin Operations
 
 		private void _AdminShutdown( string reason )
@@ -866,8 +834,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Password
-
 		#region Password
 
 		public void AuthWithPassword( string password )
@@ -881,8 +847,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Server Info
-
 		#region ServerInfo
 
 		private ReadResult OnServerInfo( NetworkConnection networkConnection, ref PacketReader reader )

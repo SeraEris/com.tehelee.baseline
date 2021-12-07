@@ -14,8 +14,6 @@ namespace Tehelee.Baseline.Components.UI
 	public class FadeGraphics : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public float fadeTime = 1f;
@@ -25,8 +23,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		[SerializeField]
@@ -47,8 +43,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 
 		private Coroutine fadeCoroutine = null;
@@ -56,8 +50,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		private void OnEnable()
@@ -79,8 +71,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	FadeGraphics
-
 		#region FadeGraphics
 
 		private void FlushVisibility( HashSet<Graphic> graphics = null ) =>

@@ -11,17 +11,13 @@ namespace Tehelee.Baseline
 	public static class OpenNatWrapper
 	{
 		////////////////////////////////
-		//	Static
-
-		#region Static
+		#region Attributes
 
 		public static NatDiscoverer natDiscoverer = new NatDiscoverer();
 		
 		#endregion
 
 		////////////////////////////////
-		//	Discovery
-
 		#region Discovery
 
 		public static void DiscoverDevice( System.Action<NatDevice> callback )
@@ -64,8 +60,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Get Port Mappings
-
 		#region GetPortMappings
 
 		public static void GetPortMappings( int discoverTimeoutMS, System.Action<List<Mapping>> callback )
@@ -90,8 +84,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Create Port Mapping
-
 		#region CreatePortMapping
 		
 		public enum PortMappingResult
@@ -177,8 +169,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Delete Port Mapping
-
 		#region DeletePortMapping
 
 		public static void DeletePortMapping( Mapping mapping, System.Action callback = null )

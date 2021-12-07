@@ -15,8 +15,6 @@ namespace Tehelee.Baseline.Components.UI
 	public class MimicRectTransform : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public RectTransform target;
@@ -29,8 +27,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		public RectTransform rectTransform { get; private set; }
@@ -38,8 +34,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		private static GroupUpdates<MimicRectTransform> groupUpdates = new GroupUpdates<MimicRectTransform>( PerformLayout );
@@ -47,8 +41,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		private void Awake()
@@ -84,8 +76,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Mirror Rect Transform
-
 		#region Mirror Rect Transform
 
 		public static void PerformLayout( RectTransform target, RectTransform follower, bool matchSize = true )

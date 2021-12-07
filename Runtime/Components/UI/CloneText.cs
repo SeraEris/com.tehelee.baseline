@@ -17,8 +17,6 @@ namespace Tehelee.Baseline
 	public class CloneText : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Static
-
 		#region Static
 
 		private static void Register( Text textToCopy, Text destinationText )
@@ -117,8 +115,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		public Text textToCopy;
@@ -126,8 +122,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		public Text text { get; private set; }
@@ -135,8 +129,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		protected virtual void Awake()

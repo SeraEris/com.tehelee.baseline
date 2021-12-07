@@ -18,9 +18,6 @@ namespace Tehelee.Baseline
 	public static class Utils
 	{
 		////////////////////////
-		// DelayHelper
-		////////////////////////
-
 		#region DelayHelper
 
 		public static bool IsShuttingDown { get; internal set; }
@@ -77,9 +74,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Hashing
-		////////////////////////
-
 		#region Hashing
 
 		private static readonly ushort CrcPolynomial = 0xA001;
@@ -153,10 +147,7 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Program Arguments
-		////////////////////////
-
-		#region Args
+		#region Launch Arguments
 
 		public static string GetArg( string key )
 		{
@@ -213,10 +204,7 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Windows Helpers
-		////////////////////////
-
-		#region WindowsHelpers
+		#region Windows 
 
 #if( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
 		[return: MarshalAs( UnmanagedType.Bool )]
@@ -328,10 +316,7 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Debug Helpers
-		////////////////////////
-
-		#region DebugHelpers
+		#region Debug
 
 		public static void DebugPoint( Vector3 point, Color color = default( Color ), float size = 0.1f, float time = 0f )
 		{
@@ -351,9 +336,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// HashSet Helpers
-		////////////////////////
-
 		#region HashSet
 
 		public static void AddRange<T>( this HashSet<T> hashSet, IEnumerable<T> range )
@@ -368,9 +350,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// List Helpers
-		////////////////////////
-
 		#region List
 
 		public static void Shuffle<T>( this IList<T> list )
@@ -452,9 +431,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Dictionary Helpers
-		////////////////////////
-
 		#region Dictionary
 
 		public static void InsertOrReplace<K,V>( this IDictionary<K,V> dictionary, K key, V value )
@@ -485,9 +461,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// String Helpers
-		////////////////////////
-
 		#region StringHelpers
 
 		private static char[] splitSpace = new char[] { ' ', '_' };
@@ -661,9 +634,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Safe Parse
-		////////////////////////
-
 		#region Safe Parse
 
 		// 8-bit
@@ -733,10 +703,7 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Component Helpers
-		////////////////////////
-
-		#region Component Helpers
+		#region Component
 
 		public static void DestroyEditorSafe( Object obj )
 		{
@@ -771,10 +738,7 @@ namespace Tehelee.Baseline
 #endregion
 
 		////////////////////////
-		// Unity Object Helpers
-		////////////////////////
-
-		#region Unity Object Helpers
+		#region Unity Object
 
 		// Shortcut to check if an object is null or if it's been destroyed.
 		public static bool IsObjectAlive( Object obj )
@@ -788,10 +752,7 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Sound Helpers
-		////////////////////////
-
-		#region SoundHelpers
+		#region Sound
 
 		private static Stack<AudioSource> AudioPool = new Stack<AudioSource>();
 
@@ -849,11 +810,8 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Rigidbody Helpers
-		////////////////////////
-
-		#region RigidbodyHelpers
-
+		#region Rigidbody
+		
 		public static void RotateRigidbody( Rigidbody rigidbody, Vector3 from, Vector3 to, float power = 4f, float maxAngular = 12f )
 		{
 			float angle = Vector3.Angle( from, to );
@@ -876,9 +834,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Vector3 Helpers
-		////////////////////////
-
 		#region Vector3
 
 		public static Vector3 Multiply( this Vector3 a, Vector3 b )
@@ -911,9 +866,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Clipboard
-		////////////////////////
-
 		#region Clipboard
 
 		private static TextEditor _clipboardTextEditor = null;
@@ -948,9 +900,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Threading
-		////////////////////////
-
 		#region Threading
 			
 		public static void WaitForTask( Task task, System.Action callback = null )
@@ -1032,9 +981,6 @@ namespace Tehelee.Baseline
 #endregion
 
 		////////////////////////
-		// Types
-		////////////////////////
-
 		#region Types
 
 		private static Dictionary<string, System.Type> typeDictionary = new Dictionary<string, System.Type>();
@@ -1089,9 +1035,6 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
-		// Scene
-		////////////////////////
-
 		#region Scene
 
 		public static List<T> FindAllObjectsOfType<T>( this UnityEngine.SceneManagement.Scene scene ) where T : Component
@@ -1111,9 +1054,6 @@ namespace Tehelee.Baseline
 #endregion
 
 		////////////////////////
-		// Bezier Curve
-		////////////////////////
-
 		#region Bezier Curve
 
 		// A = startPoint.position;

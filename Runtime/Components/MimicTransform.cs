@@ -11,8 +11,6 @@ namespace Tehelee.Baseline.Components
 	public class MimicTransform : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Attributes
-		
 		#region Attributes
 
 		public Transform followTarget;
@@ -30,8 +28,6 @@ namespace Tehelee.Baseline.Components
 		#endregion
 		
 		////////////////////////////////
-		//	Properties
-		
 		#region Properties
 
 		public bool hasFollowTarget { get; private set; } = false;
@@ -39,8 +35,6 @@ namespace Tehelee.Baseline.Components
 		#endregion
 		
 		////////////////////////////////
-		//	Mono Methods
-		
 		#region Mono Methods
 
 		protected virtual void OnEnable()
@@ -74,6 +68,11 @@ namespace Tehelee.Baseline.Components
 			}
 		}
 		#endif
+		
+		#endregion
+		
+		////////////////////////////////
+		#region MimicTransform
 		
 		private void UpdateFollow()
 		{

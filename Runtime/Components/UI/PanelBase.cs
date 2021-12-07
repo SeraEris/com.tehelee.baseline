@@ -13,8 +13,6 @@ namespace Tehelee.Baseline.Components.UI
 	public class PanelBase : MonoBehaviour
 	{
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		public RectTransform rectTransform { get; private set; }
@@ -25,8 +23,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Events
-
 		#region Events
 
 		public event System.Action onOpen;
@@ -35,8 +31,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Members
-
 		#region Members
 			
 		private bool closed = false;
@@ -44,8 +38,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		protected virtual void Awake()
@@ -74,8 +66,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		//	PanelBase
-
 		#region PanelBase
 		
 		public void Open() =>

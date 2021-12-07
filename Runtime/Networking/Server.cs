@@ -25,8 +25,6 @@ namespace Tehelee.Baseline.Networking
 	public class Server : Shared
 	{
 		////////////////////////////////
-		//	Attributes
-
 		#region Attributes
 
 		[Range( 1f, 10f )]
@@ -59,8 +57,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Attributes
-
 		#region Members
 
 		private bool closing = false;
@@ -71,8 +67,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Properties
-
 		#region Properties
 
 		public override string networkScopeLabel => "Server";
@@ -129,8 +123,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Events
-
 		#region Events
 
 		public event System.Action onOpen;
@@ -143,8 +135,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Mono Methods
-
 		#region Mono Methods
 
 		protected override void Awake()
@@ -213,8 +203,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Open & Close
-
 		#region Open & Close
 
 		public override void Open()
@@ -324,8 +312,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	NAT Punch Through
-
 		#region NAT Punch Through
 
 		private Mapping GenerateCurrentMapping() => new Mapping( Protocol.Udp, IPAddress.Parse( address ), port, port, Mathf.RoundToInt( natReservationTime * 60f ), string.Format( "{0}'s Port {1}", Application.productName, port ) );
@@ -376,8 +362,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Network Connections Data
-
 		#region Network Connections Data
 
 		// Used as an auto-incrementing id, checked against networkClients<> for collisions.
@@ -429,8 +413,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Connections Accept & Cleanup 
-
 		#region Connections Accept & Cleanup
 
 		protected virtual void AcceptNewConnections()
@@ -465,8 +447,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Connection Add & Remove
-
 		#region Connection Add & Remove
 
 		private void AddConnection( NetworkConnection networkConnection )
@@ -584,8 +564,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Password & Approval
-
 		#region Password & Approval
 
 		private Dictionary<int, byte> pendingInternalIds = new Dictionary<int, byte>();
@@ -665,8 +643,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Internal Read
-
 		#region Internal Read
 
 		private static HashSet<ushort> alwaysAllowedPacketTypes = new HashSet<ushort>()
@@ -717,8 +693,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Network Update
-
 		#region Network Update
 
 		protected override void NetworkUpdate()
@@ -746,8 +720,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Query For Events
-
 		#region Query For Events
 
 		protected override void QueryForEvents()
@@ -774,8 +746,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Send Queue
-
 		#region Send Queue
 			
 		protected Dictionary<NetworkConnection, LinkedList<Packet>> managedQueue = new Dictionary<NetworkConnection, LinkedList<Packet>>();
@@ -880,8 +850,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Usernames
-
 		#region Usernames
 
 		public delegate string SanitizeUsername( string name );
@@ -940,8 +908,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Client Ready
-
 		#region Client Ready
 
 		private HashSet<ushort> clientsReady = new HashSet<ushort>();
@@ -1004,8 +970,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Loopback & Ping
-
 		#region Loopback & Ping
 
 		private ReadResult OnLoopback( NetworkConnection connection, ref PacketReader reader )
@@ -1041,8 +1005,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Admins
-
 		#region Admins
 
 		public List<NetworkConnection> GetAdminNetworkConnections()
@@ -1170,8 +1132,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Administration
-
 		#region Administration
 
 		private ReadResult OnAdministration( NetworkConnection networkConnection, ref PacketReader reader )
@@ -1233,8 +1193,6 @@ namespace Tehelee.Baseline.Networking
 		#endregion
 
 		////////////////////////////////
-		//	Admin Operations
-
 		#region Admin Operations
 
 		public void AdminShutdown( string reason )
