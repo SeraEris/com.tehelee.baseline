@@ -107,7 +107,7 @@ namespace Tehelee.Baseline.Components
 			private static T Convert<T>( ObjectReference objectReference ) where T : Object
 			{
 				if( object.Equals( null, objectReference ) )
-					return objectReference;
+					return null;
 				
 				if( string.IsNullOrEmpty( objectReference.castType ) || !string.Equals( objectReference.castType, typeof( T ).Name ) )
 					return null;
