@@ -30,7 +30,7 @@ namespace Tehelee.Baseline
 	
 	public static class Globals
 	{
-		public static class Layers
+		public static class LayerMasks
 		{
 			public static readonly int Default				= ( 1 << 0 );
 			public static readonly int TransparentFX		= ( 1 << 1 );
@@ -42,7 +42,21 @@ namespace Tehelee.Baseline
 			public static readonly int SkipRenderer			= ( 1 << 9 );
 			public static readonly int Server				= ( 1 << 10 );
 			public static readonly int Client				= ( 1 << 11 );
+			
+		}
+		
+		public static class Layers
+		{
+			public static readonly int Default				= 0;
+			public static readonly int TransparentFX		= 1;
+			public static readonly int IgnoreRaycast		= 2;
+			public static readonly int Water				= 4;
+			public static readonly int UI					= 5;
 
+			public static readonly int PostProcessing		= 8;
+			public static readonly int SkipRenderer			= 9;
+			public static readonly int Server				= 10;
+			public static readonly int Client				= 11;
 #if UNITY_EDITOR
 			private static Dictionary<string, string> layerAssignments = new Dictionary<string, string>()
 			{
