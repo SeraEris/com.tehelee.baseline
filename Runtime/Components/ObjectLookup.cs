@@ -104,15 +104,18 @@ namespace Tehelee.Baseline.Components
 
 			public UnityEngine.Object reference;
 
-			private static T Convert<T>( ObjectReference objectReference ) where T : class
+			private static T Convert<T>( ObjectReference objectReference ) where T : Object
 			{
+				if( object.Equals( null, objectReference ) )
+					return objectReference;
+				
 				if( string.IsNullOrEmpty( objectReference.castType ) || !string.Equals( objectReference.castType, typeof( T ).Name ) )
 					return null;
 
 				if( !Utils.IsObjectAlive( objectReference.reference ) )
 					return null;
 				
-				return ( T ) ( object ) objectReference.reference;
+				return ( T ) ( Object ) objectReference.reference;
 			}
 
 			public static implicit operator Object( ObjectReference objectReference ) => Convert<Object>( objectReference );
