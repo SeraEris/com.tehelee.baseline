@@ -21,7 +21,7 @@ namespace Tehelee.Baseline
 			get
 			{
 				if( _hasValue < 0 || _hasValue > 1 )
-					_hasValue = Utils.IsObjectAlive( obj ) ? 1 : 0;
+					_hasValue = !object.Equals( null, obj ) ? 1 : 0;
 
 				return _hasValue == 1;
 			}
@@ -35,7 +35,7 @@ namespace Tehelee.Baseline
 			set
 			{
 				obj = value;
-				_hasValue = Utils.IsObjectAlive( obj ) ? 1 : 0;
+				_hasValue = !object.Equals( null, obj ) ? 1 : 0;
 			}
 		}
 
