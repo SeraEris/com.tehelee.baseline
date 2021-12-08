@@ -13,7 +13,8 @@ namespace Tehelee.Baseline.Components
 		////////////////////////////////
 		#region Attributes
 
-		public Transform followTarget;
+		[SerializeField]
+		private Transform _followTarget;
 
 		public bool executeInEditMode = false;
 		
@@ -29,7 +30,8 @@ namespace Tehelee.Baseline.Components
 		
 		////////////////////////////////
 		#region Properties
-
+		
+		public Transform followTarget => _followTarget;
 		public bool hasFollowTarget { get; private set; } = false;
 
 		#endregion
@@ -80,10 +82,8 @@ namespace Tehelee.Baseline.Components
 			{
 				Transform t = transform;
 
-#if UNITY_EDITOR
-				if( !Utils.IsObjectAlive( t ) ) // Runtime state t should never be null, but editor.
+				if( !Utils.IsObjectAlive( t ) )
 					return;
-#endif
 				
 				if( mimicPosition )
 					t.position = followTarget.TransformPoint( offsetPosition );
@@ -98,13 +98,12 @@ namespace Tehelee.Baseline.Components
 			}
 		}
 
-
 		public void SetFollowTarget( Transform target )
 		{
 			if( !object.Equals( null, _IFollow ) )
 				StopCoroutine( _IFollow );
 
-			followTarget = target;
+			_followTarget = target;
 			
 			hasFollowTarget = Utils.IsObjectAlive( followTarget );
 
@@ -142,7 +141,7 @@ namespace Tehelee.Baseline.Components
 			EditorUtils.DrawDivider( bRect, new GUIContent( "Mimic Transform" ) );
 			bRect.y += lineHeight * 1.5f;
 
-			EditorUtils.BetterObjectField( bRect, new GUIContent( "Follow Target" ), this[ "followTarget" ], typeof( Transform ), true );
+			EditorUtils.BetterObjectField( bRect, new GUIContent( "Follow Target" ), this[ "_followTarget" ], typeof( Transform ), true );
 			bRect.y += lineHeight * 1.5f;
 
 			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 30f ) / 4f, lineHeight * 1.5f );
