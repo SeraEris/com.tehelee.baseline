@@ -71,6 +71,11 @@ namespace Tehelee.Baseline.Components
 		
 		private void UpdateFollow()
 		{
+#if UNITY_EDITOR
+			if( !Application.isPlaying )
+				hasFollowTarget = Utils.IsObjectAlive( followTarget );
+#endif
+			
 			if( hasFollowTarget )
 			{
 				Transform t = transform;
