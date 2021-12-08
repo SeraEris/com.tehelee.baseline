@@ -97,6 +97,22 @@ namespace Tehelee.Baseline.Components
 				}
 			}
 		}
+
+
+		public void SetFollowTarget( Transform target )
+		{
+			if( !object.Equals( null, _IFollow ) )
+				StopCoroutine( _IFollow );
+
+			followTarget = target;
+			
+			hasFollowTarget = Utils.IsObjectAlive( followTarget );
+
+			if( Application.isPlaying )
+			{
+				_IFollow = StartCoroutine( IFollow() );
+			}
+		}
 		
 		private Coroutine _IFollow = null;
 		private IEnumerator IFollow()
