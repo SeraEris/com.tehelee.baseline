@@ -41,12 +41,7 @@ namespace Tehelee.Baseline.Components
 
 		protected virtual void OnEnable()
 		{
-			hasFollowTarget = Utils.IsObjectAlive( followTarget );
-
-			if( Application.isPlaying )
-			{
-				_IFollow = StartCoroutine( IFollow() );
-			}
+			SetFollowTarget( _followTarget );
 		}
 
 		protected virtual void OnDisable()
@@ -56,8 +51,6 @@ namespace Tehelee.Baseline.Components
 				StopCoroutine( _IFollow );
 				_IFollow = null;
 			}
-
-			hasFollowTarget = false;
 		}
 
 		#if UNITY_EDITOR
