@@ -138,7 +138,9 @@ namespace Tehelee.Baseline.Components.UI
 				triggerKeyUpEvents.Clear();
 
 				bool _editingInput = false;
-				UnityEngine.UI.Selectable selectable = EventSystem.current?.currentSelectedGameObject?.GetComponent<UnityEngine.UI.Selectable>() ?? null;
+				UnityEngine.UI.Selectable selectable = null;
+				if( Utils.IsObjectAlive( EventSystem.current ) && Utils.IsObjectAlive( EventSystem.current.currentSelectedGameObject ) )
+					selectable = EventSystem.current.currentSelectedGameObject.GetComponent<UnityEngine.UI.Selectable>();
 				
 				if( Utils.IsObjectAlive( selectable ) )
 				{
