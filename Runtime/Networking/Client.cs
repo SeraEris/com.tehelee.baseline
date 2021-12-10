@@ -483,6 +483,7 @@ namespace Tehelee.Baseline.Networking
 			return ReadResult.Consumed;
 		}
 
+		public ushort GetPing() => loopbackAverageMS;
 		public override ushort GetPing( ushort clientId ) => clientId == networkId ? loopbackAverageMS : base.GetPing( clientId );
 
 		#endregion

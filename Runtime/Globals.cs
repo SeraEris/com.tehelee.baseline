@@ -42,6 +42,7 @@ namespace Tehelee.Baseline
 			public static readonly int SkipRenderer			= ( 1 << 6 );
 			public static readonly int Server				= ( 1 << 7 );
 			public static readonly int Client				= ( 1 << 8 );
+			public static readonly int Simulation			= ( 1 << 9 );
 			
 		}
 		
@@ -57,13 +58,15 @@ namespace Tehelee.Baseline
 			public static readonly int SkipRenderer			= 6;
 			public static readonly int Server				= 7;
 			public static readonly int Client				= 8;
+			public static readonly int Simulation			= 9;
 #if UNITY_EDITOR
 			private static Dictionary<string, string> layerAssignments = new Dictionary<string, string>()
 			{
 				{ "layers.Array.data[3]", "Post Processing" },
 				{ "layers.Array.data[6]", "Skip Renderer" },
 				{ "layers.Array.data[7]", "Server" },
-				{ "layers.Array.data[8]", "Client" }
+				{ "layers.Array.data[8]", "Client" },
+				{ "layers.Array.data[9]", "Simulation" }
 			};
 
 			[MenuItem( "Tehelee/Setup Layer Assignments", priority = 200 )]

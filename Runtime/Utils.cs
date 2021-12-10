@@ -738,6 +738,14 @@ namespace Tehelee.Baseline
 #endregion
 
 		////////////////////////
+		#region Clone Serialized Fields
+
+		public static void CloneSerializedFields( object copy, object paste ) =>
+			JsonUtility.FromJsonOverwrite( JsonUtility.ToJson( copy ), paste );
+		
+		#endregion
+
+		////////////////////////
 		#region Unity Object
 
 		// Shortcut to check if an object is null or if it's been destroyed.
