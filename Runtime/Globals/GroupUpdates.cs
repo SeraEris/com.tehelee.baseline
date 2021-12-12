@@ -12,6 +12,8 @@ namespace Tehelee.Baseline
 			this.invoke = invoke;
 			this.fixedUpdate = false;
 			this.delay = delay;
+
+			Application.quitting += Cleanup;
 		}
 
 		public GroupUpdates( System.Action<T> invoke, bool fixedUpdate, float delay = 0f )
@@ -19,15 +21,26 @@ namespace Tehelee.Baseline
 			this.invoke = invoke;
 			this.fixedUpdate = fixedUpdate;
 			this.delay = delay;
+
+			Application.quitting += Cleanup;
 		}
 
 		private bool fixedUpdate = false;
 		private float delay = 0f;
 		private System.Action<T> invoke = null;
 
+		
 		private HashSet<T> registerQueue = new HashSet<T>();
 		private HashSet<T> dropQueue = new HashSet<T>();
 		private HashSet<T> updateQueue = new HashSet<T>();
+
+		private void Cleanup()
+		{
+			Application.quitting -= Cleanup;
+			registerQueue.Clear();
+			dropQueue.Clear();
+			updateQueue.Clear();
+		}
 
 		public void Register( T rollover )
 		{
