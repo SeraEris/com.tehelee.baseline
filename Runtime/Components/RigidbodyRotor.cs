@@ -50,6 +50,12 @@ namespace Tehelee.Baseline.Components
 
 		private void OnEnable()
 		{
+			if( Utils.IsObjectAlive( rigidbody ) )
+			{
+				enabled = false;
+				return;
+			}
+			
 			if( !resumeRotationOnEnable )
 				lastUpdate = -1f;
 
