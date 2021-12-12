@@ -163,7 +163,7 @@ namespace Tehelee.Baseline.Components
 			useCustom = ( vectorAxis == VectorAxis.Custom );
 		}
 
-		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 8f + 12f;
+		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 11.5f + 12f;
 
 		public override void DrawInspector( ref Rect rect )
 		{
@@ -172,6 +172,9 @@ namespace Tehelee.Baseline.Components
 			Rect bRect = new Rect( rect.x, rect.y, rect.width, lineHeight );
 
 			EditorUtils.DrawDivider( bRect, new GUIContent( "RigidbodyRotor" ) );
+			bRect.y += lineHeight * 1.5f;
+			
+			EditorUtils.BetterObjectField( bRect, new GUIContent( "Rigidbody" ), this[ "rigidbody" ], typeof( Rigidbody ), true );
 			bRect.y += lineHeight * 1.5f;
 
 			bRect.height = lineHeight * 1.5f;
