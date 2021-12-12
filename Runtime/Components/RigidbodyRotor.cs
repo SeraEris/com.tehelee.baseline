@@ -179,6 +179,11 @@ namespace Tehelee.Baseline.Components
 			bRect.height = lineHeight;
 			bRect.y += lineHeight * 2f;
 
+			bRect.height = lineHeight * 1.5f;
+			EditorUtils.BetterToggleField( bRect, new GUIContent( "Use Interpolation" ), this[ "useInterpolation" ] );
+			bRect.height = lineHeight;
+			bRect.y += lineHeight * 2f;
+
 			Vector3 axis = this[ "rotationAxis" ].vector3Value;
 			axis = axis.normalized;
 
