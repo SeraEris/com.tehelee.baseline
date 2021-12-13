@@ -43,7 +43,7 @@ namespace Tehelee.Baseline.Components
 
 		private void OnEnable()
 		{
-			if( Utils.IsObjectAlive( rigidbody ) )
+			if( !Utils.IsObjectAlive( rigidbody ) )
 			{
 				enabled = false;
 				return;
