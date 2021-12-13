@@ -34,13 +34,6 @@ namespace Tehelee.Baseline.Components.UI
 		#endregion
 
 		////////////////////////////////
-		#region Static
-
-		private static GroupUpdates<MimicRectTransform> groupUpdates = new GroupUpdates<MimicRectTransform>( PerformLayout );
-
-		#endregion
-
-		////////////////////////////////
 		#region Mono Methods
 
 		private void Awake()
@@ -48,30 +41,14 @@ namespace Tehelee.Baseline.Components.UI
 			rectTransform = ( RectTransform ) transform;
 		}
 
-		private void OnEnable()
-		{
-			if( Application.isPlaying && updateInRuntime )
-			{
-				PerformLayout();
-
-				groupUpdates.Register( this );
-			}
-		}
-
-		private void OnDisable()
-		{
-			groupUpdates.Drop( this );
-		}
-
-#if UNITY_EDITOR
 		protected virtual void Update()
 		{
-			if( !Application.isPlaying && updateInEdit )
+			bool isPlaying = Application.isPlaying;
+			if( ( updateInRuntime && isPlaying ) || ( !isPlaying && updateInEdit ) )
 			{
 				PerformLayout();
 			}
 		}
-#endif
 
 		#endregion
 
@@ -89,7 +66,6 @@ namespace Tehelee.Baseline.Components.UI
 				follower.sizeDelta = bounds.extents * 2f;
 		}
 
-		private static void PerformLayout( MimicRectTransform mimicRectTransform ) => mimicRectTransform.PerformLayout();
 		public void PerformLayout()
 		{
 			if( !Utils.IsObjectAlive( rectTransform ) )

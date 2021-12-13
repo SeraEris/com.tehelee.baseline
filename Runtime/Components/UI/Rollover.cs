@@ -46,16 +46,9 @@ namespace Tehelee.Baseline.Components.UI
 				_locked = value;
 
 				if( !_locked )
-					CheckHover( this );
+					CheckHover();
 			}
 		}
-
-		#endregion
-
-		////////////////////////////////
-		#region Static
-
-		private static GroupUpdates<Rollover> groupUpdates = new GroupUpdates<Rollover>( CheckHover );
 
 		#endregion
 
@@ -70,17 +63,18 @@ namespace Tehelee.Baseline.Components.UI
 		private void OnEnable()
 		{
 			ToggleVisible( false );
-
-			groupUpdates.Register( this );
 		}
 
 		private void OnDisable()
 		{
 			locked = false;
 
-			groupUpdates.Drop( this );
-
 			ToggleVisible( false );
+		}
+
+		protected virtual void Update()
+		{
+			CheckHover();
 		}
 
 		#endregion
@@ -88,14 +82,11 @@ namespace Tehelee.Baseline.Components.UI
 		////////////////////////////////
 		#region Rollover
 
-		private static void CheckHover( Rollover rollover )
+		private void CheckHover()
 		{
-			if( !Utils.IsObjectAlive( rollover ) )
-				return;
-
-			bool hovering = rollover.enabled && RectTransformUtility.RectangleContainsScreenPoint( rollover.rectTransform, Input.mousePosition );
-			if( hovering != rollover.hovering )
-				rollover.ToggleVisible( hovering );
+			bool hovering = enabled && RectTransformUtility.RectangleContainsScreenPoint( rectTransform, Input.mousePosition );
+			if( this.hovering != hovering )
+				ToggleVisible( hovering );
 		}
 
 		private void ToggleVisible( bool hovering )

@@ -17,13 +17,6 @@ namespace Tehelee.Baseline.Components.UI
 	public class RectStretcher : MonoBehaviour
 	{
 		////////////////////////////////
-		#region Static
-
-		private static GroupUpdates<RectStretcher> groupUpdates = new GroupUpdates<RectStretcher>( PerformLayout );
-
-		#endregion
-
-		////////////////////////////////
 		#region Attributes
 
 		public bool horizontal = false;
@@ -52,37 +45,15 @@ namespace Tehelee.Baseline.Components.UI
 			rectTransform = ( RectTransform ) transform;
 		}
 
-		protected virtual void OnEnable()
-		{
-#if UNITY_EDITOR
-			if( Application.isPlaying )
-#endif
-			groupUpdates.Register( this );
-		}
-
-		protected virtual void OnDisable()
-		{
-#if UNITY_EDITOR
-			if( Application.isPlaying )
-#endif
-			groupUpdates.Drop( this );
-		}
-
-#if UNITY_EDITOR
 		private void Update()
 		{
-			if( !Application.isPlaying )
-				PerformLayout();
+			PerformLayout();
 		}
-#endif
 
 		#endregion
 
 		////////////////////////////////
 		#region RectStretcher
-
-		private static void PerformLayout( RectStretcher rectStretcher ) =>
-			rectStretcher.PerformLayout();
 
 		public virtual void PerformLayout()
 		{

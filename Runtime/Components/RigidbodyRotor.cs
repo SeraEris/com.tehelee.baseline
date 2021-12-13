@@ -13,13 +13,6 @@ namespace Tehelee.Baseline.Components
 	public class RigidbodyRotor : MonoBehaviour
 	{
 		////////////////////////////////
-		#region Static
-
-		private static GroupUpdates<RigidbodyRotor> groupUpdates = new GroupUpdates<RigidbodyRotor>( PerformRotation );
-
-		#endregion
-
-		////////////////////////////////
 		#region Attributes
 
 		public new Rigidbody rigidbody;
@@ -60,13 +53,11 @@ namespace Tehelee.Baseline.Components
 				lastUpdate = -1f;
 
 			PerformRotation();
-
-			groupUpdates.Register( this );
 		}
 
-		private void OnDisable()
+		protected virtual void Update()
 		{
-			groupUpdates.Drop( this );
+			PerformRotation();
 		}
 
 		#endregion

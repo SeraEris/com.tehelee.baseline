@@ -13,13 +13,6 @@ namespace Tehelee.Baseline.Components
 	public class TransformRotor : MonoBehaviour
 	{
 		////////////////////////////////
-		#region Static
-
-		private static GroupUpdates<TransformRotor> groupUpdates = new GroupUpdates<TransformRotor>( PerformRotation );
-
-		#endregion
-
-		////////////////////////////////
 		#region Attributes
 
 		public Vector3 rotationAxis = Vector3.up;
@@ -50,13 +43,11 @@ namespace Tehelee.Baseline.Components
 				lastUpdate = -1f;
 
 			PerformRotation();
-
-			groupUpdates.Register( this );
 		}
 
-		private void OnDisable()
+		protected virtual void Update()
 		{
-			groupUpdates.Drop( this );
+			PerformRotation();
 		}
 
 		#endregion
@@ -64,7 +55,6 @@ namespace Tehelee.Baseline.Components
 		////////////////////////////////
 		#region TransformRotor
 
-		private static void PerformRotation( TransformRotor transformRotor ) => transformRotor.PerformRotation();
 		public void PerformRotation()
 		{
 			float time = Time.time;
