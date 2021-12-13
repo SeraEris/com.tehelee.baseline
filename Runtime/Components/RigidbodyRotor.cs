@@ -51,11 +51,9 @@ namespace Tehelee.Baseline.Components
 			
 			if( !resumeRotationOnEnable )
 				lastUpdate = -1f;
-
-			PerformRotation();
 		}
 
-		protected virtual void Update()
+		protected virtual void FixedUpdate()
 		{
 			PerformRotation();
 		}
