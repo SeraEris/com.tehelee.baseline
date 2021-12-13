@@ -63,7 +63,6 @@ namespace Tehelee.Baseline.Components
 		////////////////////////////////
 		#region TransformRotor
 
-		private static void PerformRotation( RigidbodyRotor rigidbodyRotor ) => rigidbodyRotor.PerformRotation();
 		public void PerformRotation()
 		{
 			float time = Time.time;
