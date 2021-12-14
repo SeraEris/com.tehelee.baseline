@@ -15,6 +15,8 @@ namespace Tehelee.Baseline.Components
 		////////////////////////////////
 		#region Attributes
 
+		public bool rotateAroundLocalAxis = false;
+
 		public Vector3 rotationAxis = Vector3.up;
 
 		public float rotationsPerSecond = 1f;
@@ -79,7 +81,12 @@ namespace Tehelee.Baseline.Components
 				}
 			}
 
-			transform.rotation = Quaternion.AngleAxis( angleDelta, rotationAxis ) * transform.rotation;
+			Vector3 axis = rotationAxis;
+
+			if( rotateAroundLocalAxis )
+				axis = transform.rotation * axis;
+
+			transform.rotation = Quaternion.AngleAxis( angleDelta, axis ) * transform.rotation;
 
 			lastUpdate = time;
 		}
@@ -134,7 +141,7 @@ namespace Tehelee.Baseline.Components
 			useCustom = ( vectorAxis == VectorAxis.Custom );
 		}
 
-		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 8f + 12f;
+		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 10f + 12f;
 
 		public override void DrawInspector( ref Rect rect )
 		{
@@ -144,6 +151,11 @@ namespace Tehelee.Baseline.Components
 
 			EditorUtils.DrawDivider( bRect, new GUIContent( "TransformRotor" ) );
 			bRect.y += lineHeight * 1.5f;
+
+			bRect.height = lineHeight * 1.5f;
+			EditorUtils.BetterToggleField( bRect, new GUIContent( "Rotate Around Local Axis" ), this[ "rotateAroundLocalAxis" ] );
+			bRect.height = lineHeight;
+			bRect.y += lineHeight * 2f;
 
 			bRect.height = lineHeight * 1.5f;
 			EditorUtils.BetterToggleField( bRect, new GUIContent( "Resume Rotations On Enable" ), this[ "resumeRotationOnEnable" ] );

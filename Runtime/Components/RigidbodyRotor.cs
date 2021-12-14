@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
+using UnityEngine.Serialization;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -16,6 +17,8 @@ namespace Tehelee.Baseline.Components
 		#region Attributes
 
 		public new Rigidbody rigidbody;
+
+		public bool rotateAroundLocalAxis = false;
 		
 		public Vector3 rotationAxis = Vector3.up;
 
@@ -88,14 +91,19 @@ namespace Tehelee.Baseline.Components
 					angleDelta = 0f;
 				}
 			}
+
+			Vector3 axis = rotationAxis;
+
+			if( rotateAroundLocalAxis )
+				axis = rigidbody.rotation * axis;
 			
 			if( useInterpolation )
 			{
-				rigidbody.MoveRotation( Quaternion.AngleAxis( angleDelta, rotationAxis ) * rigidbody.rotation );
+				rigidbody.MoveRotation( Quaternion.AngleAxis( angleDelta, axis ) * rigidbody.rotation );
 			}
 			else
 			{
-				Vector3 x = Vector3.Cross( Vector3.forward, Quaternion.AngleAxis( angleDelta, rotationAxis ) * Vector3.forward );
+				Vector3 x = Vector3.Cross( Vector3.forward, Quaternion.AngleAxis( angleDelta, axis ) * Vector3.forward );
 				float theta = Mathf.Asin( x.magnitude );
 				Vector3 w = x.normalized * theta / Time.fixedDeltaTime;
 				Quaternion q = rigidbody.rotation * rigidbody.inertiaTensorRotation;
@@ -157,7 +165,7 @@ namespace Tehelee.Baseline.Components
 			useCustom = ( vectorAxis == VectorAxis.Custom );
 		}
 
-		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 11.5f + 12f;
+		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 13.5f + 12f;
 
 		public override void DrawInspector( ref Rect rect )
 		{
@@ -170,6 +178,11 @@ namespace Tehelee.Baseline.Components
 			
 			EditorUtils.BetterObjectField( bRect, new GUIContent( "Rigidbody" ), this[ "rigidbody" ], typeof( Rigidbody ), true );
 			bRect.y += lineHeight * 1.5f;
+
+			bRect.height = lineHeight * 1.5f;
+			EditorUtils.BetterToggleField( bRect, new GUIContent( "Rotate Around Local Axis" ), this[ "rotateAroundLocalAxis" ] );
+			bRect.height = lineHeight;
+			bRect.y += lineHeight * 2f;
 
 			bRect.height = lineHeight * 1.5f;
 			EditorUtils.BetterToggleField( bRect, new GUIContent( "Resume Rotations On Enable" ), this[ "resumeRotationOnEnable" ] );
@@ -219,7 +232,7 @@ namespace Tehelee.Baseline.Components
 			this[ "rotationAxis" ].vector3Value = axis;
 
 			EditorGUI.PropertyField( bRect, this[ "rotationsPerSecond" ], new GUIContent( "Rotations Per Second" ) );
-			bRect.y += lineHeight + 4f;
+			bRect.y += lineHeight + 4f; 
 
 			EditorUtils.DrawSnapSlider( bRect, this[ "rotationAngleSnap" ], new GUIContent( "Rotation Angle Step" ), 0f, 360f );
 			bRect.y += lineHeight;
