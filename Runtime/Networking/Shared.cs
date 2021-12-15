@@ -63,6 +63,8 @@ namespace Tehelee.Baseline.Networking
 
 		public NetworkDriver driver;
 
+		private float lastTrafficUpdate = 0f;
+
 		#endregion
 
 		////////////////////////////////
@@ -81,10 +83,15 @@ namespace Tehelee.Baseline.Networking
 			if( open )
 			{
 				NetworkUpdate();
-				
-				networkTraffic += networkTrafficPerSecond;
-				onNetworkTrafficUpdate?.Invoke( networkTrafficPerSecond );
-				networkTrafficPerSecond = new NetworkTraffic();
+
+				float time = Time.time;
+				if( time - lastTrafficUpdate > 1f )
+				{
+					networkTraffic += networkTrafficPerSecond;
+					onNetworkTrafficUpdate?.Invoke( networkTrafficPerSecond );
+					networkTrafficPerSecond = new NetworkTraffic();
+					lastTrafficUpdate = time;
+				}
 			}
 		}
 
