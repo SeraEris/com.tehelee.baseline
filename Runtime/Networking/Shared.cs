@@ -81,6 +81,10 @@ namespace Tehelee.Baseline.Networking
 			if( open )
 			{
 				NetworkUpdate();
+				
+				networkTraffic += networkTrafficPerSecond;
+				onNetworkTrafficUpdate?.Invoke( networkTrafficPerSecond );
+				networkTrafficPerSecond = new NetworkTraffic();
 			}
 		}
 
@@ -337,6 +341,30 @@ namespace Tehelee.Baseline.Networking
 
 		public string readHandlerErrorMessage = null;
 
+		public struct NetworkTraffic
+		{
+			public long reliableSent;
+			public long unreliableSent;
+			
+			public long bytesReceived;
+			
+			public static NetworkTraffic operator +( NetworkTraffic a, NetworkTraffic b )
+			{
+				a.reliableSent += b.reliableSent;
+				a.unreliableSent += b.unreliableSent;
+				a.bytesReceived += b.bytesReceived;
+				return a;
+			}
+		}
+
+		protected NetworkTraffic networkTraffic;
+		protected NetworkTraffic networkTrafficPerSecond;
+		
+		public NetworkTraffic totalNetworkTraffic => networkTraffic;
+
+		public delegate void OnNetworkTrafficUpdate( NetworkTraffic networkTraffic );
+		public event OnNetworkTrafficUpdate onNetworkTrafficUpdate;
+
 		public virtual void Send( Packet packet, bool reliable = false )
 		{
 			if( !open )
@@ -363,12 +391,17 @@ namespace Tehelee.Baseline.Networking
 			{
 				UpdateSendMonitors( packet, reliable );
 			}
-			
 
 			if( reliable )
+			{
 				packetQueue.reliable.Enqueue( packet );
+				networkTrafficPerSecond.reliableSent += packet.bytes;
+			}
 			else
+			{
 				packetQueue.unreliable.Enqueue( packet );
+				networkTrafficPerSecond.unreliableSent += packet.bytes;
+			}
 
 			if( debug )
 				Debug.LogWarning( $"{networkScopeLabel}.Write( {packet.GetType()?.FullName} ) [ {packet.id} ] using {(reliable ? "verified" : "fast")} channel.{(packet.targets.Count > 0 ? string.Format( " Sent only to {0} connections.", packet.targets.Count ) : string.Empty)}" );
@@ -398,8 +431,13 @@ namespace Tehelee.Baseline.Networking
 
 		protected ReadResult Read( NetworkConnection connection, ref DataStreamReader reader )
 		{
-			NativeArray<byte> readerBytes = new NativeArray<byte>( reader.Length, Allocator.Temp );
+			int bytes = reader.Length;
+			
+			NativeArray<byte> readerBytes = new NativeArray<byte>( bytes, Allocator.Temp );
 			reader.ReadBytes( readerBytes );
+			
+			networkTrafficPerSecond.bytesReceived += bytes;
+			
 			PacketReader packetReader = new PacketReader( readerBytes );
 			return Read( connection, ref packetReader );
 		}
