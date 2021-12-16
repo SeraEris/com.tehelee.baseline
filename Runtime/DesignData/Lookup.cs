@@ -1,15 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 using UnityEngine;
-
-#if UNITY_EDITOR
-using UnityEditor;
-using UnityEditorInternal;
-#endif
 
 using Type = System.Type;
 
