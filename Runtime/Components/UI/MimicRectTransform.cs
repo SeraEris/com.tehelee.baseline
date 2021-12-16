@@ -21,9 +21,8 @@ namespace Tehelee.Baseline.Components.UI
 
 		public bool updateInRuntime = false;
 
-#if UNITY_EDITOR
 		public bool updateInEdit = false;
-#endif
+		
 		#endregion
 
 		////////////////////////////////
