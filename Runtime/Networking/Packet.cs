@@ -149,10 +149,7 @@ namespace Tehelee.Baseline.Networking
 				value = 0f;
 			}
 
-			unsafe
-			{
-				writer.WriteUInt( *( ( uint* ) &value ) );				
-			}
+			writer.WriteFloat( value );
 		}
 
 		private static float[] precisionCompress = new[] { 10f, 100f, 1000f, 10000f };
