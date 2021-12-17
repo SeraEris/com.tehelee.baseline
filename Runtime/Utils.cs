@@ -874,6 +874,21 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
+		#region NaN
+
+		public static bool IsNaN( this Vector2 a ) => float.IsNaN( a.x ) || float.IsNaN( a.y );
+		public static bool IsNaN( this Vector3 a ) => float.IsNaN( a.x ) || float.IsNaN( a.y ) || float.IsNaN( a.z );
+		public static bool IsNaN( this Vector4 a ) => float.IsNaN( a.x ) || float.IsNaN( a.y ) || float.IsNaN( a.z ) || float.IsNaN( a.w );
+		public static bool IsNaN( this Quaternion a ) => float.IsNaN( a.x ) || float.IsNaN( a.y ) || float.IsNaN( a.z ) || float.IsNaN( a.w );
+		
+		public static bool IsInfinity( this Vector2 a ) => float.IsInfinity( a.x ) || float.IsInfinity( a.y );
+		public static bool IsInfinity( this Vector3 a ) => float.IsInfinity( a.x ) || float.IsInfinity( a.y ) || float.IsInfinity( a.z );
+		public static bool IsInfinity( this Vector4 a ) => float.IsInfinity( a.x ) || float.IsInfinity( a.y ) || float.IsInfinity( a.z ) || float.IsInfinity( a.w );
+		public static bool IsInfinity( this Quaternion a ) => float.IsInfinity( a.x ) || float.IsInfinity( a.y ) || float.IsInfinity( a.z ) || float.IsInfinity( a.w );
+		
+		#endregion
+
+		////////////////////////
 		#region Clipboard
 
 		private static TextEditor _clipboardTextEditor = null;
