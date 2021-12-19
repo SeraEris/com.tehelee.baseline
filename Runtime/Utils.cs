@@ -357,6 +357,9 @@ namespace Tehelee.Baseline
 
 		public static void Shuffle<T>( this IList<T> list )
 		{
+			if( list.Count <= 1 )
+				return;
+			
 			T value;
 			for( int i = list.Count - 1, key; i > 1; i-- )
 			{
