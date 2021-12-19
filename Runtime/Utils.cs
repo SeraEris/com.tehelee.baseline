@@ -845,6 +845,41 @@ namespace Tehelee.Baseline
 		#endregion
 
 		////////////////////////
+		#region Rounding
+		
+		public static float Round( this float a, string format = "0.0" )
+		{
+			float b = a;
+			format = "{0:" + format + "}";
+			float.TryParse( string.Format( format, b ), out b );
+
+			return b;
+		}
+		
+		public static Vector2 Round( this Vector2 a, string format = "0.0" )
+		{
+			Vector2 b = a;
+			format = "{0:" + format + "}";
+			float.TryParse( string.Format( format, b.x ), out b.x );
+			float.TryParse( string.Format( format, b.y ), out b.y );
+
+			return b;
+		}
+
+		public static Vector3 Round( this Vector3 a, string format = "0.0" )
+		{
+			Vector3 b = a;
+			format = "{0:" + format + "}";
+			float.TryParse( string.Format( format, b.x ), out b.x );
+			float.TryParse( string.Format( format, b.y ), out b.y );
+			float.TryParse( string.Format( format, b.z ), out b.z );
+
+			return b;
+		}
+		
+		#endregion
+
+		////////////////////////
 		#region Vector3
 
 		public static Vector3 Multiply( this Vector3 a, Vector3 b )
