@@ -347,6 +347,9 @@ namespace Tehelee.Baseline
 			}
 		}
 
+		public static void ToList<T>( this HashSet<T> hashSet ) => new List<T>( hashSet );
+		public static void ToArray<T>( this HashSet<T> hashSet ) => new List<T>( hashSet ).ToArray();
+
 		#endregion
 
 		////////////////////////
