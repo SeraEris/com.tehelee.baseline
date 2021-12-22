@@ -913,6 +913,20 @@ namespace Tehelee.Baseline
 		}
 
 		#endregion
+		
+		//
+		#region Quaternion
+
+		public static Vector2 GetLookVector( this Quaternion rotation )
+		{
+			Vector2 look = Vector2.zero;
+			look.x = Vector3.SignedAngle( Vector3.forward, Vector3.ProjectOnPlane( rotation * Vector3.forward, Vector3.up ), Vector3.up );
+			Quaternion pitch = Quaternion.Inverse( Quaternion.AngleAxis( look.x, Vector3.up ) ) * rotation;
+			look.y = Vector3.SignedAngle( Vector3.forward, Vector3.ProjectOnPlane( pitch * Vector3.forward, Vector3.right ), Vector3.right );
+			
+			return look;
+		}
+		#endregion
 
 		////////////////////////
 		#region NaN
