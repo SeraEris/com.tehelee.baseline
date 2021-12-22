@@ -914,7 +914,7 @@ namespace Tehelee.Baseline
 
 		#endregion
 		
-		//
+		////////////////////////
 		#region Quaternion
 
 		public static Vector2 GetLookVector( this Quaternion rotation )
