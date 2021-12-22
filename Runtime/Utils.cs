@@ -826,7 +826,7 @@ namespace Tehelee.Baseline
 		////////////////////////
 		#region Rigidbody
 		
-		public static void RotateRigidbody( Rigidbody rigidbody, Vector3 from, Vector3 to, float power = 4f, float maxAngular = 12f )
+		public static void RotateRigidbody( Rigidbody rigidbody, Vector3 from, Vector3 to, float power = 4f, float maxAngular = 12f, bool useMass = false )
 		{
 			float angle = Vector3.Angle( from, to );
 
@@ -835,14 +835,23 @@ namespace Tehelee.Baseline
 			Vector3 rotCross = Vector3.Cross( from, to );
 			float rotTheta = Mathf.Asin( rotCross.magnitude );
 			Vector3 rotDelta = rotCross.normalized * ( rotTheta / Time.fixedDeltaTime );
-			Quaternion rotInertia = rigidbody.transform.rotation * rigidbody.inertiaTensorRotation;
 
-			Vector3 torque = rotInertia * Vector3.Scale( rigidbody.inertiaTensor, ( Quaternion.Inverse( rotInertia ) * rotDelta ) ) * angle;
-
+			Vector3 torque;
+			
+			if( useMass )
+			{
+				Quaternion rotInertia = rigidbody.transform.rotation * rigidbody.inertiaTensorRotation;
+				torque = rotInertia * Vector3.Scale( rigidbody.inertiaTensor, ( Quaternion.Inverse( rotInertia ) * rotDelta ) ) * angle;
+			}
+			else
+			{
+				torque = rotDelta - rigidbody.angularVelocity;
+			}
+			
 			if( torque.magnitude > maxAngular )
 				torque = torque.normalized * maxAngular;
 
-			rigidbody.AddTorque( torque, ForceMode.Impulse );
+			rigidbody.AddTorque( torque - rigidbody.angularVelocity, useMass ? ForceMode.Impulse : ForceMode.VelocityChange );
 		}
 
 		#endregion
