@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -826,11 +827,12 @@ namespace Tehelee.Baseline
 		////////////////////////
 		#region Rigidbody
 		
-		public static void RotateRigidbody( Rigidbody rigidbody, Vector3 from, Vector3 to, float power = 4f, float maxAngular = 12f, bool useMass = false )
+		public static void RotateRigidbody( Rigidbody rigidbody, Vector3 from, Vector3 to, float power = 1f, float maxAngular = 12f, bool useMass = false )
 		{
 			float angle = Vector3.Angle( from, to );
 
-			angle = 1f - Mathf.Pow( 1f - ( angle / 180f ), power );
+			if( power != 1f )
+				angle = 1f - Mathf.Pow( 1f - ( angle / 180f ), power );
 
 			Vector3 rotCross = Vector3.Cross( from, to );
 			float rotTheta = Mathf.Asin( rotCross.magnitude );
@@ -920,6 +922,9 @@ namespace Tehelee.Baseline
 			);
 			return c;
 		}
+
+		public static Vector3 Clamp( this Vector3 a, float max ) =>
+			a.magnitude > max ? a.normalized * max : a;
 
 		#endregion
 		
