@@ -8,7 +8,7 @@ namespace Tehelee.Baseline
 		void Apply( in Animator animator, float dampTime, float deltaTime );
 	}
 	
-	public struct AnimBool : AnimProperty
+	public class AnimBool : AnimProperty
 	{
 		public readonly bool useId;
 		public readonly int id;
@@ -46,7 +46,7 @@ namespace Tehelee.Baseline
 			Apply( animator );
 	}
 	
-	public struct AnimFloat : AnimProperty
+	public class AnimFloat : AnimProperty
 	{
 		public readonly bool useId;
 		public readonly int id;
@@ -89,7 +89,7 @@ namespace Tehelee.Baseline
 		}	
 	}
 	
-	public struct AnimInteger : AnimProperty
+	public class AnimInteger : AnimProperty
 	{
 		public readonly bool useId;
 		public readonly int id;
@@ -127,7 +127,7 @@ namespace Tehelee.Baseline
 			Apply( animator );
 	}
 	
-	public struct AnimTarget : AnimProperty
+	public class AnimTarget : AnimProperty
 	{
 		public readonly AvatarTarget avatarTarget;
 		public float value;
@@ -149,7 +149,7 @@ namespace Tehelee.Baseline
 			Apply( in animator );
 	}
 	
-	public struct AnimTrigger : AnimProperty
+	public class AnimTrigger : AnimProperty
 	{
 		public readonly bool useId;
 		public readonly int id;
@@ -184,7 +184,7 @@ namespace Tehelee.Baseline
 			Apply( in animator );
 	}
 	
-	public struct AnimLayer : AnimProperty
+	public class AnimLayer : AnimProperty
 	{
 		public readonly int layer;
 		public float weight;
@@ -204,7 +204,7 @@ namespace Tehelee.Baseline
 			Apply( in animator );
 	}
 	
-	public struct AnimBone : AnimProperty
+	public class AnimBone : AnimProperty
 	{
 		public readonly HumanBodyBones humanBodyBone;
 		public Quaternion goalRot;
@@ -228,7 +228,7 @@ namespace Tehelee.Baseline
 			Apply( in animator );
 	}
 	
-	public struct AnimIKPos : AnimProperty
+	public class AnimIKPos : AnimProperty
 	{
 		public readonly AvatarIKGoal avatarIKGoal;
 		public Vector3 goalPos;
@@ -253,7 +253,7 @@ namespace Tehelee.Baseline
 			Apply( in animator );
 	}
 	
-	public struct AnimIKRot : AnimProperty
+	public class AnimIKRot : AnimProperty
 	{
 		public readonly AvatarIKGoal avatarIKGoal;
 		public Quaternion goalRot;
@@ -278,7 +278,7 @@ namespace Tehelee.Baseline
 			Apply( in animator );
 	}
 	
-	public struct AnimIKHint  : AnimProperty
+	public class AnimIKHint  : AnimProperty
 	{
 		public readonly AvatarIKHint avatarIKHint;
 		public Vector3 goalHint;
@@ -303,7 +303,7 @@ namespace Tehelee.Baseline
 			Apply( in animator );
 	}
 	
-	public struct AnimLookAt  : AnimProperty
+	public class AnimLookAt  : AnimProperty
 	{
 		public Vector3 lookAtPos;
 		public float weight;
