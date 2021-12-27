@@ -17,7 +17,7 @@ namespace Tehelee.Baseline.Components
 		private Transform _followTarget;
 
 		public bool executeInEditMode = false;
-		public bool executeInRuntime = false;
+		public bool executeInRuntime = true;
 		
 		public bool mimicPosition = true;
 		public bool mimicRotation = true;
