@@ -69,7 +69,7 @@ namespace Tehelee.Baseline.Components
 		////////////////////////////////
 		#region MimicTransform
 		
-		private void UpdateFollow()
+		public void UpdateFollow()
 		{
 #if UNITY_EDITOR
 			if( !Application.isPlaying )
