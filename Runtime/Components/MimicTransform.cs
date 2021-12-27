@@ -17,6 +17,7 @@ namespace Tehelee.Baseline.Components
 		private Transform _followTarget;
 
 		public bool executeInEditMode = false;
+		public bool executeInRuntime = false;
 		
 		public bool mimicPosition = true;
 		public bool mimicRotation = true;
@@ -117,7 +118,8 @@ namespace Tehelee.Baseline.Components
 			while( true )
 			{
 				yield return null;
-				UpdateFollow();
+				if( executeInRuntime )
+					UpdateFollow();
 			}
 		}
 
@@ -142,9 +144,12 @@ namespace Tehelee.Baseline.Components
 			EditorUtils.BetterObjectField( bRect, new GUIContent( "Follow Target" ), this[ "_followTarget" ], typeof( Transform ), true );
 			bRect.y += lineHeight * 1.5f;
 
-			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 30f ) / 4f, lineHeight * 1.5f );
+			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 40f ) / 5f, lineHeight * 1.5f );
 
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Edit Update" ), this[ "executeInEditMode" ] );
+			cRect.x += cRect.width + 10f;
+
+			EditorUtils.BetterToggleField( cRect, new GUIContent( "Update" ), this[ "executeInRuntime" ] );
 			cRect.x += cRect.width + 10f;
 			
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Position" ), this[ "mimicPosition" ] );
