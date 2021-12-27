@@ -15,6 +15,9 @@ namespace Tehelee.Baseline
 		public readonly string parameter;
 		public bool value;
 
+		public static implicit operator AnimBool( string parameter ) => new AnimBool( parameter );
+		public static implicit operator AnimBool( int id ) => new AnimBool( id );
+
 		public AnimBool( string parameter, bool value = false )
 		{
 			this.id = 0;
@@ -49,6 +52,9 @@ namespace Tehelee.Baseline
 		public readonly int id;
 		public readonly string parameter;
 		public float value;
+		
+		public static implicit operator AnimFloat( string parameter ) => new AnimFloat( parameter );
+		public static implicit operator AnimFloat( int id ) => new AnimFloat( id );
 
 		public AnimFloat( string parameter, float value = 0f )
 		{
@@ -89,6 +95,9 @@ namespace Tehelee.Baseline
 		public readonly int id;
 		public readonly string parameter;
 		public int value;
+		
+		public static implicit operator AnimInteger( string parameter ) => new AnimInteger( parameter );
+		public static implicit operator AnimInteger( int id ) => new AnimInteger( id );
 
 		public AnimInteger( string parameter, int value = 0 )
 		{
@@ -122,6 +131,8 @@ namespace Tehelee.Baseline
 	{
 		public readonly AvatarTarget avatarTarget;
 		public float value;
+		
+		public static implicit operator AnimTarget( AvatarTarget avatarTarget ) => new AnimTarget( avatarTarget );
 
 		public AnimTarget( AvatarTarget avatarTarget, float value = 0 )
 		{
@@ -143,6 +154,9 @@ namespace Tehelee.Baseline
 		public readonly bool useId;
 		public readonly int id;
 		public readonly string parameter;
+		
+		public static implicit operator AnimTrigger( string parameter ) => new AnimTrigger( parameter );
+		public static implicit operator AnimTrigger( int id ) => new AnimTrigger( id );
 
 		public AnimTrigger( string parameter )
 		{
@@ -174,6 +188,8 @@ namespace Tehelee.Baseline
 	{
 		public readonly int layer;
 		public float weight;
+		
+		public static implicit operator AnimLayer( int layer ) => new AnimLayer( layer );
 			
 		public AnimLayer( int layer, float weight = 0f )
 		{
@@ -193,6 +209,8 @@ namespace Tehelee.Baseline
 		public readonly HumanBodyBones humanBodyBone;
 		public Quaternion goalRot;
 		public float weight;
+		
+		public static implicit operator AnimBone( HumanBodyBones humanBodyBone ) => new AnimBone( humanBodyBone );
 
 		public AnimBone( HumanBodyBones humanBodyBone, Quaternion goalRot = default, float weight = 0 )
 		{
@@ -215,6 +233,8 @@ namespace Tehelee.Baseline
 		public readonly AvatarIKGoal avatarIKGoal;
 		public Vector3 goalPos;
 		public float weight;
+		
+		public static implicit operator AnimIKPos( AvatarIKGoal avatarIKGoal ) => new AnimIKPos( avatarIKGoal );
 
 		public AnimIKPos( AvatarIKGoal avatarIKGoal, Vector3 goalPos = default, float weight = 0 )
 		{
@@ -238,6 +258,8 @@ namespace Tehelee.Baseline
 		public readonly AvatarIKGoal avatarIKGoal;
 		public Quaternion goalRot;
 		public float weight;
+		
+		public static implicit operator AnimIKRot( AvatarIKGoal avatarIKGoal ) => new AnimIKRot( avatarIKGoal );
 
 		public AnimIKRot( AvatarIKGoal avatarIKGoal, Quaternion goalRot = default, float weight = 0 )
 		{
@@ -261,6 +283,8 @@ namespace Tehelee.Baseline
 		public readonly AvatarIKHint avatarIKHint;
 		public Vector3 goalHint;
 		public float weight;
+		
+		public static implicit operator AnimIKHint( AvatarIKHint avatarIKHint ) => new AnimIKHint( avatarIKHint );
 
 		public AnimIKHint( AvatarIKHint avatarIKHint, Vector3 goalHint = default, float weight = 0 )
 		{
@@ -283,6 +307,9 @@ namespace Tehelee.Baseline
 	{
 		public Vector3 lookAtPos;
 		public float weight;
+		
+		public static implicit operator AnimLookAt( Vector3 lookAtPos ) => new AnimLookAt( lookAtPos );
+		public static implicit operator AnimLookAt( float weight ) => new AnimLookAt( Vector3.zero, weight );
 
 		public AnimLookAt( Vector3 lookAtPos = default, float weight = 0 )
 		{
