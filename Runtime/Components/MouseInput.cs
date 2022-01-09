@@ -204,6 +204,19 @@ namespace Tehelee.Baseline.Components
 				return _gamePlayFocus;
 			}
 		}
+		private System.Reflection.MethodInfo _gameAllowCursor = null;
+		private System.Reflection.MethodInfo gameAllowCursor
+		{
+			get
+			{
+				if( object.Equals( null, _gameAllowCursor ) )
+				{
+					_gameAllowCursor = typeGameView.GetMethod( "AllowCursorLockAndHide", BindingFlags.NonPublic | BindingFlags.Instance );
+				}
+
+				return _gameAllowCursor;
+			}
+		}
 		#endif
 		
 		private void EditorLock()
@@ -213,8 +226,8 @@ namespace Tehelee.Baseline.Components
 			EditorWindow editorWindow = UnityEditor.EditorWindow.GetWindow( typeGameView );
 			if( !object.Equals( null, editorWindow ) )
 			{
-				Debug.Log( gamePlayFocus );
 				gamePlayFocus.Invoke( editorWindow, Array.Empty<object>() );
+				gameAllowCursor.Invoke( editorWindow, new object[] { true } );
 			}
 
 			#endif
