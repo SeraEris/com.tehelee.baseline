@@ -189,7 +189,7 @@ namespace Tehelee.Baseline.Components
 		}
 
 		#if UNITY_EDITOR
-		private System.Type typeGameView => System.Type.GetType( "UnityEditor.GameView" );
+		private System.Type typeGameView => typeof( UnityEditor.EditorWindow ).Assembly.GetType( "GameView" );
 		private System.Reflection.PropertyInfo _gamePlayFocused = null;
 		private System.Reflection.PropertyInfo gamePlayFocused
 		{
