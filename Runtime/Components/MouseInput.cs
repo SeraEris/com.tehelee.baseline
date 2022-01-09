@@ -173,6 +173,8 @@ namespace Tehelee.Baseline.Components
 		{
 			if( releaseRequests > 0 || forceReleased )
 				return;
+			
+			EditorLock();
 
 			Cursor.lockState = CursorLockMode.Locked;
 			Cursor.visible = false;
@@ -184,8 +186,39 @@ namespace Tehelee.Baseline.Components
 			locked = true;
 
 			onLock?.Invoke();
-			
-			UpdateCursor();
+		}
+
+		#if UNITY_EDITOR
+		private System.Type typeGameView => System.Type.GetType( "UnityEditor.GameView" );
+		private System.Reflection.PropertyInfo _gamePlayFocused = null;
+		private System.Reflection.PropertyInfo gamePlayFocused
+		{
+			get
+			{
+				if( object.Equals( null, _gamePlayFocused ) )
+				{
+					_gamePlayFocused = typeGameView.GetProperty( "playFocused" );
+				}
+
+				return _gamePlayFocused;
+			}
+		}
+		#endif
+		
+		private void EditorLock()
+		{
+			#if UNITY_EDITOR
+
+			Debug.Log( typeGameView );
+			EditorWindow editorWindow = UnityEditor.EditorWindow.GetWindow( typeGameView );
+			Debug.Log( editorWindow );
+			if( !object.Equals( null, editorWindow ) )
+			{
+				Debug.Log( gamePlayFocused );
+				gamePlayFocused.SetValue( editorWindow, true );
+			}
+
+			#endif
 		}
 
 		private void Release()
@@ -200,43 +233,8 @@ namespace Tehelee.Baseline.Components
 			delta = Vector2.zero;
 
 			onRelease?.Invoke();
-
-			UpdateCursor();
-		}
-
-		private void UpdateCursor()
-		{
-			if( !object.Equals( null, _IUpdateCursor ) )
-			{
-				StopCoroutine( _IUpdateCursor );
-				_IUpdateCursor = null;
-			}
-			
-			if( gameObject.activeInHierarchy )
-				_IUpdateCursor = StartCoroutine( IUpdateCursor() );
 		}
 		
-		private Coroutine _IUpdateCursor = null;
-		private IEnumerator IUpdateCursor()
-		{
-			yield return new WaitForEndOfFrame();
-			yield return new WaitForEndOfFrame();
-
-			if( locked )
-			{
-				Cursor.lockState = CursorLockMode.Locked;
-				Cursor.visible = false;
-			}
-			else
-			{
-				Cursor.lockState = CursorLockMode.None;
-				Cursor.visible = true;
-			}
-
-			_IUpdateCursor = null;
-			yield break;
-		}
-
 		public void Toggle()
 		{
 			if( forceReleased )
