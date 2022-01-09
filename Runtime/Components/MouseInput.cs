@@ -118,7 +118,7 @@ namespace Tehelee.Baseline.Components
 				else
 					Release();
 			}
-			else if( Input.GetKeyDown( KeyCode.Escape ) )
+			else if( lockOnEnable && Input.GetKeyDown( KeyCode.Escape ) )
 			{
 				if( locked )
 					Release();
@@ -184,6 +184,8 @@ namespace Tehelee.Baseline.Components
 			locked = true;
 
 			onLock?.Invoke();
+			
+			UpdateCursor();
 		}
 
 		private void Release()
@@ -198,6 +200,36 @@ namespace Tehelee.Baseline.Components
 			delta = Vector2.zero;
 
 			onRelease?.Invoke();
+
+			UpdateCursor();
+		}
+
+		private void UpdateCursor()
+		{
+			if( !object.Equals( null, _IUpdateCursor ) )
+				StopCoroutine( _IUpdateCursor );
+			
+			_IUpdateCursor = StartCoroutine( IUpdateCursor() );
+		}
+		
+		private Coroutine _IUpdateCursor = null;
+		private IEnumerator IUpdateCursor()
+		{
+			yield return new WaitForEndOfFrame();
+
+			if( locked )
+			{
+				Cursor.lockState = CursorLockMode.Locked;
+				Cursor.visible = false;
+			}
+			else
+			{
+				Cursor.lockState = CursorLockMode.None;
+				Cursor.visible = true;
+			}
+
+			_IUpdateCursor = null;
+			yield break;
 		}
 
 		public void Toggle()
