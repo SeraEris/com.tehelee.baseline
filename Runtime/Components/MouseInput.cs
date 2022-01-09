@@ -4,6 +4,7 @@ using System.Reflection;
 using UnityEngine;
 
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEditorInternal;
 #endif
@@ -190,17 +191,17 @@ namespace Tehelee.Baseline.Components
 
 		#if UNITY_EDITOR
 		private System.Type typeGameView => typeof( UnityEditor.EditorWindow ).Assembly.GetType( "UnityEditor.GameView" );
-		private System.Reflection.FieldInfo _gamePlayFocused = null;
-		private System.Reflection.FieldInfo gamePlayFocused
+		private System.Reflection.MethodInfo _gamePlayFocus = null;
+		private System.Reflection.MethodInfo gamePlayFocus
 		{
 			get
 			{
-				if( object.Equals( null, _gamePlayFocused ) )
+				if( object.Equals( null, _gamePlayFocus ) )
 				{
-					_gamePlayFocused = typeGameView.GetField( "m_PlayFocused", BindingFlags.NonPublic | BindingFlags.Instance );
+					_gamePlayFocus = typeGameView.GetMethod( "OnFocus", BindingFlags.NonPublic | BindingFlags.Instance );
 				}
 
-				return _gamePlayFocused;
+				return _gamePlayFocus;
 			}
 		}
 		#endif
@@ -212,8 +213,8 @@ namespace Tehelee.Baseline.Components
 			EditorWindow editorWindow = UnityEditor.EditorWindow.GetWindow( typeGameView );
 			if( !object.Equals( null, editorWindow ) )
 			{
-				Debug.Log( gamePlayFocused );
-				gamePlayFocused.SetValue( editorWindow, true );
+				Debug.Log( gamePlayFocus );
+				gamePlayFocus.Invoke( editorWindow, Array.Empty<object>() );
 			}
 
 			#endif
