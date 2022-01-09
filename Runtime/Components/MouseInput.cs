@@ -220,6 +220,7 @@ namespace Tehelee.Baseline.Components
 		private IEnumerator IUpdateCursor()
 		{
 			yield return new WaitForEndOfFrame();
+			yield return new WaitForEndOfFrame();
 
 			if( locked )
 			{
