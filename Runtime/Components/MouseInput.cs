@@ -207,9 +207,13 @@ namespace Tehelee.Baseline.Components
 		private void UpdateCursor()
 		{
 			if( !object.Equals( null, _IUpdateCursor ) )
+			{
 				StopCoroutine( _IUpdateCursor );
+				_IUpdateCursor = null;
+			}
 			
-			_IUpdateCursor = StartCoroutine( IUpdateCursor() );
+			if( gameObject.activeInHierarchy )
+				_IUpdateCursor = StartCoroutine( IUpdateCursor() );
 		}
 		
 		private Coroutine _IUpdateCursor = null;
