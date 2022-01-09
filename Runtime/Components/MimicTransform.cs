@@ -81,7 +81,7 @@ namespace Tehelee.Baseline.Components
 			{
 				Transform t = transform;
 
-				if( !Utils.IsObjectAlive( t ) )
+				if( !Utils.IsObjectAlive( t ) || !Utils.IsObjectAlive( followTarget ) )
 					return;
 				
 				if( mimicPosition )
