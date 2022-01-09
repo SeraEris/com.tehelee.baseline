@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-
+using System.Reflection;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -190,14 +190,14 @@ namespace Tehelee.Baseline.Components
 
 		#if UNITY_EDITOR
 		private System.Type typeGameView => typeof( UnityEditor.EditorWindow ).Assembly.GetType( "UnityEditor.GameView" );
-		private System.Reflection.PropertyInfo _gamePlayFocused = null;
-		private System.Reflection.PropertyInfo gamePlayFocused
+		private System.Reflection.FieldInfo _gamePlayFocused = null;
+		private System.Reflection.FieldInfo gamePlayFocused
 		{
 			get
 			{
 				if( object.Equals( null, _gamePlayFocused ) )
 				{
-					_gamePlayFocused = typeGameView.GetProperty( "playFocused" );
+					_gamePlayFocused = typeGameView.GetField( "m_PlayFocused", BindingFlags.NonPublic | BindingFlags.Instance );
 				}
 
 				return _gamePlayFocused;
@@ -209,14 +209,7 @@ namespace Tehelee.Baseline.Components
 		{
 			#if UNITY_EDITOR
 
-			Debug.Log( typeGameView );
-			if( object.Equals( null, typeGameView ) )
-			{
-				foreach( System.Type typ in typeof( UnityEditor.EditorWindow ).Assembly.GetTypes() )
-					Debug.Log( typ.FullName );
-			}
 			EditorWindow editorWindow = UnityEditor.EditorWindow.GetWindow( typeGameView );
-			Debug.Log( editorWindow );
 			if( !object.Equals( null, editorWindow ) )
 			{
 				Debug.Log( gamePlayFocused );
