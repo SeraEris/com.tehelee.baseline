@@ -118,7 +118,7 @@ namespace Tehelee.Baseline.Components
 				else
 					Release();
 			}
-			else if( lockOnEnable && Input.GetKeyDown( KeyCode.Escape ) )
+			else if( Input.GetKeyDown( KeyCode.Escape ) )
 			{
 				if( locked )
 					Release();
