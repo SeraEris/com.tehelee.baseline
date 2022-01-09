@@ -192,6 +192,7 @@ namespace Tehelee.Baseline.Components
 		#if UNITY_EDITOR
 		private System.Type typeGameView => typeof( UnityEditor.EditorWindow ).Assembly.GetType( "UnityEditor.GameView" );
 		private System.Reflection.MethodInfo _gamePlayFocus = null;
+		private bool warnedGamePlayFocus = false;
 		private System.Reflection.MethodInfo gamePlayFocus
 		{
 			get
@@ -199,12 +200,18 @@ namespace Tehelee.Baseline.Components
 				if( object.Equals( null, _gamePlayFocus ) )
 				{
 					_gamePlayFocus = typeGameView.GetMethod( "OnFocus", BindingFlags.NonPublic | BindingFlags.Instance );
+					if( !warnedGamePlayFocus )
+					{
+						warnedGamePlayFocus = true;
+						Debug.LogError( "Missing Internal Method! - UnityEditor.GameView.OnFocus()" );
+					}
 				}
 
 				return _gamePlayFocus;
 			}
 		}
 		private System.Reflection.MethodInfo _gameAllowCursor = null;
+		private bool warnedGameAllowCursor = false;
 		private System.Reflection.MethodInfo gameAllowCursor
 		{
 			get
@@ -212,6 +219,11 @@ namespace Tehelee.Baseline.Components
 				if( object.Equals( null, _gameAllowCursor ) )
 				{
 					_gameAllowCursor = typeGameView.GetMethod( "AllowCursorLockAndHide", BindingFlags.NonPublic | BindingFlags.Instance );
+					if( !warnedGameAllowCursor )
+					{
+						warnedGameAllowCursor = true;
+						Debug.LogError( "Missing Internal Method! - UnityEditor.GameView.AllowCursorLockAndHide( bool enable )" );
+					}
 				}
 
 				return _gameAllowCursor;
@@ -226,8 +238,10 @@ namespace Tehelee.Baseline.Components
 			EditorWindow editorWindow = UnityEditor.EditorWindow.GetWindow( typeGameView );
 			if( !object.Equals( null, editorWindow ) )
 			{
-				gamePlayFocus.Invoke( editorWindow, Array.Empty<object>() );
-				gameAllowCursor.Invoke( editorWindow, new object[] { true } );
+				if( !object.Equals( null, gamePlayFocus ) )
+					gamePlayFocus.Invoke( editorWindow, Array.Empty<object>() );
+				if( !object.Equals( null, gameAllowCursor ) )
+					gameAllowCursor.Invoke( editorWindow, new object[] { true } );
 			}
 
 			#endif
