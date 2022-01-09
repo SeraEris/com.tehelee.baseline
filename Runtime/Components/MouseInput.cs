@@ -200,7 +200,7 @@ namespace Tehelee.Baseline.Components
 				if( object.Equals( null, _gamePlayFocus ) )
 				{
 					_gamePlayFocus = typeGameView.GetMethod( "OnFocus", BindingFlags.NonPublic | BindingFlags.Instance );
-					if( !warnedGamePlayFocus )
+					if( object.Equals( null, _gamePlayFocus ) && !warnedGamePlayFocus )
 					{
 						warnedGamePlayFocus = true;
 						Debug.LogError( "Missing Internal Method! - UnityEditor.GameView.OnFocus()" );
@@ -219,7 +219,7 @@ namespace Tehelee.Baseline.Components
 				if( object.Equals( null, _gameAllowCursor ) )
 				{
 					_gameAllowCursor = typeGameView.GetMethod( "AllowCursorLockAndHide", BindingFlags.NonPublic | BindingFlags.Instance );
-					if( !warnedGameAllowCursor )
+					if( object.Equals( null, _gameAllowCursor ) && !warnedGameAllowCursor )
 					{
 						warnedGameAllowCursor = true;
 						Debug.LogError( "Missing Internal Method! - UnityEditor.GameView.AllowCursorLockAndHide( bool enable )" );
