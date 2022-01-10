@@ -627,7 +627,7 @@ namespace Tehelee.Baseline.Networking
 				if( otherId != clientId )
 				{
 					welcomeBundle.packets.Add( new Packets.Handshake() { networkId = otherId, operation = Packets.Handshake.Operation.CreateOther } );
-					welcomeBundle.packets.Add( new Packets.Username() { networkId = otherId, name = usernamesByNetworkId[ otherId ] } );
+					welcomeBundle.packets.Add( new Packets.Username() { networkId = otherId, name = usernamesByNetworkId.ContainsKey( otherId ) ? usernamesByNetworkId[ otherId ] : string.Empty } );
 				}
 			}
 
