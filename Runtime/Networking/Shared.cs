@@ -390,14 +390,14 @@ namespace Tehelee.Baseline.Networking
 			{
 				Packets.Bundle packetBundle = ( Packets.Bundle ) packet;
 				
-				if( packetBundle.bytes > 1398 )
+				if( packetBundle.bytes > Packet.maxBytes )
 				{
 					List<Packets.Bundle> rebundledPackets = new List<Packets.Bundle>();
 					Packets.Bundle packetRebundle = new Packets.Bundle();
 					packetRebundle.targets = packetBundle.targets;
 					foreach( Packet _packet in packetBundle.packets )
 					{
-						if( packetRebundle.bytes + _packet.bytes >= 1398 )
+						if( packetRebundle.bytes + _packet.bytes >= Packet.maxBytes )
 						{
 							rebundledPackets.Add( packetRebundle );
 							packetRebundle = new Packets.Bundle();
