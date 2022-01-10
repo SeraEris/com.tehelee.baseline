@@ -389,6 +389,36 @@ namespace Tehelee.Baseline.Networking
 			if( packet.id == packetBundleHash )
 			{
 				Packets.Bundle packetBundle = ( Packets.Bundle ) packet;
+				
+				if( packetBundle.bytes > 1398 )
+				{
+					List<Packets.Bundle> rebundledPackets = new List<Packets.Bundle>();
+					Packets.Bundle packetRebundle = new Packets.Bundle();
+					packetRebundle.targets = packetBundle.targets;
+					foreach( Packet _packet in packetBundle.packets )
+					{
+						if( packetRebundle.bytes + _packet.bytes >= 1398 )
+						{
+							rebundledPackets.Add( packetRebundle );
+							packetRebundle = new Packets.Bundle();
+							packetRebundle.targets = packetBundle.targets;
+						}
+
+						packetRebundle.packets.Add( _packet );
+					}
+					
+					if( packetRebundle.packets.Count > 0 )
+						rebundledPackets.Add( packetRebundle );
+
+					if( rebundledPackets.Count > 0 )
+					{
+						foreach( Packets.Bundle bundle in rebundledPackets )
+							Send( bundle, reliable );
+
+						return;
+					}
+				}
+				
 				foreach( Packet bundledPacket in packetBundle.packets )
 				{
 					UpdateSendMonitors( bundledPacket, reliable );
