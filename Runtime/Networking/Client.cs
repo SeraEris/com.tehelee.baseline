@@ -279,10 +279,7 @@ namespace Tehelee.Baseline.Networking
 
 				case NetworkConnection.State.Connected:
 					break;
-
-				case NetworkConnection.State.AwaitingResponse:
-					Debug.Log( "Awaiting Response" );
-					break;
+				
 				case NetworkConnection.State.Connecting:
 					if( Time.time - connectTimeout > openTime )
 					{
@@ -373,8 +370,8 @@ namespace Tehelee.Baseline.Networking
 			while( packetQueue.reliable.Count > 0 )
 			{
 				packet = packetQueue.reliable.Peek();
-
-				DataStreamWriter writer = driver.BeginSend( pipeline.reliable, connection, packet.bytes + 2 );
+				
+				int i = driver.BeginSend( pipeline.reliable, connection, out DataStreamWriter writer, packet.bytes + 2 );
 				
 				writer.WriteUShort( packet.id );
 
@@ -400,7 +397,7 @@ namespace Tehelee.Baseline.Networking
 			{
 				packet = packetQueue.unreliable.Dequeue();
 
-				DataStreamWriter writer = driver.BeginSend( pipeline.unreliable, connection, packet.bytes + 2 );
+				int i = driver.BeginSend( pipeline.unreliable, connection, out DataStreamWriter writer, packet.bytes + 2 );
 
 				writer.WriteUShort( packet.id );
 

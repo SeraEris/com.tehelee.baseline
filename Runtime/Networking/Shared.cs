@@ -133,48 +133,35 @@ namespace Tehelee.Baseline.Networking
 					this.port = port;
 			}
 
+			NetworkSettings networkSettings = new NetworkSettings();
+			networkSettings.WithDataStreamParameters( networkParameters.maxPacketCount * Packet.maxBytes );
+			networkSettings.WithReliableStageParameters( networkParameters.maxPacketCount );
+			networkSettings.WithNetworkConfigParameters
+			(
+				networkParameters.connectTimeoutMS,
+				networkParameters.maxConnectAttempts,
+				networkParameters.disconnectTimeoutMS
+			);
+			
 			if( networkParameters.useSimulator )
 			{
-				driver = NetworkDriver.Create
+				networkSettings.WithSimulatorStageParameters
 				(
-					new NetworkDataStreamParameter
-					{
-						size = networkParameters.maxPacketCount * Packet.maxBytes
-					},
-					new ReliableUtility.Parameters
-					{
-						WindowSize = networkParameters.maxPacketCount
-					},
-					new NetworkConfigParameter
-					{
-						connectTimeoutMS = networkParameters.connectTimeoutMS,
-						disconnectTimeoutMS = networkParameters.disconnectTimeoutMS,
-						maxConnectAttempts = networkParameters.maxConnectAttempts
-					},
-					( SimulatorUtility.Parameters ) networkParameters
+					networkParameters.maxPacketCount,
+					networkParameters.maxPacketSize,
+					networkParameters.packetDelayMS,
+					networkParameters.packetJitterMS,
+					networkParameters.packetDropInterval,
+					networkParameters.packetDropPercent
 				);
+
+				driver = NetworkDriver.Create( networkSettings );
 				
 				pipeline = new Pipeline( driver, true );
 			}
 			else
 			{
-				driver = NetworkDriver.Create
-				(
-					new NetworkDataStreamParameter
-					{
-						size = networkParameters.maxPacketCount * Packet.maxBytes
-					},
-					new ReliableUtility.Parameters
-					{
-						WindowSize = networkParameters.maxPacketCount
-					},
-					new NetworkConfigParameter
-					{
-						connectTimeoutMS = networkParameters.connectTimeoutMS,
-						disconnectTimeoutMS = networkParameters.disconnectTimeoutMS,
-						maxConnectAttempts = networkParameters.maxConnectAttempts
-					}
-				);
+				driver = NetworkDriver.Create( networkSettings );
 
 				pipeline = new Pipeline( driver );
 			}

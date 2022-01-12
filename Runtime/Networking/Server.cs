@@ -798,7 +798,7 @@ namespace Tehelee.Baseline.Networking
 				{
 					packet = packets.First.Value;
 					
-					DataStreamWriter writer = driver.BeginSend( pipeline.reliable, target, packet.bytes + 2 );
+					int i = driver.BeginSend( pipeline.reliable, target, out DataStreamWriter writer, packet.bytes + 2 );
 
 					// Add Packet identifier
 					writer.WriteUShort( packet.id );
@@ -836,7 +836,7 @@ namespace Tehelee.Baseline.Networking
 
 				foreach( NetworkConnection connection in unreliableTargets )
 				{
-					DataStreamWriter writer = driver.BeginSend( pipeline.unreliable, connection, packet.bytes + 2 );
+					int i = driver.BeginSend( pipeline.unreliable, connection, out DataStreamWriter writer, packet.bytes + 2 );
 
 					writer.WriteUShort( packet.id );
 
