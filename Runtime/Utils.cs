@@ -4,6 +4,7 @@ using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -21,7 +22,23 @@ namespace Tehelee.Baseline
 		////////////////////////
 		#region DelayHelper
 
+		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
+		private static void OnAssembliesLoaded()
+		{
+			Application.quitting += OnShutdown;
+			cts = new CancellationTokenSource();
+		}
+
+		private static void OnShutdown()
+		{
+			Application.quitting -= OnShutdown;
+			cts.Cancel();
+			IsShuttingDown = true;
+		}
+
 		public static bool IsShuttingDown { get; internal set; }
+
+		private static System.Threading.CancellationTokenSource cts;
 
 		private static List<IEnumerator> pendingCoroutines = new List<IEnumerator>();
 
@@ -59,7 +76,7 @@ namespace Tehelee.Baseline
 
 		public static Coroutine StartCoroutine( IEnumerator routine )
 		{
-			return delaySlave.StartCoroutine( routine );
+			return Utils.IsObjectAlive( delaySlave ) ? delaySlave.StartCoroutine( routine ) : null;
 		}
 
 		public static void StopCoroutine( Coroutine coroutine )
@@ -993,26 +1010,28 @@ namespace Tehelee.Baseline
 
 		////////////////////////
 		#region Threading
-			
+		
 		public static void WaitForTask( Task task, System.Action callback = null )
 		{
+			Task _task = Task.Run( () => { task.RunSynchronously(); }, cts.Token );
+			
 			if( IsShuttingDown )
 			{
-				if( !task.IsCompleted )
-					if( task.Status == TaskStatus.Created )
-						task.Start();
+				if( !_task.IsCompleted )
+					if( _task.Status == TaskStatus.Created )
+						_task.Start();
 
-				task.Wait();
+				_task.Wait();
 
 				callback?.Invoke();
 			}
 			else if( !Utils.IsObjectAlive( delaySlave ) )
 			{
-				pendingCoroutines.Add( IWaitForTask( task, callback ) );
+				pendingCoroutines.Add( IWaitForTask( _task, callback ) );
 			}
 			else
 			{
-				StartCoroutine( IWaitForTask( task, callback ) );
+				StartCoroutine( IWaitForTask( _task, callback ) );
 			}
 		}
 
@@ -1275,11 +1294,6 @@ namespace Tehelee.Baseline
 				action();
 
 			yield break;
-		}
-
-		private void OnApplicationQuit()
-		{
-			Utils.IsShuttingDown = true;
 		}
 	}
 }
