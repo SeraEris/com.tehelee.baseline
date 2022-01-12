@@ -40,7 +40,7 @@ namespace Tehelee.Baseline.Networking
 		////////////////////////////////
 		#region ByteLimits
 
-		public static readonly ushort maxBytes = NetworkParameterConstants.MTU - 16;
+		public static readonly ushort maxBytes = NetworkParameterConstants.MTU - 128;
 		public const int bytesSafeString = 2;
 
 		#endregion

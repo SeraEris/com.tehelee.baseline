@@ -198,7 +198,7 @@ namespace Tehelee.Baseline.Networking
 			////////////////
 			// Validate
 
-			NetworkEndPoint networkEndPoint = NetworkEndPoint.Parse( this.address ?? string.Empty, this.port );
+			NetworkEndPoint networkEndPoint = NetworkEndPoint.Parse( address ?? string.Empty, port, ( address?.IndexOf( ':' ) ?? -1 ) > -1 ? NetworkFamily.Ipv6 : NetworkFamily.Ipv4 );
 			if( !networkEndPoint.IsValid )
 				return;
 

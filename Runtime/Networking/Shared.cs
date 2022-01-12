@@ -139,7 +139,7 @@ namespace Tehelee.Baseline.Networking
 				(
 					new NetworkDataStreamParameter
 					{
-						size = 0
+						size = networkParameters.maxPacketCount * Packet.maxBytes
 					},
 					new ReliableUtility.Parameters
 					{
@@ -162,7 +162,7 @@ namespace Tehelee.Baseline.Networking
 				(
 					new NetworkDataStreamParameter
 					{
-						size = 0
+						size = networkParameters.maxPacketCount * Packet.maxBytes
 					},
 					new ReliableUtility.Parameters
 					{

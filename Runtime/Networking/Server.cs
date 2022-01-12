@@ -231,9 +231,11 @@ namespace Tehelee.Baseline.Networking
 
 			rotatingNetworkId = 0;
 
+			NetworkEndPoint networkEndPoint = NetworkEndPoint.Parse( address ?? string.Empty, port, ( address?.IndexOf( ':' ) ?? -1 ) > -1 ? NetworkFamily.Ipv6 : NetworkFamily.Ipv4 );
+			
 			int bind = -1;
 			for( int i = 0; ( i < 10 ) && ( bind != 0 ); i++ )
-				bind = driver.Bind( NetworkEndPoint.Parse( address ?? string.Empty, port ) );
+				bind = driver.Bind( networkEndPoint );
 			
 			if( bind != 0 )
 			{
