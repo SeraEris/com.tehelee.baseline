@@ -1013,15 +1013,19 @@ namespace Tehelee.Baseline
 		
 		public static void WaitForTask( Task task, System.Action callback = null )
 		{
-			Task _task = Task.Run( () => { task.RunSynchronously(); }, cts.Token );
+			Task _task = Task.Run( () =>
+			{
+				if( task.Status == TaskStatus.Created )
+					task.Start();
+				task.Wait();
+				
+				return task;
+			}, cts.Token );
 			
 			if( IsShuttingDown )
 			{
-				if( !_task.IsCompleted )
-					if( _task.Status == TaskStatus.Created )
-						_task.Start();
-
-				_task.Wait();
+				if( !task.IsCompleted )
+					task.RunSynchronously();
 
 				callback?.Invoke();
 			}
@@ -1037,13 +1041,21 @@ namespace Tehelee.Baseline
 
 		private static IEnumerator IWaitForTask( Task task, System.Action callback = null )
 		{
-			if( !task.IsCompleted )
+			Task _task = Task.Run( () =>
+			{
 				if( task.Status == TaskStatus.Created )
 					task.Start();
+				task.Wait();
 
+				return task;
+			}, cts.Token );
+			
+			if( !_task.IsCompleted )
+				if( _task.Status == TaskStatus.Created )
+					_task.Start();
 			do
 				yield return null;
-			while( !task.IsCompleted );
+			while( !_task.IsCompleted );
 
 			callback?.Invoke();
 
@@ -1052,23 +1064,31 @@ namespace Tehelee.Baseline
 
 		public static void WaitForTask<T>( Task<T> task, System.Action<T> callback = null )
 		{
+			Task<T> _task = Task.Run( () =>
+			{
+				if( task.Status == TaskStatus.Created )
+					task.Start();
+				
+				task.Wait();
+
+				return task;
+				
+			}, cts.Token );
+			
 			if( IsShuttingDown )
 			{
 				if( !task.IsCompleted )
-					if( task.Status == TaskStatus.Created )
-						task.Start();
-
-				task.Wait();
+					task.RunSynchronously();
 
 				callback?.Invoke( task.Result );
 			}
 			else if( !Utils.IsObjectAlive( delaySlave ) )
 			{
-				pendingCoroutines.Add( IWaitForTask( task, callback ) );
+				pendingCoroutines.Add( IWaitForTask<T>( _task, callback ) );
 			}
 			else
 			{
-				StartCoroutine( IWaitForTask( task, callback ) );
+				StartCoroutine( IWaitForTask<T>( _task, callback ) );
 			}
 		}
 
@@ -1077,9 +1097,6 @@ namespace Tehelee.Baseline
 			if( !task.IsCompleted )
 				if( task.Status == TaskStatus.Created )
 					task.Start();
-
-			
-
 			do
 				yield return null;
 			while( !task.IsCompleted );

@@ -237,6 +237,8 @@ namespace Tehelee.Baseline.Networking
 			for( int i = 0; ( i < 10 ) && ( bind != 0 ); i++ )
 				bind = driver.Bind( networkEndPoint );
 			
+			
+			
 			if( bind != 0 )
 			{
 				Debug.LogError( $"Server: Failed to bind to '{address}' on port {port}." );
