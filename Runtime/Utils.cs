@@ -1025,7 +1025,10 @@ namespace Tehelee.Baseline
 			if( IsShuttingDown )
 			{
 				if( !task.IsCompleted )
-					task.RunSynchronously();
+					if( task.Status == TaskStatus.Created )
+						task.Start();
+
+				task.Wait();
 
 				callback?.Invoke();
 			}
@@ -1078,7 +1081,10 @@ namespace Tehelee.Baseline
 			if( IsShuttingDown )
 			{
 				if( !task.IsCompleted )
-					task.RunSynchronously();
+					if( task.Status == TaskStatus.Created )
+						task.Start();
+
+				task.Wait();
 
 				callback?.Invoke( task.Result );
 			}
