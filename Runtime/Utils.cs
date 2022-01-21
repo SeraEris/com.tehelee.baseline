@@ -32,7 +32,12 @@ namespace Tehelee.Baseline
 		private static void OnShutdown()
 		{
 			Application.quitting -= OnShutdown;
+			
+			if( IsObjectAlive( delaySlave ) )
+				delaySlave.StopAllCoroutines();
+			
 			cts.Cancel();
+			
 			IsShuttingDown = true;
 		}
 
