@@ -62,7 +62,7 @@ namespace Tehelee.Baseline.Networking
 		private bool closing = false;
 		private bool closeInvoked = false;
 		private event System.Action closingCallback = null;
-		private Mapping natMapping = null;
+		private List<Mapping> natMappings = new List<Mapping>();
 
 		#endregion
 
@@ -210,10 +210,9 @@ namespace Tehelee.Baseline.Networking
 			if( open )
 				return;
 			
-			if( useNatPunchThrough && object.Equals( null, natMapping ) )
+			if( useNatPunchThrough && natMappings.Count == 0 )
 			{
-				natMapping = GenerateCurrentMapping();
-				OpenNatWrapper.CreatePortMapping( natMapping, OnPortMappingResult );
+				ApplyPortMappings();
 
 				return;
 			}
@@ -279,11 +278,12 @@ namespace Tehelee.Baseline.Networking
 				_IRefreshPortForward = null;
 			}
 
-			if( !object.Equals( null, natMapping ) )
+			if( natMappings.Count > 0 )
 			{
-				OpenNatWrapper.DeletePortMapping( natMapping, null );
+				foreach( Mapping mapping in natMappings )
+					OpenNatWrapper.DeletePortMapping( mapping, null );
 
-				natMapping = null;
+				natMappings.Clear();
 			}
 
 			closingCallback?.Invoke();
@@ -318,7 +318,32 @@ namespace Tehelee.Baseline.Networking
 		////////////////////////////////
 		#region NAT Punch Through
 
-		private Mapping GenerateCurrentMapping() => new Mapping( Protocol.Udp, IPAddress.Parse( address ), port, port, Mathf.RoundToInt( natReservationTime * 60f ), string.Format( "{0}'s Port {1}", Application.productName, port ) );
+		private void ApplyPortMappings()
+		{
+			void MapPort( Mapping mapping )
+			{
+				natMappings.Add( mapping );
+				OpenNatWrapper.CreatePortMapping( mapping, OnPortMappingResult );
+			}
+
+			MapPort( GenerateCurrentMapping( IPAddress.Parse( address ) ) );
+			MapPort( GenerateCurrentMapping( IPAddress.IPv6Any ) );
+			MapPort( GenerateCurrentMapping( IPAddress.Any ) );
+		}
+		
+		private Mapping GenerateCurrentMapping( IPAddress ipAddress ) =>
+			new Mapping
+			(
+				Protocol.Udp,
+				ipAddress,
+				port,
+				port,
+				Mathf.RoundToInt
+				(
+					natReservationTime * 60f
+				),
+				$"{Application.productName} - {ipAddress}:{port}"
+			);
 
 		private void OnPortMappingResult( OpenNatWrapper.PortMappingResult portMappingResult )
 		{
@@ -333,14 +358,14 @@ namespace Tehelee.Baseline.Networking
 						port = 0;
 					else
 						port++;
-					natMapping = GenerateCurrentMapping();
-					OpenNatWrapper.CreatePortMapping( natMapping, OnPortMappingResult );
+
+					ApplyPortMappings();
 					break;
 				default:
 					if( debug )
 						Debug.LogWarning( $"Server unable to use NAT punch-through, reason: {portMappingResult}" );
 
-					natMapping = null;
+					natMappings.Clear();
 					useNatPunchThrough = false;
 					Open();
 					break;
@@ -352,11 +377,20 @@ namespace Tehelee.Baseline.Networking
 		{
 			yield return new WaitForSeconds( Mathf.RoundToInt( natReservationTime * 60f ) );
 
-			OpenNatWrapper.DeletePortMapping( natMapping, () =>
+			int deletedPorts = 0;
+			void OnDeletePort()
 			{
-				natMapping = GenerateCurrentMapping();
-				OpenNatWrapper.CreatePortMapping( natMapping, OnPortMappingResult );
-			} );
+				deletedPorts++;
+			}
+
+			int activePorts = natMappings.Count;
+			foreach( Mapping mapping in natMappings )
+				OpenNatWrapper.DeletePortMapping( mapping, OnDeletePort );
+
+			while( deletedPorts < activePorts )
+				yield return null;
+			
+			ApplyPortMappings();
 
 			_IRefreshPortForward = null;
 
