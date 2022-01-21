@@ -1013,7 +1013,7 @@ namespace Tehelee.Baseline
 		
 		public static void WaitForTask( Task task, System.Action callback = null )
 		{
-			Task _task = Task.Run( () =>
+			Task _task = Task.Run( async () =>
 			{
 				if( task.Status == TaskStatus.Created )
 					task.Start();
@@ -1044,7 +1044,7 @@ namespace Tehelee.Baseline
 
 		private static IEnumerator IWaitForTask( Task task, System.Action callback = null )
 		{
-			Task _task = Task.Run( () =>
+			Task _task = Task.Run( async () =>
 			{
 				if( task.Status == TaskStatus.Created )
 					task.Start();
@@ -1067,34 +1067,30 @@ namespace Tehelee.Baseline
 
 		public static void WaitForTask<T>( Task<T> task, System.Action<T> callback = null )
 		{
-			Task<T> _task = Task.Run( () =>
-			{
-				if( task.Status == TaskStatus.Created )
-					task.Start();
-				
-				task.Wait();
-
-				return task;
-				
-			}, cts.Token );
-			
 			if( IsShuttingDown )
 			{
 				if( !task.IsCompleted )
 					if( task.Status == TaskStatus.Created )
 						task.Start();
 
-				task.Wait();
+				IEnumerator ImmediateCoroutine()
+				{
+					yield return task;
+				}
+
+				IEnumerator _immediateCoroutine = ImmediateCoroutine();
+				
+				while( _immediateCoroutine.MoveNext() ) { }
 
 				callback?.Invoke( task.Result );
 			}
 			else if( !Utils.IsObjectAlive( delaySlave ) )
 			{
-				pendingCoroutines.Add( IWaitForTask<T>( _task, callback ) );
+				pendingCoroutines.Add( IWaitForTask<T>( task, callback ) );
 			}
 			else
 			{
-				StartCoroutine( IWaitForTask<T>( _task, callback ) );
+				StartCoroutine( IWaitForTask<T>( task, callback ) );
 			}
 		}
 
