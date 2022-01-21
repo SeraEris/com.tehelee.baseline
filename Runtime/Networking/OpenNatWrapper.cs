@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 
 using Open.Nat;
+using UnityEngine;
 
 namespace Tehelee.Baseline
 {
@@ -119,7 +120,15 @@ namespace Tehelee.Baseline
 			
 			try
 			{
-				Utils.WaitForTask( natDevice.CreatePortMapAsync( mapping ), () => callback?.Invoke( PortMappingResult.Success ) );
+				Debug.Log( $"Mapping Port {mapping.PublicPort} Async" );
+
+				void OnCreatePortMapping()
+				{
+					Debug.Log( $"Mapped Port {mapping.PublicPort}" );
+					callback?.Invoke( PortMappingResult.Success );
+				}
+				
+				Utils.WaitForTask( natDevice.CreatePortMapAsync( mapping ), OnCreatePortMapping );
 			}
 			catch( NatDeviceNotFoundException )
 			{
