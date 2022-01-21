@@ -1049,21 +1049,12 @@ namespace Tehelee.Baseline
 
 		private static IEnumerator IWaitForTask( Task task, System.Action callback = null )
 		{
-			Task _task = Task.Run( async () =>
-			{
+			if( !task.IsCompleted )
 				if( task.Status == TaskStatus.Created )
 					task.Start();
-				task.Wait();
-
-				return task;
-			}, cts.Token );
-			
-			if( !_task.IsCompleted )
-				if( _task.Status == TaskStatus.Created )
-					_task.Start();
 			do
 				yield return null;
-			while( !_task.IsCompleted );
+			while( !task.IsCompleted );
 
 			callback?.Invoke();
 
