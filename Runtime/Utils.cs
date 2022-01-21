@@ -1065,18 +1065,7 @@ namespace Tehelee.Baseline
 		{
 			if( IsShuttingDown )
 			{
-				if( !task.IsCompleted )
-					if( task.Status == TaskStatus.Created )
-						task.Start();
-
-				IEnumerator ImmediateCoroutine()
-				{
-					yield return task;
-				}
-
-				IEnumerator _immediateCoroutine = ImmediateCoroutine();
-				
-				while( _immediateCoroutine.MoveNext() ) { }
+				task.RunSynchronously();
 
 				callback?.Invoke( task.Result );
 			}
