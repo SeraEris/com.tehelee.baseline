@@ -329,25 +329,25 @@ namespace Tehelee.Baseline.Networking
 								   $"      {mapping.PrivateIP}:{mapping.PrivatePort} => {mapping.PublicIP}:{mapping.PublicPort}" );
 				}
 				Debug.Log( sb );
+				
+				void MapPort( Mapping mapping )
+				{
+					natMappings.Add( mapping );
+					OpenNatWrapper.CreatePortMapping( mapping, OnPortMappingResult );
+				}
+
+				void OnFetchIP( IPAddress ipAddress )
+				{
+					MapPort( GenerateCurrentMapping( ipAddress ) );				
+				}
+			
+				OpenNatWrapper.GetInternalIP( true, OnFetchIP );
+				OpenNatWrapper.GetInternalIP( false, OnFetchIP );
+			
+				OpenNatWrapper.DiscoverDevice( device => device.GetExternalIP( OnFetchIP ) );
 			}
 			
 			OpenNatWrapper.GetPortMappings( 30000, OnGetPortMappings );
-			
-			void MapPort( Mapping mapping )
-			{
-				natMappings.Add( mapping );
-				OpenNatWrapper.CreatePortMapping( mapping, OnPortMappingResult );
-			}
-
-			void OnFetchIP( IPAddress ipAddress )
-			{
-				MapPort( GenerateCurrentMapping( ipAddress ) );				
-			}
-			
-			OpenNatWrapper.GetInternalIP( true, OnFetchIP );
-			OpenNatWrapper.GetInternalIP( false, OnFetchIP );
-			
-			OpenNatWrapper.DiscoverDevice( device => device.GetExternalIP( OnFetchIP ) );
 		}
 		
 		private Mapping GenerateCurrentMapping( IPAddress ipAddress ) =>
