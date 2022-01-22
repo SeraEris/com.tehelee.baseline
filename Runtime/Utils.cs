@@ -1022,7 +1022,7 @@ namespace Tehelee.Baseline
 		{
 			if( IsShuttingDown )
 			{
-				Debug.LogError( "Cannot run task, Application shutting down." );
+				task.Wait( 5000 );
 				callback?.Invoke();
 			}
 			else if( !Utils.IsObjectAlive( delaySlave ) )
@@ -1053,7 +1053,7 @@ namespace Tehelee.Baseline
 		{
 			if( IsShuttingDown )
 			{
-				Debug.LogError( "Cannot run task, Application shutting down." );
+				task.Wait( 5000 );
 				callback?.Invoke( default );
 			}
 			else if( !Utils.IsObjectAlive( delaySlave ) )
