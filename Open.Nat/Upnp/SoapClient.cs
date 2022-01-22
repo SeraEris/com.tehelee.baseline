@@ -229,24 +229,38 @@ namespace Open.Nat
 
 		private XmlDocument GetXmlDocument(string response)
 		{
+			UnityEngine.Debug.Log( "1" );
 			XmlNode node;
+			UnityEngine.Debug.Log( "2" );
 			var doc = new XmlDocument();
+			UnityEngine.Debug.Log( "3" );
 			doc.LoadXml(response);
+			UnityEngine.Debug.Log( "4" );
+			if( object.Equals( null, doc ) )
+				return null;
 
+			UnityEngine.Debug.Log( "5" );
 			var nsm = new XmlNamespaceManager(doc.NameTable);
 
+			UnityEngine.Debug.Log( "6" );
 			// Error messages should be found under this namespace
 			nsm.AddNamespace("errorNs", "urn:schemas-upnp-org:control-1-0");
 
+			UnityEngine.Debug.Log( "7" );
 			// Check to see if we have a fault code message.
 			if ((node = doc.SelectSingleNode("//errorNs:UPnPError", nsm)) != null)
 			{
+				UnityEngine.Debug.Log( "8" );
 				int code = Convert.ToInt32(node.GetXmlElementText("errorCode"), CultureInfo.InvariantCulture);
+				UnityEngine.Debug.Log( "9" );
 				string errorMessage = node.GetXmlElementText("errorDescription");
+				UnityEngine.Debug.Log( "10" );
 				NatDiscoverer.TraceSource.LogWarn("Server failed with error: {0} - {1}", code, errorMessage);
+				UnityEngine.Debug.Log( "11" );
 				throw new MappingException(code, errorMessage);
 			}
 
+			UnityEngine.Debug.Log( "12" );
 			return doc;
 		}
 	}
