@@ -159,8 +159,25 @@ namespace Tehelee.Baseline.Networking
 			if( debug )
 				Debug.Log( $"{networkScopeLabel}.Close()" );
 		}
+		
+		protected IEnumerator IReopen( System.Action callback = null )
+		{
+			open = false;
+			
+			CleanupNetworkInternals();
+			
+			yield return null;
+			
+			SetupNetworkInternals();
 
-		protected void SetupNetworkInternals()
+			open = true;
+			
+			callback?.Invoke();
+			
+			yield break;
+		}
+
+		private void SetupNetworkInternals()
 		{
 			NetworkSettings networkSettings = new NetworkSettings();
 			networkSettings.WithDataStreamParameters( networkParameters.maxPacketCount * Packet.maxBytes );
@@ -196,7 +213,7 @@ namespace Tehelee.Baseline.Networking
 			}
 		}
 		
-		protected void CleanupNetworkInternals()
+		private void CleanupNetworkInternals()
 		{
 			pipeline = default;
 
