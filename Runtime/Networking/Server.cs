@@ -1375,7 +1375,7 @@ namespace Tehelee.Baseline.Networking
 				cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 20f ) / 3f, lineHeight * 1.5f );
 				EditorUtils.BetterToggleField( cRect, new GUIContent( "Internal IPv4", "Forward port on your internal IPv4\n( 192.168.1.X )" ), this[ "natInternalIPv4" ] );
 				cRect.x += cRect.width + 10f;
-				EditorUtils.BetterToggleField( cRect, new GUIContent( "Internal IPv6", "Forward port on your internal IPv6\n( 2001:0db8:85a3:0000:0000:8a2e:0370:7334 )" ), this[ "natInternalIPv4" ] );
+				EditorUtils.BetterToggleField( cRect, new GUIContent( "Internal IPv6", "Forward port on your internal IPv6\n( 2001:0db8:85a3:0000:0000:8a2e:0370:7334 )" ), this[ "natInternalIPv6" ] );
 				cRect.x += cRect.width + 10f;
 				EditorUtils.BetterToggleField( cRect, new GUIContent( "External IP", "Forward port on your external IP ( This could be IPv4 or IPv6 )" ), this[ "natExternalIP" ] );
 				bRect.y += lineHeight * 1.5f + 4f;
