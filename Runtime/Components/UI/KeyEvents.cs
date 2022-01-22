@@ -300,54 +300,46 @@ namespace Tehelee.Baseline.Components.UI
 		{
 			string jsonFilePath = GetJsonFilePath();
 
-			Utils.WaitForTask( new Task( () =>
+			string jsonFileDirectory = Path.GetDirectoryName( jsonFilePath );
+
+			if( File.Exists( jsonFilePath ) )
+				File.Delete( jsonFilePath );
+
+			if( !Directory.Exists( jsonFileDirectory ) )
+				Directory.CreateDirectory( jsonFileDirectory );
+
+			if( Directory.Exists( jsonFileDirectory ) && !File.Exists( jsonFilePath ) )
 			{
-				string jsonFileDirectory = Path.GetDirectoryName( jsonFilePath );
-
-				if( File.Exists( jsonFilePath ) )
-					File.Delete( jsonFilePath );
-
-				if( !Directory.Exists( jsonFileDirectory ) )
-					Directory.CreateDirectory( jsonFileDirectory );
-
-				if( Directory.Exists( jsonFileDirectory ) && !File.Exists( jsonFilePath ) )
+				using( StreamWriter streamWriter = File.CreateText( jsonFilePath ) )
 				{
-					using( StreamWriter streamWriter = File.CreateText( jsonFilePath ) )
+					JsonTextWriter jsonWriter = new JsonTextWriter( streamWriter );
+					jsonWriter.Formatting = Formatting.Indented;
+
+					JObject jObj = new JObject();
+
+					List<string> bindKeys = new List<string>( binds.Keys );
+					bindKeys.Sort();
+
+					foreach( string bindKey in bindKeys )
 					{
-						JsonTextWriter jsonWriter = new JsonTextWriter( streamWriter );
-						jsonWriter.Formatting = Formatting.Indented;
+						KeyCode[] keyCodes = binds[ bindKey ];
 
-						JObject jObj = new JObject();
-
-						List<string> bindKeys = new List<string>( binds.Keys );
-						bindKeys.Sort();
-
-						foreach( string bindKey in bindKeys )
+						if( keyCodes.Length > 0 )
 						{
-							KeyCode[] keyCodes = binds[ bindKey ];
+							JArray jArray = new JArray();
 
-							if( keyCodes.Length > 0 )
-							{
-								JArray jArray = new JArray();
+							foreach( KeyCode keyCode in keyCodes )
+								jArray.Add( keyCode.ToString() );
 
-								foreach( KeyCode keyCode in keyCodes )
-									jArray.Add( keyCode.ToString() );
-
-								jObj.Add( bindKey, jArray );
-							}
+							jObj.Add( bindKey, jArray );
 						}
-
-						jObj.WriteTo( jsonWriter );
 					}
+
+					jObj.WriteTo( jsonWriter );
 				}
+			}
 
-				saveRequests--;
-
-			} ), () =>
-			{
-				if( saveRequests > 0 )
-					_Save();
-			} );
+			saveRequests = 0;
 		}
 
 		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.BeforeSceneLoad )]
