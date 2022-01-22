@@ -142,11 +142,11 @@ namespace Tehelee.Baseline
 			
 			try
 			{
-				Debug.Log( $"Open.NAT - Mapping Port {mapping.PublicIP}:{mapping.PublicPort}" );
+				Debug.Log( $"Open.NAT - Mapping Port {mapping.PrivateIP}:{mapping.PublicPort}" );
 
 				void OnCreatePortMapping()
 				{
-					Debug.Log( $"Open.NAT - Mapped Port {mapping.PublicIP}:{mapping.PublicPort}" );
+					Debug.Log( $"Open.NAT - Mapped Port {mapping.PrivateIP}:{mapping.PublicPort}" );
 					callback?.Invoke( PortMappingResult.Success );
 				}
 				
@@ -223,7 +223,7 @@ namespace Tehelee.Baseline
 
 			void OnDelete()
 			{
-				Debug.Log( $"Open.NAT - Unmapped {mapping.PublicIP}:{mapping.PublicPort}" );
+				Debug.Log( $"Open.NAT - Unmapped {mapping.PrivateIP}:{mapping.PublicPort}" );
 				callback?.Invoke();
 			}
 
@@ -231,7 +231,7 @@ namespace Tehelee.Baseline
 			{
 				Debug.LogWarning
 				(
-					$"Open.NAT - Unmapping {mapping.PublicIP}:{mapping.PublicPort}\n" +
+					$"Open.NAT - Unmapping {mapping.PrivateIP}:{mapping.PublicPort}\n" +
 					"!!! Application Shutting Down, unmapping without awaiter..."
 				);
 				natDevice.DeletePortMapAsync( mapping );
@@ -239,7 +239,7 @@ namespace Tehelee.Baseline
 			}
 			else
 			{
-				Debug.Log( $"Open.NAT - Unmapping {mapping.PublicIP}:{mapping.PublicPort}" );
+				Debug.Log( $"Open.NAT - Unmapping {mapping.PrivateIP}:{mapping.PublicPort}" );
 				Utils.WaitForTask( natDevice.DeletePortMapAsync( mapping ), OnDelete );
 			}
 		}
