@@ -73,7 +73,7 @@ namespace Tehelee.Baseline
 					IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
 
 					if( object.Equals( null, endPoint ) )
-						callback?.Invoke( IPAddress.Any );
+						callback?.Invoke( ipv4 ? IPAddress.Any : IPAddress.IPv6Any );
 					else
 						callback?.Invoke( endPoint.Address );
 				}
