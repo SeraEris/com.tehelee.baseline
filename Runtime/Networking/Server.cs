@@ -341,7 +341,8 @@ namespace Tehelee.Baseline.Networking
 
 			void OnFetchIP( IPAddress ipAddress )
 			{
-				MapPort( GenerateCurrentMapping( ipAddress ) );				
+				if( !object.Equals( null, ipAddress ) )
+					MapPort( GenerateCurrentMapping( ipAddress ) );				
 			}
 			
 			OpenNatWrapper.GetInternalIP( true, OnFetchIP );
