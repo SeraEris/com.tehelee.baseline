@@ -1065,7 +1065,10 @@ namespace Tehelee.Baseline
 		{
 			if( IsShuttingDown )
 			{
-				task.RunSynchronously();
+				while( !task.IsCanceled && !task.IsCompleted && !task.IsFaulted ) {}
+				
+				if( task.IsFaulted )
+					Debug.LogError( $"Task Failed: {task.Exception?.Message ?? "NULL"}" );
 
 				callback?.Invoke( task.Result );
 			}
