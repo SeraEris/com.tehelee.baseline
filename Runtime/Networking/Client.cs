@@ -263,9 +263,6 @@ namespace Tehelee.Baseline.Networking
 
 			driver.ScheduleUpdate().Complete();
 
-			if( !connection.IsCreated )
-				return;
-
 			QueryForEvents();
 
 			// Events *could* result in destruction of these, so now we re-check.
