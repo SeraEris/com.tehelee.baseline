@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 #if( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
 using System.Runtime.InteropServices;
@@ -1065,7 +1067,14 @@ namespace Tehelee.Baseline
 		{
 			if( IsShuttingDown )
 			{
-				while( !task.IsCanceled && !task.IsCompleted && !task.IsFaulted ) {}
+				Stopwatch stopwatch = Stopwatch.StartNew();
+				while( !task.IsCanceled && !task.IsCompleted && !task.IsFaulted && stopwatch.ElapsedMilliseconds < 5_000 ) { }
+
+				if( stopwatch.ElapsedMilliseconds >= 5_000 )
+				{
+					Debug.LogWarning( "Task Encountered Shutdown Timeout" );
+					callback?.Invoke( default );
+				}
 				
 				if( task.IsFaulted )
 					Debug.LogError( $"Task Failed: {task.Exception?.Message ?? "NULL"}" );
