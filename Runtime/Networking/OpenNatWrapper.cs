@@ -104,35 +104,18 @@ namespace Tehelee.Baseline
 
 			Task.Run
 			(
-				() =>
+				async () =>
 				{
 					List<Mapping> mappings = new List<Mapping>();
-					int results = 0;
-
-					for( int i = 0; i < ushort.MaxValue; i++ )
+					try
 					{
-						Mapping mapping = null;
-						try
-						{
-							natDevice.GetSpecificMappingAsync( Protocol.Udp, i ).
-									  ContinueWith
-									  (
-										  ( Task<Mapping> task ) =>
-										  {
-											  results++;
-											  Mapping mapping = task.Result;
-											  if( !object.Equals( null, mapping ) )
-												  mappings.Add( mapping );
-										  }
-									  );
-						}
-						catch( Exception e )
-						{
-							Debug.LogError( $"Open.NAT - Unable to load port mapping {i}\n{e.Message}" );
-						}
+						IEnumerable<Mapping> mappingsRaw = await natDevice.GetAllMappingsAsync();
+						mappings.AddRange( mappingsRaw );
 					}
-
-					while( results < ushort.MaxValue ) {}
+					catch( Exception e )
+					{
+						Debug.LogWarning( $"Open.NAT - Unable to load port mappings...\n{e.Message}" );
+					}
 					
 					callback?.Invoke( mappings );
 				},
