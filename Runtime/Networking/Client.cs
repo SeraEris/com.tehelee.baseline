@@ -277,6 +277,10 @@ namespace Tehelee.Baseline.Networking
 				}
 				else
 				{
+					Debug.LogWarning( $"Could not connect to {address}:{port}!" );
+					
+					onDisconnected?.Invoke();
+					
 					Close();
 				}
 
