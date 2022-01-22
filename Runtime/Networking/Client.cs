@@ -69,6 +69,9 @@ namespace Tehelee.Baseline.Networking
 		[SerializeField]
 		private HostInfo _hostInfo = new HostInfo();
 		public HostInfo hostInfo => new HostInfo( _hostInfo );
+		
+		public NetworkEndPoint GetNetworkEndPoint() =>
+			NetworkEndPoint.Parse( address ?? string.Empty, port, ( address?.IndexOf( ':' ) ?? -1 ) > -1 ? NetworkFamily.Ipv6 : NetworkFamily.Ipv4 );
 
 		#endregion
 
@@ -200,7 +203,7 @@ namespace Tehelee.Baseline.Networking
 			////////////////
 			// Validate
 
-			NetworkEndPoint networkEndPoint = NetworkEndPoint.Parse( address ?? string.Empty, port, ( address?.IndexOf( ':' ) ?? -1 ) > -1 ? NetworkFamily.Ipv6 : NetworkFamily.Ipv4 );
+			NetworkEndPoint networkEndPoint = GetNetworkEndPoint();
 			if( !networkEndPoint.IsValid )
 				return;
 
@@ -268,13 +271,17 @@ namespace Tehelee.Baseline.Networking
 			// Events *could* result in destruction of these, so now we re-check.
 			if( !driver.IsCreated || !connection.IsCreated )
 			{
-				Close();
-				
 				if( !hasConnected && failedConnects < networkParameters.maxConnectAttempts )
 				{
 					failedConnects++;
 					Debug.Log( $"Could not connect to {address}:{port}, retrying... [ {failedConnects} / {networkParameters.maxConnectAttempts} ]" );
-					Open();
+					
+					connection.Disconnect( driver );
+					connection = driver.Connect( GetNetworkEndPoint() );
+				}
+				else
+				{
+					Close();
 				}
 				
 				return;
