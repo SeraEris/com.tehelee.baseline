@@ -52,6 +52,10 @@ namespace Tehelee.Baseline.Networking
 
 		public bool useNatPunchThrough = false;
 
+		public bool natInternalIPv4 = true;
+		public bool natInternalIPv6 = false;
+		public bool natExternalIP = false;
+
 		public HostInfo hostInfo = new HostInfo();
 
 		#endregion
@@ -320,19 +324,6 @@ namespace Tehelee.Baseline.Networking
 
 		private void ApplyPortMappings()
 		{
-			void OnGetPortMappings( List<Mapping> mappings )
-			{
-				StringBuilder sb = new StringBuilder( $"Current Port Mappings ({mappings.Count}):" );
-				foreach( Mapping mapping in mappings )
-				{
-					sb.AppendLine( $"  {mapping.Description} @ {mapping.Expiration}:\n" +
-								   $"      {mapping.PrivateIP}:{mapping.PrivatePort} => {mapping.PublicIP}:{mapping.PublicPort}" );
-				}
-				Debug.Log( sb );
-			}
-			
-			OpenNatWrapper.GetPortMappings( 30000, OnGetPortMappings );
-			
 			void MapPort( Mapping mapping )
 			{
 				natMappings.Add( mapping );
@@ -345,10 +336,13 @@ namespace Tehelee.Baseline.Networking
 					MapPort( GenerateCurrentMapping( ipAddress ) );				
 			}
 			
-			OpenNatWrapper.GetInternalIP( true, OnFetchIP );
-			OpenNatWrapper.GetInternalIP( false, OnFetchIP );
-			
-			OpenNatWrapper.DiscoverDevice( device => device.GetExternalIP( OnFetchIP ) );
+			if( natInternalIPv4 )
+				OpenNatWrapper.GetInternalIP( true, OnFetchIP );
+			if( natInternalIPv6 )
+				OpenNatWrapper.GetInternalIP( false, OnFetchIP );
+
+			if( natExternalIP )
+				OpenNatWrapper.DiscoverDevice( device => device.GetExternalIP( OnFetchIP ) );
 		}
 		
 		private Mapping GenerateCurrentMapping( IPAddress ipAddress ) =>
@@ -1331,6 +1325,9 @@ namespace Tehelee.Baseline.Networking
 
 			inspectorHeight += lineHeight * 8f + 24f;
 			
+			if( this[ "useNatPunchThrough" ].boolValue )
+				inspectorHeight += lineHeight * 1.5f + 4f;
+			
 			inspectorHeight += EditorGUI.GetPropertyHeight( this[ "hostInfo" ], true ) + lineHeight * 0.5f;
 
 			if( Application.isPlaying )
@@ -1372,6 +1369,17 @@ namespace Tehelee.Baseline.Networking
 			EditorUtils.BetterToggleField( bRect, new GUIContent( "NAT Punch-Through", "Uses Open.NAT to negotiate NAT port forwarding." ), this[ "useNatPunchThrough" ] );
 			bRect.y += bRect.height + 4f;
 			bRect.height = lineHeight;
+
+			if( this[ "useNatPunchThrough" ].boolValue )
+			{
+				cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 20f ) / 3f, lineHeight * 1.5f );
+				EditorUtils.BetterToggleField( cRect, new GUIContent( "Internal IPv4", "Forward port on your internal IPv4\n( 192.168.1.X )" ), this[ "natInternalIPv4" ] );
+				cRect.x += cRect.width + 10f;
+				EditorUtils.BetterToggleField( cRect, new GUIContent( "Internal IPv6", "Forward port on your internal IPv6\n( 2001:0db8:85a3:0000:0000:8a2e:0370:7334 )" ), this[ "natInternalIPv4" ] );
+				cRect.x += cRect.width + 10f;
+				EditorUtils.BetterToggleField( cRect, new GUIContent( "External IP", "Forward port on your external IP ( This could be IPv4 or IPv6 )" ), this[ "natExternalIP" ] );
+				bRect.y += lineHeight * 1.5f + 4f;
+			}
 			
 			bRect.height = EditorGUI.GetPropertyHeight( this[ "hostInfo" ], true );
 			EditorGUI.PropertyField( bRect, this[ "hostInfo" ], true );
