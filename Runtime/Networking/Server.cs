@@ -326,8 +326,8 @@ namespace Tehelee.Baseline.Networking
 				OpenNatWrapper.CreatePortMapping( mapping, OnPortMappingResult );
 			}
 
-			MapPort( GenerateCurrentMapping( IPAddress.Parse( address ) ) );
-			MapPort( GenerateCurrentMapping( IPAddress.IPv6Any ) );
+			//MapPort( GenerateCurrentMapping( IPAddress.Parse( address ) ) );
+			//MapPort( GenerateCurrentMapping( IPAddress.IPv6Any ) );
 			MapPort( GenerateCurrentMapping( IPAddress.Any ) );
 		}
 		
