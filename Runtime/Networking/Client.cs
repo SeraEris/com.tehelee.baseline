@@ -48,6 +48,7 @@ namespace Tehelee.Baseline.Networking
 
 		public int failedReconnects { get; private set; }
 		public int failedConnects { get; private set; }
+		public bool awaitingRestart { get; private set; }
 
 		protected HashSet<ushort> otherClientIds = new HashSet<ushort>();
 		public bool IsValidNetworkId( ushort networkId ) => ( networkId != 0 ) && ( networkId == this.networkId || otherClientIds.Contains( networkId ) );
@@ -188,6 +189,7 @@ namespace Tehelee.Baseline.Networking
 			hasConnected = false;
 			failedReconnects = 0;
 			failedConnects = 0;
+			awaitingRestart = false;
 
 			loopbackAverage = 0f;
 			loopbackAverageMS = 0;
@@ -256,9 +258,40 @@ namespace Tehelee.Baseline.Networking
 		////////////////////////////////
 		#region NetworkUpdate
 
-		protected override void NetworkUpdate()
+		private bool ValidateConnectionState()
 		{
-			if( !driver.IsCreated )
+			if( !driver.IsCreated || !connection.IsCreated )
+			{
+				if( awaitingRestart )
+				{
+					SetupNetworkInternals();
+					
+					connection = driver.Connect( GetNetworkEndPoint() );
+
+					awaitingRestart = false;
+				}
+				if( !hasConnected && failedConnects < networkParameters.maxConnectAttempts )
+				{
+					failedConnects++;
+					Debug.Log( $"Could not connect to {address}:{port}, retrying... [ {failedConnects} / {networkParameters.maxConnectAttempts} ]" );
+					
+					CleanupNetworkInternals();
+					awaitingRestart = true;
+				}
+				else
+				{
+					Close();
+				}
+
+				return false;
+			}
+
+			return true;
+		}
+		
+		protected override void NetworkUpdate()
+		{	
+			if( !ValidateConnectionState() )
 				return;
 
 			driver.ScheduleUpdate().Complete();
@@ -266,25 +299,8 @@ namespace Tehelee.Baseline.Networking
 			QueryForEvents();
 
 			// Events *could* result in destruction of these, so now we re-check.
-			if( !driver.IsCreated || !connection.IsCreated )
-			{
-				if( !hasConnected && failedConnects < networkParameters.maxConnectAttempts )
-				{
-					failedConnects++;
-					Debug.Log( $"Could not connect to {address}:{port}, retrying... [ {failedConnects} / {networkParameters.maxConnectAttempts} ]" );
-					
-					CleanupNetworkInternals();
-					SetupNetworkInternals();
-					
-					connection = driver.Connect( GetNetworkEndPoint() );
-				}
-				else
-				{
-					Close();
-				}
-				
+			if( !ValidateConnectionState() )
 				return;
-			}
 
 			NetworkConnection.State connectionState = driver.GetConnectionState( connection );
 
@@ -336,6 +352,7 @@ namespace Tehelee.Baseline.Networking
 
 					failedReconnects = 0;
 					failedConnects = 0;
+					awaitingRestart = false;
 
 					isConnected = true;
 					hasConnected = true;
