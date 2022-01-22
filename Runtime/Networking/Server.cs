@@ -326,13 +326,15 @@ namespace Tehelee.Baseline.Networking
 				OpenNatWrapper.CreatePortMapping( mapping, OnPortMappingResult );
 			}
 
-			void OnInternalIP( IPAddress ipAddress )
+			void OnFetchIP( IPAddress ipAddress )
 			{
 				MapPort( GenerateCurrentMapping( ipAddress ) );				
 			}
-
-			OpenNatWrapper.GetInternalIP( true, OnInternalIP );
-			OpenNatWrapper.GetInternalIP( false, OnInternalIP );
+			
+			OpenNatWrapper.GetInternalIP( true, OnFetchIP );
+			OpenNatWrapper.GetInternalIP( false, OnFetchIP );
+			
+			OpenNatWrapper.DiscoverDevice( device => device.GetExternalIP( OnFetchIP ) );
 		}
 		
 		private Mapping GenerateCurrentMapping( IPAddress ipAddress ) =>
