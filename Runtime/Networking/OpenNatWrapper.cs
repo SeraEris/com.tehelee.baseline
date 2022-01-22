@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
-
+using System.Threading;
 using Open.Nat;
 using UnityEngine;
 
@@ -102,14 +102,42 @@ namespace Tehelee.Baseline
 				return;
 			}
 
-			try
-			{
-				Utils.WaitForTask( natDevice.GetAllMappingsAsync(), ( IEnumerable<Mapping> portMappings ) => callback?.Invoke( new List<Mapping>( portMappings ) ) );
-			}
-			catch( Exception e )
-			{
-				Debug.LogError( $"Open.NAT - Unable to load all port mappings..." );
-			}
+			Task.Run
+			(
+				() =>
+				{
+					List<Mapping> mappings = new List<Mapping>();
+					int results = 0;
+
+					for( int i = 0; i < ushort.MaxValue; i++ )
+					{
+						Mapping mapping = null;
+						try
+						{
+							natDevice.GetSpecificMappingAsync( Protocol.Udp, i ).
+									  ContinueWith
+									  (
+										  ( Task<Mapping> task ) =>
+										  {
+											  results++;
+											  Mapping mapping = task.Result;
+											  if( !object.Equals( null, mapping ) )
+												  mappings.Add( mapping );
+										  }
+									  );
+						}
+						catch( Exception e )
+						{
+							Debug.LogError( $"Open.NAT - Unable to load port mapping {i}\n{e.Message}" );
+						}
+					}
+
+					while( results < ushort.MaxValue ) {}
+					
+					callback?.Invoke( mappings );
+				},
+				new System.Threading.CancellationTokenSource( 30000 ).Token
+			);
 		}
 
 		#endregion
