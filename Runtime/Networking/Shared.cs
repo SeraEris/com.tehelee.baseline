@@ -100,8 +100,11 @@ namespace Tehelee.Baseline.Networking
 		////////////////////////////////
 		#region Open & Close
 
-		private void InternalOpen()
+		public virtual void Open()
 		{
+			if( open )
+				return;
+
 			pingTimingsByNetworkId.Clear();
 			usernamesByNetworkId.Clear();
 			adminIds.Clear();
@@ -164,21 +167,16 @@ namespace Tehelee.Baseline.Networking
 			}
 
 			open = true;
-		}
-
-		public virtual void Open()
-		{
-			if( open )
-				return;
-
-			InternalOpen();
 
 			if( debug )
 				Debug.Log( $"{networkScopeLabel}.Open() {this.address} on {this.port} with {networkParameters.ToString()}" );
 		}
 
-		private void InternalClose()
+		public virtual void Close()
 		{
+			if( !open )
+				return;
+
 			foreach( System.Type type in builtInPacketTypes )
 				if( !object.Equals( null, type ) )
 					Packet.Unregister( this, type );
@@ -190,26 +188,9 @@ namespace Tehelee.Baseline.Networking
 			driver.Dispose();
 
 			UnregisterPacketDatas();
-		}
-
-		public virtual void Close()
-		{
-			if( !open )
-				return;
-
-			InternalClose();
 
 			if( debug )
 				Debug.Log( $"{networkScopeLabel}.Close()" );
-		}
-
-		protected void ReOpen()
-		{
-			if( !open )
-				return;
-
-			InternalClose();
-			InternalOpen();
 		}
 
 		#endregion

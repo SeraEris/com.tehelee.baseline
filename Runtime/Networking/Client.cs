@@ -267,10 +267,13 @@ namespace Tehelee.Baseline.Networking
 			{
 				if( !hasConnected && failedConnects < networkParameters.maxConnectAttempts )
 				{
-					failedConnects++;
-					Debug.Log( $"Could not connect to {address}:{port}, retrying... [ {failedConnects} / {networkParameters.maxConnectAttempts} ]" );
+					int _failedConnects = failedConnects + 1;
+					Debug.Log( $"Could not connect to {address}:{port}, retrying... [ {_failedConnects} / {networkParameters.maxConnectAttempts} ]" );
 
-					ReOpen();
+					Close();
+					Open();
+					
+					failedConnects = _failedConnects;
 				}
 				else
 				{
