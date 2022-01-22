@@ -11,10 +11,19 @@ namespace Tehelee.Baseline
 {
 	public static class OpenNatWrapper
 	{
+		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
+		private static void OnAssembliesLoaded()
+		{
+			natDiscoverer = new NatDiscoverer();
+			discoveredNatDevice = null;
+		}
+		
 		////////////////////////////////
 		#region Attributes
 
 		public static NatDiscoverer natDiscoverer = new NatDiscoverer();
+
+		private static NatDevice discoveredNatDevice = null;
 		
 		#endregion
 
@@ -23,7 +32,24 @@ namespace Tehelee.Baseline
 
 		public static void DiscoverDevice( System.Action<NatDevice> callback )
 		{
-			Utils.WaitForTask( natDiscoverer.DiscoverDeviceAsync( PortMapper.Upnp, new System.Threading.CancellationTokenSource( 3000 ) ), callback );
+			void OnDiscoverDevice( NatDevice natDevice )
+			{
+				discoveredNatDevice = natDevice;
+				callback?.Invoke( natDevice );
+			}
+			
+			if( object.Equals( null, discoveredNatDevice ) && !Utils.IsShuttingDown )
+				Utils.WaitForTask
+				(
+					natDiscoverer.DiscoverDeviceAsync
+					(
+						PortMapper.Upnp,
+						new System.Threading.CancellationTokenSource( 3000 )
+					),
+					OnDiscoverDevice
+				);
+			else
+				callback?.Invoke( discoveredNatDevice );
 		}
 
 		public static void GetExternalIP( this NatDevice natDevice, System.Action<IPAddress> callback )
@@ -65,11 +91,7 @@ namespace Tehelee.Baseline
 
 		public static void GetPortMappings( int discoverTimeoutMS, System.Action<List<Mapping>> callback )
 		{
-			Utils.WaitForTask
-			(
-				natDiscoverer.DiscoverDeviceAsync( PortMapper.Upnp, new System.Threading.CancellationTokenSource( discoverTimeoutMS ) ),
-				( NatDevice natDevice ) => GetPortMappings( natDevice, discoverTimeoutMS, callback )
-			);
+			DiscoverDevice( ( natDevice ) => GetPortMappings( natDevice, discoverTimeoutMS, callback ) );
 		}
 		public static void GetPortMappings( this NatDevice natDevice, int discoverTimeoutMS, System.Action<List<Mapping>> callback )
 		{
