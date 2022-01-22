@@ -162,15 +162,9 @@ namespace Tehelee.Baseline.Networking
 		
 		protected IEnumerator IReopen( System.Action callback = null )
 		{
-			open = false;
-			
 			CleanupNetworkInternals();
 			
-			yield return null;
-			
 			SetupNetworkInternals();
-
-			open = true;
 			
 			callback?.Invoke();
 			
