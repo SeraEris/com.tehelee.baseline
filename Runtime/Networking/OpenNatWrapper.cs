@@ -72,9 +72,8 @@ namespace Tehelee.Baseline
 			{
 				var host = Dns.GetHostEntry( Dns.GetHostName() );
 				foreach( IPAddress ip in host.AddressList )
-				{
-					if( ip.AddressFamily == ( ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6 ) ) { callback?.Invoke( ip ); }
-				}
+					if( ip.AddressFamily == ( ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6 ) )
+						callback?.Invoke( ip );
 
 				/*
 				using( Socket socket = new Socket( ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, 0 ) )
