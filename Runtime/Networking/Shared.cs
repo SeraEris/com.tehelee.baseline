@@ -139,7 +139,7 @@ namespace Tehelee.Baseline.Networking
 			networkSettings.WithNetworkConfigParameters
 			(
 				networkParameters.connectTimeoutMS,
-				networkParameters.maxConnectAttempts,
+				1, // This is 1 because the 1.0.0 Transport does not "re-dial" an address on reconnects, so we have to manually close & reopen - see client code.
 				networkParameters.disconnectTimeoutMS
 			);
 			

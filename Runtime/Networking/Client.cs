@@ -47,6 +47,7 @@ namespace Tehelee.Baseline.Networking
 		private bool hasConnected;
 
 		public int failedReconnects { get; private set; }
+		public int failedConnects { get; private set; }
 
 		protected HashSet<ushort> otherClientIds = new HashSet<ushort>();
 		public bool IsValidNetworkId( ushort networkId ) => ( networkId != 0 ) && ( networkId == this.networkId || otherClientIds.Contains( networkId ) );
@@ -183,6 +184,7 @@ namespace Tehelee.Baseline.Networking
 			
 			hasConnected = false;
 			failedReconnects = 0;
+			failedConnects = 0;
 
 			loopbackAverage = 0f;
 			loopbackAverageMS = 0;
@@ -264,10 +266,17 @@ namespace Tehelee.Baseline.Networking
 			QueryForEvents();
 
 			// Events *could* result in destruction of these, so now we re-check.
-			Debug.Log( $"Driver.IsCreated: {driver.IsCreated}\nConnection.isCreated: {connection.IsCreated}" );
 			if( !driver.IsCreated || !connection.IsCreated )
 			{
 				Close();
+				
+				if( failedConnects < networkParameters.maxConnectAttempts )
+				{
+					failedConnects++;
+					Debug.Log( $"Could not connect to {address}:{port}, retrying... [ {failedConnects} / {networkParameters.maxConnectAttempts} ]" );
+					Open();
+				}
+				
 				return;
 			}
 
@@ -320,6 +329,7 @@ namespace Tehelee.Baseline.Networking
 						Debug.Log( "Client: Connected to the server." );
 
 					failedReconnects = 0;
+					failedConnects = 0;
 
 					isConnected = true;
 					hasConnected = true;
