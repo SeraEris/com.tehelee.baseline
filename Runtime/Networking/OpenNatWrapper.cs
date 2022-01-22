@@ -94,7 +94,7 @@ namespace Tehelee.Baseline
 			}
 			
 			Debug.LogWarning( $"Unable to determine internal IPv{(ipv4?4:6)}\n  {errorMessage}" );
-			callback?.Invoke( IPAddress.Any );
+			callback?.Invoke( null );
 		}
 
 		#endregion
