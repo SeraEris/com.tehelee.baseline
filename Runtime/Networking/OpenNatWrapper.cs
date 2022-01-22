@@ -220,8 +220,16 @@ namespace Tehelee.Baseline
 				callback?.Invoke();
 				return;
 			}
-			
-			Utils.WaitForTask( natDevice.DeletePortMapAsync( mapping ), callback );
+
+			if( Utils.IsShuttingDown )
+			{
+				natDevice.DeletePortMapAsync( mapping );
+				callback?.Invoke();
+			}
+			else
+			{
+				Utils.WaitForTask( natDevice.DeletePortMapAsync( mapping ), callback );
+			}
 		}
 
 		#endregion
