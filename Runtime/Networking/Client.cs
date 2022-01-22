@@ -285,10 +285,13 @@ namespace Tehelee.Baseline.Networking
 		
 		protected override void NetworkUpdate()
 		{	
-			if( !ValidateConnectionState() )
+			if( !driver.IsCreated )
 				return;
 
 			driver.ScheduleUpdate().Complete();
+
+			if( !connection.IsCreated )
+				return;
 
 			QueryForEvents();
 
