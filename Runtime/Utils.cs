@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -27,11 +28,24 @@ namespace Tehelee.Baseline
 		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
 		private static void OnAssembliesLoaded()
 		{
-			IsShuttingDown = false;
+			IsShuttingDown = false;	
 			Application.quitting += OnShutdown;
 			cts = new CancellationTokenSource();
+			#if UNITY_EDITOR
+			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+			#endif
 		}
-
+		
+		#if UNITY_EDITOR
+		private static void OnPlayModeStateChanged( PlayModeStateChange playModeStateChange )
+		{
+			if( playModeStateChange == PlayModeStateChange.EnteredEditMode )
+			{
+				IsShuttingDown = false;
+			}
+		}
+		#endif
+		
 		private static void OnShutdown()
 		{
 			Application.quitting -= OnShutdown;
