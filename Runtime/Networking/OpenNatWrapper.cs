@@ -142,11 +142,11 @@ namespace Tehelee.Baseline
 			
 			try
 			{
-				Debug.Log( $"Mapping Port {mapping.PublicIP}:{mapping.PublicPort}" );
+				Debug.Log( $"Open.NAT - Mapping Port {mapping.PublicIP}:{mapping.PublicPort}" );
 
 				void OnCreatePortMapping()
 				{
-					Debug.Log( $"Mapped Port {mapping.PublicIP}:{mapping.PublicPort}" );
+					Debug.Log( $"Open.NAT - Mapped Port {mapping.PublicIP}:{mapping.PublicPort}" );
 					callback?.Invoke( PortMappingResult.Success );
 				}
 				
@@ -229,7 +229,11 @@ namespace Tehelee.Baseline
 
 			if( Utils.IsShuttingDown )
 			{
-				Debug.Log( $"Open.NAT - Application Shutting Down, Unmapping {mapping.PublicIP}:{mapping.PublicPort} without awaiter..." );
+				Debug.LogWarning
+				(
+					$"Open.NAT - Unmapping {mapping.PublicIP}:{mapping.PublicPort}\n" +
+					"!!! Application Shutting Down, unmapping without awaiter..."
+				);
 				natDevice.DeletePortMapAsync( mapping );
 				callback?.Invoke();
 			}
