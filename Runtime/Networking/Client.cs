@@ -275,6 +275,7 @@ namespace Tehelee.Baseline.Networking
 					return;
 
 				case NetworkConnection.State.Disconnected:
+					Close();
 					return;
 
 				case NetworkConnection.State.Connected:
