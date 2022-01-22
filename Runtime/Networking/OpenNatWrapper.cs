@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -101,7 +102,14 @@ namespace Tehelee.Baseline
 				return;
 			}
 
-			Utils.WaitForTask( natDevice.GetAllMappingsAsync(), ( IEnumerable<Mapping> portMappings ) => callback?.Invoke( new List<Mapping>( portMappings ) ) );
+			try
+			{
+				Utils.WaitForTask( natDevice.GetAllMappingsAsync(), ( IEnumerable<Mapping> portMappings ) => callback?.Invoke( new List<Mapping>( portMappings ) ) );
+			}
+			catch( Exception e )
+			{
+				Debug.LogError( $"Open.NAT - Unable to load all port mappings..." );
+			}
 		}
 
 		#endregion
