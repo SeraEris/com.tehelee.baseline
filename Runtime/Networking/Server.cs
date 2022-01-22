@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
-
+using System.Text;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -320,6 +320,18 @@ namespace Tehelee.Baseline.Networking
 
 		private void ApplyPortMappings()
 		{
+			void OnGetPortMappings( List<Mapping> mappings )
+			{
+				StringBuilder sb = new StringBuilder( $"Current Port Mappings ({mappings.Count}):" );
+				foreach( Mapping mapping in mappings )
+				{
+					sb.AppendLine( $"  {mapping.PrivateIP}:{mapping.PrivatePort} => {mapping.PublicIP}:{mapping.PublicPort}" );
+				}
+				Debug.Log( sb );
+			}
+			
+			OpenNatWrapper.GetPortMappings( 30000, OnGetPortMappings );
+			
 			void MapPort( Mapping mapping )
 			{
 				natMappings.Add( mapping );
