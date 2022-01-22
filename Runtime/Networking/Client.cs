@@ -270,7 +270,7 @@ namespace Tehelee.Baseline.Networking
 					failedConnects++;
 					Debug.Log( $"Could not connect to {address}:{port}, retrying... [ {failedConnects} / {networkParameters.maxConnectAttempts} ]" );
 
-					StartCoroutine( IReopen( OnReopen ) );
+					ReOpen();
 				}
 				else
 				{
