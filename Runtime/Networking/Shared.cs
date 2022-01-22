@@ -164,7 +164,11 @@ namespace Tehelee.Baseline.Networking
 		{
 			CleanupNetworkInternals();
 			
+			yield return null;
+			
 			SetupNetworkInternals();
+			
+			yield return null;
 			
 			callback?.Invoke();
 			
