@@ -133,6 +133,35 @@ namespace Tehelee.Baseline.Networking
 					this.port = port;
 			}
 
+			SetupNetworkInternals();
+
+			open = true;
+
+			if( debug )
+				Debug.Log( $"{networkScopeLabel}.Open() {this.address} on {this.port} with {networkParameters.ToString()}" );
+		}
+
+		public virtual void Close()
+		{
+			if( !open )
+				return;
+
+			foreach( System.Type type in builtInPacketTypes )
+				if( !object.Equals( null, type ) )
+					Packet.Unregister( this, type );
+
+			open = false;
+			
+			CleanupNetworkInternals();
+
+			UnregisterPacketDatas();
+
+			if( debug )
+				Debug.Log( $"{networkScopeLabel}.Close()" );
+		}
+
+		protected void SetupNetworkInternals()
+		{
 			NetworkSettings networkSettings = new NetworkSettings();
 			networkSettings.WithDataStreamParameters( networkParameters.maxPacketCount * Packet.maxBytes );
 			networkSettings.WithReliableStageParameters( networkParameters.maxPacketCount );
@@ -165,32 +194,13 @@ namespace Tehelee.Baseline.Networking
 
 				pipeline = new Pipeline( driver );
 			}
-
-			open = true;
-
-			if( debug )
-				Debug.Log( $"{networkScopeLabel}.Open() {this.address} on {this.port} with {networkParameters.ToString()}" );
 		}
-
-		public virtual void Close()
+		
+		protected void CleanupNetworkInternals()
 		{
-			if( !open )
-				return;
-
-			foreach( System.Type type in builtInPacketTypes )
-				if( !object.Equals( null, type ) )
-					Packet.Unregister( this, type );
-
-			open = false;
-
 			pipeline = default;
 
 			driver.Dispose();
-
-			UnregisterPacketDatas();
-
-			if( debug )
-				Debug.Log( $"{networkScopeLabel}.Close()" );
 		}
 
 		#endregion
