@@ -1020,32 +1020,32 @@ namespace Tehelee.Baseline
 		
 		public static void WaitForTask( Task task, System.Action callback = null )
 		{
-			Task _task = Task.Run( async () =>
-			{
-				if( task.Status == TaskStatus.Created )
-					task.Start();
-				task.Wait();
-				
-				return task;
-			}, cts.Token );
-			
 			if( IsShuttingDown )
 			{
-				if( !task.IsCompleted )
-					if( task.Status == TaskStatus.Created )
-						task.Start();
+				if( task.Status == TaskStatus.WaitingForActivation || task.Status == TaskStatus.WaitingToRun )
+					task.Start();
+				
+				Stopwatch stopwatch = Stopwatch.StartNew();
+				while( !task.IsCanceled && !task.IsCompleted && !task.IsFaulted && stopwatch.ElapsedMilliseconds < 5_000 ) { }
 
-				task.Wait();
+				if( stopwatch.ElapsedMilliseconds >= 5_000 )
+				{
+					Debug.LogWarning( "Task Encountered Shutdown Timeout" );
+					callback?.Invoke( );
+				}
+				
+				if( task.IsFaulted )
+					Debug.LogError( $"Task Failed: {task.Exception?.Message ?? "NULL"}" );
 
 				callback?.Invoke();
 			}
 			else if( !Utils.IsObjectAlive( delaySlave ) )
 			{
-				pendingCoroutines.Add( IWaitForTask( _task, callback ) );
+				pendingCoroutines.Add( IWaitForTask( task, callback ) );
 			}
 			else
 			{
-				StartCoroutine( IWaitForTask( _task, callback ) );
+				StartCoroutine( IWaitForTask( task, callback ) );
 			}
 		}
 
@@ -1067,6 +1067,9 @@ namespace Tehelee.Baseline
 		{
 			if( IsShuttingDown )
 			{
+				if( task.Status == TaskStatus.WaitingForActivation || task.Status == TaskStatus.WaitingToRun )
+					task.Start();
+				
 				Stopwatch stopwatch = Stopwatch.StartNew();
 				while( !task.IsCanceled && !task.IsCompleted && !task.IsFaulted && stopwatch.ElapsedMilliseconds < 5_000 ) { }
 
