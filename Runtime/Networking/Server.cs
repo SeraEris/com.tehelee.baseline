@@ -325,7 +325,8 @@ namespace Tehelee.Baseline.Networking
 				StringBuilder sb = new StringBuilder( $"Current Port Mappings ({mappings.Count}):" );
 				foreach( Mapping mapping in mappings )
 				{
-					sb.AppendLine( $"  {mapping.PrivateIP}:{mapping.PrivatePort} => {mapping.PublicIP}:{mapping.PublicPort}" );
+					sb.AppendLine( $"  {mapping.Description} @ {mapping.Expiration}:\n" +
+								   $"      {mapping.PrivateIP}:{mapping.PrivatePort} => {mapping.PublicIP}:{mapping.PublicPort}" );
 				}
 				Debug.Log( sb );
 			}
