@@ -264,8 +264,12 @@ namespace Tehelee.Baseline.Networking
 			QueryForEvents();
 
 			// Events *could* result in destruction of these, so now we re-check.
+			Debug.Log( $"Driver.IsCreated: {driver.IsCreated}\nConnection.isCreated: {connection.IsCreated}" );
 			if( !driver.IsCreated || !connection.IsCreated )
+			{
+				Close();
 				return;
+			}
 
 			NetworkConnection.State connectionState = driver.GetConnectionState( connection );
 
