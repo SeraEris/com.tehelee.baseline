@@ -66,8 +66,17 @@ namespace Tehelee.Baseline
 
 		public static void GetInternalIP( bool ipv4, System.Action<IPAddress> callback )
 		{
+			string errorMessage = "No Internal Addresses";
+
 			try
 			{
+				var host = Dns.GetHostEntry( Dns.GetHostName() );
+				foreach( IPAddress ip in host.AddressList )
+				{
+					if( ip.AddressFamily == ( ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6 ) ) { callback?.Invoke( ip ); }
+				}
+
+				/*
 				using( Socket socket = new Socket( ipv4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6, SocketType.Dgram, 0 ) )
 				{
 					socket.Connect( "8.8.8.8", 65530 );
@@ -78,11 +87,15 @@ namespace Tehelee.Baseline
 					else
 						callback?.Invoke( endPoint.Address );
 				}
+				*/
 			}
-			catch
+			catch( Exception e )
 			{
-				callback?.Invoke( IPAddress.Any );
+				errorMessage = e.Message;
 			}
+			
+			Debug.LogWarning( $"Unable to determine internal IPv{(ipv4?4:6)}\n  {errorMessage}" );
+			callback?.Invoke( IPAddress.Any );
 		}
 
 		#endregion
