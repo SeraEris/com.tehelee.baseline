@@ -1022,21 +1022,7 @@ namespace Tehelee.Baseline
 		{
 			if( IsShuttingDown )
 			{
-				if( task.Status == TaskStatus.WaitingForActivation || task.Status == TaskStatus.WaitingToRun )
-					task.Start();
-				
-				Stopwatch stopwatch = Stopwatch.StartNew();
-				while( !task.IsCanceled && !task.IsCompleted && !task.IsFaulted && stopwatch.ElapsedMilliseconds < 5_000 ) { }
-
-				if( stopwatch.ElapsedMilliseconds >= 5_000 )
-				{
-					Debug.LogWarning( "Task Encountered Shutdown Timeout" );
-					callback?.Invoke( );
-				}
-				
-				if( task.IsFaulted )
-					Debug.LogError( $"Task Failed: {task.Exception?.Message ?? "NULL"}" );
-
+				Debug.LogError( "Cannot run task, Application shutting down." );
 				callback?.Invoke();
 			}
 			else if( !Utils.IsObjectAlive( delaySlave ) )
@@ -1067,22 +1053,8 @@ namespace Tehelee.Baseline
 		{
 			if( IsShuttingDown )
 			{
-				if( task.Status == TaskStatus.WaitingForActivation || task.Status == TaskStatus.WaitingToRun )
-					task.Start();
-				
-				Stopwatch stopwatch = Stopwatch.StartNew();
-				while( !task.IsCanceled && !task.IsCompleted && !task.IsFaulted && stopwatch.ElapsedMilliseconds < 5_000 ) { }
-
-				if( stopwatch.ElapsedMilliseconds >= 5_000 )
-				{
-					Debug.LogWarning( "Task Encountered Shutdown Timeout" );
-					callback?.Invoke( default );
-				}
-				
-				if( task.IsFaulted )
-					Debug.LogError( $"Task Failed: {task.Exception?.Message ?? "NULL"}" );
-
-				callback?.Invoke( task.Result );
+				Debug.LogError( "Cannot run task, Application shutting down." );
+				callback?.Invoke( default );
 			}
 			else if( !Utils.IsObjectAlive( delaySlave ) )
 			{
