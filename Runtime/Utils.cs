@@ -27,6 +27,7 @@ namespace Tehelee.Baseline
 		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
 		private static void OnAssembliesLoaded()
 		{
+			IsShuttingDown = false;
 			Application.quitting += OnShutdown;
 			cts = new CancellationTokenSource();
 		}
