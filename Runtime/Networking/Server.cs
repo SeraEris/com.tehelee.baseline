@@ -980,6 +980,13 @@ namespace Tehelee.Baseline.Networking
 				return false;
 
 			clientsReady.Add( clientId );
+			
+			Send( new Loopback()
+			{
+				originTime = -1f,
+				averagePingMS = 0,
+				targets = new List<NetworkConnection>() { clientInfo.networkConnection }
+			}, true );
 
 			OnClientReady( clientInfo.networkConnection );
 			

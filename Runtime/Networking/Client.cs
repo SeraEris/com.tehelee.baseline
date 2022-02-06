@@ -487,6 +487,17 @@ namespace Tehelee.Baseline.Networking
 		private ReadResult OnLoopback( NetworkConnection connection, ref PacketReader reader )
 		{
 			Packets.Loopback packetLoopback = new Packets.Loopback( ref reader );
+			
+			if( packetLoopback.originTime < 0f )
+			{
+				Send( new Packets.Loopback()
+				{
+					originTime = Time.time,
+					averagePingMS = loopbackAverageMS
+				} );
+				
+				return ReadResult.Consumed;
+			}
 
 			float time = Time.time;
 			
