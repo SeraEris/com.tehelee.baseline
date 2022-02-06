@@ -15,7 +15,7 @@ using Unity.Networking.Transport.Utilities;
 using Unity.Collections.LowLevel.Unsafe;
 
 using Open.Nat;
-
+using Tehelee.Baseline.Networking.Packets;
 using StringComparison = System.StringComparison;
 
 using Bundle = Tehelee.Baseline.Networking.Packets.Bundle;
@@ -1031,8 +1031,7 @@ namespace Tehelee.Baseline.Networking
 			packetLoopback.targets.Add( connection );
 			Send( packetLoopback );
 
-			if( networkIdsByNetworkConnection.ContainsKey( connection ) )
-				SetPing( networkIdsByNetworkConnection[ connection ], ( ushort ) Mathf.Max( 1, packetLoopback.averagePingMS ) );
+			SetPing( networkIdsByNetworkConnection[ connection ], ( ushort ) Mathf.Max( 1, packetLoopback.averagePingMS ) );
 
 			return ReadResult.Consumed;
 		}

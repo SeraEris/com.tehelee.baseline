@@ -474,9 +474,13 @@ namespace Tehelee.Baseline.Networking
 						originTime = Time.time,
 						averagePingMS = loopbackAverageMS
 					} );
+					
+					yield return new WaitForSeconds( heartbeatInterval );
 				}
-
-				yield return new WaitForSeconds( heartbeatInterval );
+				else
+				{
+					yield return null;
+				}
 			}
 		}
 
