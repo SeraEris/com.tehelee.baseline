@@ -516,6 +516,13 @@ namespace Tehelee.Baseline.Networking
 
 			loopbackAverage = _pingAverage;
 			loopbackAverageMS = ( ushort ) Mathf.Max( 1, Mathf.RoundToInt( loopbackAverage * 1000f ) );
+
+			if( object.Equals( null, pingTimingsByNetworkId ) )
+				pingTimingsByNetworkId = new Dictionary<ushort, ushort>();
+			
+			pingTimingsByNetworkId[ networkId ] = loopbackAverageMS;
+			
+			onPingTimingsUpdated?.Invoke();
 			
 			Send( new Packets.Loopback()
 			{
