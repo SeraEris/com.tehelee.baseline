@@ -1035,8 +1035,11 @@ namespace Tehelee.Baseline.Networking
 		{
 			Packets.Loopback packetLoopback = new Packets.Loopback( ref reader );
 
-			packetLoopback.targets.Add( connection );
-			Send( packetLoopback );
+			if( packetLoopback.originTime >= 0f )
+			{
+				packetLoopback.targets.Add( connection );
+				Send( packetLoopback );
+			}
 
 			SetPing( networkIdsByNetworkConnection[ connection ], ( ushort ) Mathf.Max( 1, packetLoopback.averagePingMS ) );
 

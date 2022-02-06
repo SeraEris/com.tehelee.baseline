@@ -516,6 +516,12 @@ namespace Tehelee.Baseline.Networking
 
 			loopbackAverage = _pingAverage;
 			loopbackAverageMS = ( ushort ) Mathf.Max( 1, Mathf.RoundToInt( loopbackAverage * 1000f ) );
+			
+			Send( new Packets.Loopback()
+			{
+				originTime = -1f,
+				averagePingMS = loopbackAverageMS
+			} );
 
 			return ReadResult.Consumed;
 		}
