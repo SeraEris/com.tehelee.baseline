@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -159,6 +160,7 @@ namespace Tehelee.Baseline
 		Dictionary<string, double> doubles = new Dictionary<string, double>();
 		Dictionary<string, long> longs = new Dictionary<string, long>();
 		Dictionary<string, bool> bools = new Dictionary<string, bool>();
+		Dictionary<string, string> keyCodes = new Dictionary<string, string>();
 
 		#endregion
 
@@ -208,10 +210,7 @@ namespace Tehelee.Baseline
 
 		public void Set( string key, string value )
 		{
-			if( strings.ContainsKey( key ) )
-				strings[ key ] = value;
-			else
-				strings.Add( key, value );
+			strings[ key ] = value;
 		}
 
 			////////////////
@@ -228,10 +227,7 @@ namespace Tehelee.Baseline
 
 		public void Set( string key, double value )
 		{
-			if( doubles.ContainsKey( key ) )
-				doubles[ key ] = value;
-			else
-				doubles.Add( key, value );
+			doubles[ key ] = value;
 		}
 
 			////////////////
@@ -265,10 +261,7 @@ namespace Tehelee.Baseline
 
 		public void Set( string key, long value )
 		{
-			if( longs.ContainsKey( key ) )
-				longs[ key ] = value;
-			else
-				longs.Add( key, value );
+			longs[ key ] = value;
 		}
 
 			////////////////
@@ -302,10 +295,27 @@ namespace Tehelee.Baseline
 
 		public void Set( string key, bool value )
 		{
-			if( bools.ContainsKey( key ) )
-				bools[ key ] = value;
-			else
-				bools.Add( key, value );
+			bools[ key ] = value;
+		}
+		
+			////////////////
+			// KeyCode
+
+		public KeyCode Get( string key, KeyCode defaultValue )
+		{
+			if( keyCodes.ContainsKey( key ) )
+			{
+				Enum.TryParse( keyCodes[ key ], out KeyCode parse );
+				return parse;
+			}
+
+			keyCodes.Add( key, defaultValue.ToString() );
+			return defaultValue;
+		}
+
+		public void Set( string key, KeyCode value )
+		{
+			keyCodes[ key ] = value.ToString();
 		}
 
 		#endregion
