@@ -21,6 +21,20 @@ namespace Tehelee.Baseline
 		private static PlayerConfig mainConfig = null;
 		private static ConfigCallback mainConfigCallbacks;
 
+		private static event ConfigCallback invokeOnMainLoaded;
+
+		public static void InvokeOnMainLoaded( ConfigCallback configCallback )
+		{
+			invokeOnMainLoaded += configCallback;
+			if( !object.Equals( null, mainConfig ) )
+				configCallback?.Invoke( mainConfig );
+		}
+
+		public static void CancelInvokeOnMainLoaded( ConfigCallback configCallback )
+		{
+			invokeOnMainLoaded -= configCallback;
+		}
+
 		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.BeforeSceneLoad )]
 		private static void LoadMainConfig()
 		{
@@ -31,17 +45,8 @@ namespace Tehelee.Baseline
 			{
 				mainConfig = config;
 
-				mainConfigCallbacks?.Invoke( mainConfig );
-				mainConfigCallbacks = null;
+				invokeOnMainLoaded?.Invoke( mainConfig );
 			} );
-		}
-
-		public static void GetMainConfig( ConfigCallback callback )
-		{
-			if( object.Equals( null, mainConfig ) )
-				mainConfigCallbacks += callback;
-			else
-				callback?.Invoke( mainConfig );
 		}
 
 		private static string GetFilePath( string configName ) =>
