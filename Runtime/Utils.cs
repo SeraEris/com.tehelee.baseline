@@ -11,8 +11,6 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-using Debug = UnityEngine.Debug;
-
 #if( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
 using System.Runtime.InteropServices;
 #endif
@@ -229,16 +227,24 @@ namespace Tehelee.Baseline
 #if( UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN )
 			string[] _args = System.Environment.GetCommandLineArgs();
 			List<string> keys = new List<string>( args.Keys );
+			HashSet<string> missing = new HashSet<string>( args.Keys );
 			for( int i = 0; i < _args.Length; i++ )
 			{
 				foreach( string key in keys )
 				{
 					if( string.Format( "-{0}", key ).Equals( _args[ i ] ) )
 					{
-						args[ key ] = _args[ ++i ];
+						int valId = i + 1;
+						string val = _args.Length == valId ? string.Empty : _args[ valId ];
+						args[ key ] = val.StartsWith( "-" ) ? string.Empty : val;
+						missing.Remove( key );
+						break;
 					}
 				}
 			}
+
+			foreach( string key in missing )
+				args[ key ] = null;
 #endif
 		}
 
@@ -597,6 +603,9 @@ namespace Tehelee.Baseline
 		{
 			return SpaceCondensedString( ToPascalCase( SpaceCondensedString( variableName ) ) );
 		}
+
+		public static string GetFileTimeString( System.DateTime dateTime ) =>
+			$"{dateTime:MM}-{dateTime:dd}-{dateTime:yyyy}_{dateTime:HH}-{dateTime:mm}-{dateTime:ss}_{dateTime:FFFFFFF}";
 
 		public static string ArrayToString<T>( T[] array, bool newLines = false, bool number = false, sbyte precision = -1 )
 		{
