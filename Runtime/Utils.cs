@@ -38,6 +38,10 @@ namespace Tehelee.Baseline
 		{
 			bool quitRedirect()
 			{
+				#if UNITY_EDITOR
+				return true;
+				#endif
+				
 				switch( quitState )
 				{
 					default:
