@@ -76,6 +76,8 @@ namespace Tehelee.Baseline
 				if( invoke != null )
 					yield return StartCoroutine( invoke );
 
+			quitState = QuitState.Exitable;
+
 			Application.Quit();
 
 			yield break;
