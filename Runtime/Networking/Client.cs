@@ -259,8 +259,8 @@ namespace Tehelee.Baseline.Networking
 		{
 			Close();
 			
-			for( int i = 0; i < 2; i++ )
-				yield return null;
+			for( int i = 0; i < 3; i++ )
+				yield return new WaitForFixedUpdate();
 		}
 
 		#endregion
