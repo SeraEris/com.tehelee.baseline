@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 
 using UnityEngine;
@@ -53,6 +54,9 @@ namespace Tehelee.Baseline.Networking
 		public bool open { get; private set; }
 
 		public ushort networkId { get; protected set; }
+
+		public bool isLocalHost { get; protected set; } = false;
+		public int localAuthKey { get; protected set; } = 0;
 
 		#endregion
 
@@ -118,6 +122,7 @@ namespace Tehelee.Baseline.Networking
 			Dictionary<string, string> args = new Dictionary<string, string>();
 			args.Add( "networkAddress", null );
 			args.Add( "networkPort", null );
+			args.Add( "localHost", null );
 
 			Utils.GetArgsFromDictionary( ref args );
 
@@ -131,6 +136,18 @@ namespace Tehelee.Baseline.Networking
 				ushort port;
 				if( ushort.TryParse( args[ "networkPort" ], out port ) )
 					this.port = port;
+			}
+
+			if( !string.IsNullOrEmpty( args[ "localHost" ] ) )
+			{
+				isLocalHost = int.TryParse
+				(
+					args[ "localHost" ],
+					NumberStyles.HexNumber,
+					new NumberFormatInfo(),
+					out int authKey
+				);
+				localAuthKey = isLocalHost ? authKey : 0;
 			}
 
 			NetworkSettings networkSettings = new NetworkSettings();
@@ -203,6 +220,7 @@ namespace Tehelee.Baseline.Networking
 			typeof( Packets.Administration ),
 			typeof( Packets.Bundle ),
 			typeof( Packets.Handshake ),
+			typeof( Packets.LocalHost ),
 			typeof( Packets.Loopback ),
 			typeof( Packets.Password ),
 			typeof( Packets.Ping ),

@@ -150,6 +150,8 @@ namespace Tehelee.Baseline.Networking
 		{
 			base.OnEnable();
 
+			RegisterListener( typeof( Packets.LocalHost ), OnLocalHost );
+			
 			RegisterListener( typeof( Packets.Administration ), OnAdministration );
 
 			RegisterListener( typeof( Packets.Loopback ), OnLoopback );
@@ -173,6 +175,8 @@ namespace Tehelee.Baseline.Networking
 			if( object.Equals( this, singleton.instance ) )
 				singleton.instance = null;
 
+			DropListener( typeof( Packets.LocalHost ), OnLocalHost );
+			
 			DropListener( typeof( Packets.Administration ), OnAdministration );
 
 			DropListener( typeof( Packets.Loopback ), OnLoopback );
@@ -1220,6 +1224,27 @@ namespace Tehelee.Baseline.Networking
 		////////////////////////////////
 		#region Administration
 
+		private ReadResult OnLocalHost( NetworkConnection networkConnection, ref PacketReader reader )
+		{
+			Packets.LocalHost packetLocalHost = new LocalHost( ref reader );
+
+			if( !isLocalHost )
+				return ReadResult.Consumed;
+
+			switch( packetLocalHost.command )
+			{
+				case LocalHost.Command.Shutdown:
+					Application.Quit();
+					break;
+				
+				case LocalHost.Command.Promote:
+					AdminPromote( GetNetworkId( networkConnection ) );
+					break;
+			}
+
+			return ReadResult.Consumed;
+		}
+		
 		private ReadResult OnAdministration( NetworkConnection networkConnection, ref PacketReader reader )
 		{
 			Packets.Administration packetAdministration = new Packets.Administration( ref reader );

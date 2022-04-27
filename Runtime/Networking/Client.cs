@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using Tehelee.Baseline.Networking.Packets;
 using UnityEngine;
@@ -257,7 +258,14 @@ namespace Tehelee.Baseline.Networking
 
 		private IEnumerator IPerformShutdown()
 		{
-			Send( new Administration() { networkId = networkId, operation = Administration.Operation.Disconnect } );
+			Bundle bundle = new Bundle();
+
+			if( isLocalHost )
+				bundle.packets.Add( new LocalHost( localAuthKey, LocalHost.Command.Shutdown, networkId ) );
+
+			bundle.packets.Add( new Administration() { networkId = networkId, operation = Administration.Operation.Disconnect } );
+			
+			Send( bundle );
 
 			float delay = Mathf.Max( 0.125f, GetPing( networkId ) / 500f );
 			
@@ -612,6 +620,9 @@ namespace Tehelee.Baseline.Networking
 
 			if( debug )
 				Debug.Log( $"Client handshake completed. NetworkId: {networkId}" );
+			
+			if( isLocalHost )
+				Send( new LocalHost( localAuthKey, LocalHost.Command.Promote, networkId ) );
 		}
 
 		protected virtual void SetupOtherId( ushort clientId )
