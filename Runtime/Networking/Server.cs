@@ -305,10 +305,12 @@ namespace Tehelee.Baseline.Networking
 
 		private IEnumerator IPerformShutdown()
 		{
-			DisconnectAndClose( null, Close );
-			
-			for( int i = 0; i < 3; i++ )
-				yield return new WaitForFixedUpdate();
+			DisconnectAndClose();
+
+			for( int i = 0; i < 2; i++ )
+				yield return null;
+
+			Close();
 		}
 
 		public void DisconnectAndClose( string message = null, System.Action callback = null )

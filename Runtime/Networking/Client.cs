@@ -258,9 +258,9 @@ namespace Tehelee.Baseline.Networking
 		private IEnumerator IPerformShutdown()
 		{
 			Close();
-			
-			for( int i = 0; i < 3; i++ )
-				yield return new WaitForFixedUpdate();
+
+			for( int i = 0; i < 2; i++ )
+				yield return null;
 		}
 
 		#endregion
