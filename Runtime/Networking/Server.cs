@@ -232,7 +232,7 @@ namespace Tehelee.Baseline.Networking
 			
 			base.Open();
 
-			Utils.AddQuitCoroutine( IPerformShutdown() );
+			Utils.AddQuitCoroutine( IPerformShutdown );
 
 			rotatingNetworkId = 0;
 
@@ -276,7 +276,7 @@ namespace Tehelee.Baseline.Networking
 			
 			networkConnectionsNative.Dispose();
 			
-			Utils.RemoveQuitCoroutine( IPerformShutdown() );
+			Utils.RemoveQuitCoroutine( IPerformShutdown );
 
 			base.Close();
 
@@ -302,21 +302,17 @@ namespace Tehelee.Baseline.Networking
 			closing = false;
 			closeInvoked = false;
 		}
-
+		
 		private IEnumerator IPerformShutdown()
 		{
-			DisconnectAndClose();
-
 			ushort maxPing = 0;
 			foreach( ushort ping in pingTimingsByNetworkId.Values )
 				if( ping > maxPing )
 					maxPing = ping;
 
-			float delay = Mathf.Max( 0.5f, maxPing / 500f );
+			float delay = Mathf.Max( 0.05f, maxPing / 500f );
 			
-			yield return new WaitForSeconds( delay );
-
-			Close();
+			DisconnectAndClose();
 			
 			yield return new WaitForSeconds( delay );
 		}

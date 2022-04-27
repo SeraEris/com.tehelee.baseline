@@ -56,15 +56,17 @@ namespace Tehelee.Baseline
 			Application.wantsToQuit += quitRedirect;
 		}
 
-		private static HashSet<IEnumerator> InvokeOnQuit = new HashSet<IEnumerator>();
+		private static HashSet<GetCoroutine> InvokeOnQuit = new HashSet<GetCoroutine>();
 
-		public static void AddQuitCoroutine( IEnumerator coroutine )
+		public delegate IEnumerator GetCoroutine();
+		
+		public static void AddQuitCoroutine( GetCoroutine coroutine )
 		{
 			if( coroutine != null )
 				InvokeOnQuit.Add( coroutine );
 		}
 
-		public static void RemoveQuitCoroutine( IEnumerator coroutine )
+		public static void RemoveQuitCoroutine( GetCoroutine coroutine )
 		{
 			if( coroutine != null )
 				InvokeOnQuit.Remove( coroutine );
@@ -72,9 +74,12 @@ namespace Tehelee.Baseline
 
 		private static IEnumerator IHandleQuit()
 		{
-			foreach( IEnumerator invoke in InvokeOnQuit )
-				if( invoke != null )
-					yield return StartCoroutine( invoke );
+			foreach( GetCoroutine invoke in InvokeOnQuit )
+			{
+				IEnumerator coroutine = invoke?.Invoke();
+				if( coroutine != null )
+					yield return StartCoroutine( coroutine );
+			}
 
 			quitState = QuitState.Exitable;
 

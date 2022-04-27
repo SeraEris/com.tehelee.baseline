@@ -218,7 +218,7 @@ namespace Tehelee.Baseline.Networking
 
 			_IHeartbeat = StartCoroutine( IHeartbeat() );
 			
-			Utils.AddQuitCoroutine( IPerformShutdown() );
+			Utils.AddQuitCoroutine( IPerformShutdown );
 
 			onOpen?.Invoke();
 		}
@@ -245,7 +245,7 @@ namespace Tehelee.Baseline.Networking
 				_IHeartbeat = null;
 			}
 			
-			Utils.RemoveQuitCoroutine( IPerformShutdown() );
+			Utils.RemoveQuitCoroutine( IPerformShutdown );
 
 			base.Close();
 
@@ -259,7 +259,7 @@ namespace Tehelee.Baseline.Networking
 		{
 			Send( new Administration() { networkId = networkId, operation = Administration.Operation.Disconnect } );
 
-			float delay = Mathf.Max( 0.5f, GetPing( networkId ) / 500f );
+			float delay = Mathf.Max( 0.05f, GetPing( networkId ) / 500f );
 			
 			yield return new WaitForSeconds( delay );
 			
