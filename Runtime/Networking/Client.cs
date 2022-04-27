@@ -259,13 +259,13 @@ namespace Tehelee.Baseline.Networking
 		{
 			Send( new Administration() { networkId = networkId, operation = Administration.Operation.Disconnect } );
 
-			for( int i = 0; i < 2; i++ )
-				yield return null;
+			float delay = Mathf.Max( 0.5f, GetPing( networkId ) / 500f );
+			
+			yield return new WaitForSeconds( delay );
 			
 			Close();
 			
-			for( int i = 0; i < 2; i++ )
-				yield return null;
+			yield return new WaitForSeconds( delay );
 		}
 
 		#endregion

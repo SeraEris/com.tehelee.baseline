@@ -307,13 +307,18 @@ namespace Tehelee.Baseline.Networking
 		{
 			DisconnectAndClose();
 
-			for( int i = 0; i < 2; i++ )
-				yield return null;
+			ushort maxPing = 0;
+			foreach( ushort ping in pingTimingsByNetworkId.Values )
+				if( ping > maxPing )
+					maxPing = ping;
+
+			float delay = Mathf.Max( 0.5f, maxPing / 500f );
+			
+			yield return new WaitForSeconds( delay );
 
 			Close();
-
-			for( int i = 0; i < 2; i++ )
-				yield return null;
+			
+			yield return new WaitForSeconds( delay );
 		}
 
 		public void DisconnectAndClose( string message = null, System.Action callback = null )
