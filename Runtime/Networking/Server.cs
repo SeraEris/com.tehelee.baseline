@@ -229,8 +229,10 @@ namespace Tehelee.Baseline.Networking
 			_isPrivate = string.IsNullOrWhiteSpace( hostInfo.password );
 			isPrivate = !_isPrivate;
 			promoteAll = string.IsNullOrWhiteSpace( hostInfo.adminPassword );
-
+			
 			base.Open();
+
+			Utils.AddQuitCoroutine( IPerformShutdown() );
 
 			rotatingNetworkId = 0;
 
@@ -273,6 +275,8 @@ namespace Tehelee.Baseline.Networking
 			networkIdsByNetworkConnection.Clear();
 			
 			networkConnectionsNative.Dispose();
+			
+			Utils.RemoveQuitCoroutine( IPerformShutdown() );
 
 			base.Close();
 
@@ -297,6 +301,14 @@ namespace Tehelee.Baseline.Networking
 
 			closing = false;
 			closeInvoked = false;
+		}
+
+		private IEnumerator IPerformShutdown()
+		{
+			DisconnectAndClose( null, Close );
+			
+			for( int i = 0; i < 2; i++ )
+				yield return null;
 		}
 
 		public void DisconnectAndClose( string message = null, System.Action callback = null )

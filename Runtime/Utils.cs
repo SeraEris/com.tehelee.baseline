@@ -21,6 +21,68 @@ namespace Tehelee.Baseline
 
 	public static class Utils
 	{
+		
+		////////////////////////
+		#region Quitting
+
+		private enum QuitState
+		{
+			Running,
+			Redirected,
+			Exitable
+		}
+		private static QuitState quitState = QuitState.Running;
+		
+		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
+		private static void RegisterWantsToQuit()
+		{
+			bool quitRedirect()
+			{
+				switch( quitState )
+				{
+					default:
+						StartCoroutine( IHandleQuit() );
+						quitState = QuitState.Redirected;
+						return false;
+					case QuitState.Redirected:
+						Debug.LogWarning( "Application.Quit() invoked multiple times." );
+						return false;
+					case QuitState.Exitable:
+						return true;
+				}
+			}
+			
+			quitState = QuitState.Running;
+			Application.wantsToQuit += quitRedirect;
+		}
+
+		private static HashSet<IEnumerator> InvokeOnQuit = new HashSet<IEnumerator>();
+
+		public static void AddQuitCoroutine( IEnumerator coroutine )
+		{
+			if( coroutine != null )
+				InvokeOnQuit.Add( coroutine );
+		}
+
+		public static void RemoveQuitCoroutine( IEnumerator coroutine )
+		{
+			if( coroutine != null )
+				InvokeOnQuit.Remove( coroutine );
+		}
+
+		private static IEnumerator IHandleQuit()
+		{
+			foreach( IEnumerator invoke in InvokeOnQuit )
+				if( invoke != null )
+					yield return StartCoroutine( invoke );
+
+			Application.Quit();
+
+			yield break;
+		}
+		
+		#endregion
+		
 		////////////////////////
 		#region DelayHelper
 

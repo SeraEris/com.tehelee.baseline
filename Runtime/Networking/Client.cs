@@ -209,7 +209,7 @@ namespace Tehelee.Baseline.Networking
 
 			////////////////
 			// Open
-
+			
 			base.Open();
 
 			connection = default( NetworkConnection );
@@ -217,6 +217,8 @@ namespace Tehelee.Baseline.Networking
 			connection = driver.Connect( networkEndPoint );
 
 			_IHeartbeat = StartCoroutine( IHeartbeat() );
+			
+			Utils.AddQuitCoroutine( IPerformShutdown() );
 
 			onOpen?.Invoke();
 		}
@@ -242,6 +244,8 @@ namespace Tehelee.Baseline.Networking
 				StopCoroutine( _IHeartbeat );
 				_IHeartbeat = null;
 			}
+			
+			Utils.RemoveQuitCoroutine( IPerformShutdown() );
 
 			base.Close();
 
@@ -249,6 +253,14 @@ namespace Tehelee.Baseline.Networking
 				onDisconnected?.Invoke();
 
 			onClose?.Invoke();
+		}
+
+		private IEnumerator IPerformShutdown()
+		{
+			Close();
+			
+			for( int i = 0; i < 2; i++ )
+				yield return null;
 		}
 
 		#endregion
