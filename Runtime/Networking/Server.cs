@@ -628,7 +628,7 @@ namespace Tehelee.Baseline.Networking
 			}
 
 			if( debug )
-				Debug.LogWarning( "Server: Removed client {networkConnection.InternalId}" );
+				Debug.LogWarning( $"Server: Removed client {networkConnection.InternalId}" );
 		}
 
 		#endregion
