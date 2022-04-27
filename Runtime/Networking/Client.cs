@@ -259,7 +259,7 @@ namespace Tehelee.Baseline.Networking
 		{
 			Send( new Administration() { networkId = networkId, operation = Administration.Operation.Disconnect } );
 
-			float delay = Mathf.Max( 0.05f, GetPing( networkId ) / 500f );
+			float delay = Mathf.Max( 0.125f, GetPing( networkId ) / 500f );
 			
 			yield return new WaitForSeconds( delay );
 			

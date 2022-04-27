@@ -310,7 +310,7 @@ namespace Tehelee.Baseline.Networking
 				if( ping > maxPing )
 					maxPing = ping;
 
-			float delay = Mathf.Max( 0.05f, maxPing / 500f );
+			float delay = Mathf.Max( 0.125f, maxPing / 500f );
 			
 			DisconnectAndClose();
 			
