@@ -780,7 +780,14 @@ namespace Tehelee.Baseline.Networking
 
 			SendQueue();
 
-			if( closing && !closeInvoked && packetsSentLastFrame == 0 )
+			if
+			(
+				closing &&
+				!closeInvoked &&
+				packetsSentLastFrame == 0 &&
+				( packetQueue.reliable?.Count ?? 0 ) == 0 &&
+				( packetQueue.unreliable?.Count ?? 0 ) == 0
+			)
 			{
 				closeInvoked = true;
 				Utils.Delay( disconnectAndCloseDelay, Close );
