@@ -25,13 +25,13 @@ namespace Tehelee.Baseline
 		////////////////////////
 		#region Quitting
 
-		private enum QuitState
+		public enum QuitState
 		{
 			Running,
 			Redirected,
 			Exitable
 		}
-		private static QuitState quitState = QuitState.Running;
+		public static QuitState quitState { get; private set; } = QuitState.Running;
 		
 		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
 		private static void RegisterWantsToQuit()
@@ -56,25 +56,25 @@ namespace Tehelee.Baseline
 			Application.wantsToQuit += quitRedirect;
 		}
 
-		private static HashSet<GetCoroutine> InvokeOnQuit = new HashSet<GetCoroutine>();
+		private static HashSet<GetCoroutine> invokeOnQuit = new HashSet<GetCoroutine>();
 
 		public delegate IEnumerator GetCoroutine();
 		
 		public static void AddQuitCoroutine( GetCoroutine coroutine )
 		{
 			if( coroutine != null )
-				InvokeOnQuit.Add( coroutine );
+				invokeOnQuit.Add( coroutine );
 		}
 
 		public static void RemoveQuitCoroutine( GetCoroutine coroutine )
 		{
 			if( coroutine != null )
-				InvokeOnQuit.Remove( coroutine );
+				invokeOnQuit.Remove( coroutine );
 		}
 
 		private static IEnumerator IHandleQuit()
 		{
-			List<GetCoroutine> getCoroutines = new List<GetCoroutine>( InvokeOnQuit );
+			List<GetCoroutine> getCoroutines = new List<GetCoroutine>( invokeOnQuit );
 			foreach( GetCoroutine getCoroutine in getCoroutines )
 			{
 				IEnumerator coroutine = getCoroutine?.Invoke();
