@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
-
+using Tehelee.Baseline.Networking.Packets;
 using UnityEngine;
 
 using Unity.Collections;
@@ -257,8 +257,13 @@ namespace Tehelee.Baseline.Networking
 
 		private IEnumerator IPerformShutdown()
 		{
-			Close();
+			Send( new Administration() { networkId = networkId, operation = Administration.Operation.Disconnect } );
 
+			for( int i = 0; i < 2; i++ )
+				yield return null;
+			
+			Close();
+			
 			for( int i = 0; i < 2; i++ )
 				yield return null;
 		}

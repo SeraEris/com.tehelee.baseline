@@ -26,7 +26,8 @@ namespace Tehelee.Baseline.Networking.Packets
 			Demote		= 4,
 			Rename		= 5,
 			Kick		= 6,
-			Ban			= 7
+			Ban			= 7,
+			Disconnect  = 8
 		}
 
 		public Operation operation;

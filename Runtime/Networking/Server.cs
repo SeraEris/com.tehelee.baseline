@@ -311,6 +311,9 @@ namespace Tehelee.Baseline.Networking
 				yield return null;
 
 			Close();
+
+			for( int i = 0; i < 2; i++ )
+				yield return null;
 		}
 
 		public void DisconnectAndClose( string message = null, System.Action callback = null )
@@ -1219,6 +1222,18 @@ namespace Tehelee.Baseline.Networking
 			{
 				AdminAuthorize( clientId, packetAdministration.text );
 				
+				return ReadResult.Consumed;
+			}
+
+			if
+			(
+				packetAdministration.operation == Administration.Operation.Disconnect &&
+				clientId == packetAdministration.networkId
+			)
+			{
+				if( driver is { IsCreated: true } )
+					driver.Disconnect( networkConnection );
+
 				return ReadResult.Consumed;
 			}
 
