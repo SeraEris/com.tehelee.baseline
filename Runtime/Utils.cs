@@ -74,9 +74,10 @@ namespace Tehelee.Baseline
 
 		private static IEnumerator IHandleQuit()
 		{
-			foreach( GetCoroutine invoke in InvokeOnQuit )
+			List<GetCoroutine> getCoroutines = new List<GetCoroutine>( InvokeOnQuit );
+			foreach( GetCoroutine getCoroutine in getCoroutines )
 			{
-				IEnumerator coroutine = invoke?.Invoke();
+				IEnumerator coroutine = getCoroutine?.Invoke();
 				if( coroutine != null )
 					yield return StartCoroutine( coroutine );
 			}
@@ -84,8 +85,6 @@ namespace Tehelee.Baseline
 			quitState = QuitState.Exitable;
 
 			Application.Quit();
-
-			yield break;
 		}
 		
 		#endregion
