@@ -195,6 +195,9 @@ namespace Tehelee.Baseline.Networking
 			
 			DropListener( typeof( Packets.MultiMessage ), OnMultiMessage );
 			
+			DropChatCommand( "?", OnChatHelp );
+			DropChatCommand( "help", OnChatHelp );
+			
 			DropChatCommand( "a", OnChatAdmin );
 			DropChatCommand( "admin", OnChatAdmin );
 			
@@ -1657,6 +1660,23 @@ namespace Tehelee.Baseline.Networking
 				return;
 			
 			chatCommands[ command ] -= callback;
+		}
+
+		public void OnChatHelp( ushort networkId, string[] arguments )
+		{
+			if( arguments.Length == 0 || !chatCommands.ContainsKey( arguments[ 0 ].ToLower() ) )
+			{
+				SendMessage
+				( 
+					0,
+					$"Chat Commands:\n  /{string.Join( "\n  /", chatCommands.Keys )}",
+					networkId
+				);
+			}
+			else
+			{
+				chatCommands[ arguments[ 0 ].ToLower() ]?.Invoke( networkId, new [] { "help" } );
+			}
 		}
 
 		#endregion
