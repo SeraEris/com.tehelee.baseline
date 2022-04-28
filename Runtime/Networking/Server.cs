@@ -1485,7 +1485,7 @@ namespace Tehelee.Baseline.Networking
 						Send( new Username() { name = rename, networkId = targetPlayerId }, true );
 						
 						SendMessage( 0, $"Renamed '{oldName}' to '{rename}'.", networkId );
-						SendMessage( 0, $"Your name was force changed to '{rename}' by an admin.", targetPlayerId );
+						SendMessage( 0, $"An admin has changed your name to: {rename}", targetPlayerId );
 						
 						AdminRename( targetPlayerId, reason );
 					}
