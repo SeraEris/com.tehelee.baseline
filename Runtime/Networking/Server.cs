@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
@@ -1383,6 +1384,62 @@ namespace Tehelee.Baseline.Networking
 				if( !object.Equals( null, driver ) && driver.IsCreated )
 					driver.Disconnect( targetConnection );
 			} );
+		}
+
+		#endregion
+
+		////////////////////////////////
+		//	Network - Messages
+
+		#region Network Messages
+		
+		public event OnMessage onMessageReceived;
+
+		private new ReadResult OnMultiMessage( NetworkConnection connection, ref PacketReader reader )
+		{
+			int readIndex = reader.readIndex;
+			MultiMessage multiMessage = new MultiMessage( ref reader );
+			reader.readIndex = readIndex;
+			
+			ushort clientId = GetNetworkId( connection );
+
+			if( !IsAdminId( clientId ) && ( clientId != multiMessage.networkId ) )
+			{
+				Debug.LogError( $"Player ({clientId}) attempted to send a message as another player ({multiMessage.networkId}) without being an admin." );
+				return ReadResult.Consumed;
+			}
+			
+			onMessageReceived?.Invoke( multiMessage.networkId, multiMessage.postTime, multiMessage.editTime, multiMessage.message );
+
+			return base.OnMultiMessage( connection, ref reader );
+		}
+
+		protected override void OnMessageReceived( ushort networkId, DateTime postTime, DateTime editTime, string message )
+		{
+			if( message.StartsWith( "/" ) )
+			{
+				string[] parts = message.Split( ' ' );
+				string command = parts[ 0 ].Substring( 1 );
+				
+				SendMessage( 0, $"Command Unrecognized: '{command}'", networkId );
+				
+				return;
+			}
+
+			SendMessage( networkId, postTime, editTime, message );
+		}
+
+		public void SendMessage( ushort senderId, string message, params ushort[] clientIds ) =>
+			SendMessage( senderId, DateTime.Now, DateTime.Now, message, clientIds );
+		
+		public void SendMessage( ushort senderId, DateTime postTime, DateTime editTime, string message, params ushort[] clientIds )
+		{
+			if( string.IsNullOrEmpty( message ) )
+				return;
+			
+			Bundle bundle = Bundle.Pack( MultiMessage.ConstructMultiMessages( senderId, postTime, editTime, message ), clientIds.Length == 0 ? null : GetNetworkConnections( clientIds ) );
+
+			Send( bundle, true );
 		}
 
 		#endregion

@@ -1,5 +1,6 @@
+using System;
 using System.Collections.Generic;
-
+using Tehelee.Baseline.Networking.Packets;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -928,6 +929,92 @@ namespace Tehelee.Baseline.Networking
 
 			return adminIds.Remove( clientId );
 		}
+
+		#endregion
+		
+		////////////////////////////////
+		#region Network MultiMessage
+		
+		public delegate void OnMessage( ushort networkId, DateTime postTime, DateTime editTime, string message );
+		
+		protected class PendingMultiMessage
+		{
+			public ushort networkId;
+			public DateTime postTime;
+			public DateTime editTime;
+			public string[] messageParts;
+
+			public PendingMultiMessage( MultiMessage multiMessage )
+			{
+				networkId = multiMessage.networkId;
+				postTime = multiMessage.postTime;
+				editTime = multiMessage.editTime;
+				messageParts = new string[ multiMessage.totalParts ];
+				messageParts[ multiMessage.currentPart ] = multiMessage.message;
+			}
+
+			public override string ToString()
+			{
+				return string.Format( "{0}'s #{1} @ {2} ( {3} parts ): '{4}'", networkId, postTime.Ticks, postTime.ToString( "T" ).ToLower(), messageParts.Length, string.Concat( messageParts ) );
+			}
+
+			public bool Integrate( MultiMessage multiMessage )
+			{
+				messageParts[ multiMessage.currentPart ] = multiMessage.message;
+
+				foreach( string messagePart in messageParts )
+					if( string.IsNullOrEmpty( messagePart ) )
+						return false;
+
+				return true;
+			}
+		}
+
+		protected Dictionary<ushort, Dictionary<DateTime, PendingMultiMessage>> pendingMultiMessages = new Dictionary<ushort, Dictionary<DateTime, PendingMultiMessage>>();
+
+		protected ReadResult OnMultiMessage( NetworkConnection connection, ref PacketReader reader )
+		{
+			MultiMessage multiMessage = new MultiMessage( ref reader );
+
+			PendingMultiMessage pendingMessage = null;
+
+			if( multiMessage.totalParts > 1 )
+			{
+				Dictionary<DateTime, PendingMultiMessage> pendingMessages = pendingMultiMessages[ multiMessage.networkId ];
+
+				if( pendingMessages.ContainsKey( multiMessage.postTime ) )
+				{
+					pendingMessage = pendingMessages[ multiMessage.postTime ];
+
+					if( pendingMessage.Integrate( multiMessage ) )
+					{
+						pendingMessages.Remove( multiMessage.postTime );
+					}
+					else
+					{
+						pendingMessages[ multiMessage.postTime ] = pendingMessage;
+						pendingMessage = null;
+					}
+				}
+				else
+				{
+					pendingMessages.Add( multiMessage.postTime, new PendingMultiMessage( multiMessage ) );
+				}
+
+				pendingMultiMessages[ multiMessage.networkId ] = pendingMessages;
+			}
+			else
+			{
+				pendingMessage = new PendingMultiMessage( multiMessage );
+			}
+
+			if( !object.Equals( null, pendingMessage ) )
+				OnMessageReceived( pendingMessage.networkId, pendingMessage.postTime, pendingMessage.editTime, string.Concat( pendingMessage.messageParts ) );
+
+			return ReadResult.Consumed;
+		}
+
+		protected virtual void OnMessageReceived( ushort networkId, DateTime postTime, DateTime editTime, string message ) { }
 
 		#endregion
 	}

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
@@ -963,6 +964,20 @@ namespace Tehelee.Baseline.Networking
 			}
 
 			return ReadResult.Consumed;
+		}
+
+		#endregion
+
+		////////////////////////////////
+		//	Network - MultiMessage
+
+		#region Network MultiMessage
+		
+		public event OnMessage onMessageReceived;
+
+		protected override void OnMessageReceived( ushort networkId, DateTime postTime, DateTime editTime, string message )
+		{
+			onMessageReceived?.Invoke( networkId, postTime, editTime, message );
 		}
 
 		#endregion
