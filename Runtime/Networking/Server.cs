@@ -1596,7 +1596,7 @@ namespace Tehelee.Baseline.Networking
 				if( chatCommands.ContainsKey( command ) )
 				{
 					List<string> _parts = new List<string>( parts );
-					_parts.RemoveAt( 1 );
+					_parts.RemoveAt( 0 );
 					chatCommands[ command ]?.Invoke( networkId, _parts.ToArray() );
 				}
 				else
