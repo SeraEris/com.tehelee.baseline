@@ -1463,6 +1463,7 @@ namespace Tehelee.Baseline.Networking
 					{
 						AdminPromote( targetPlayerId );
 						SendMessage( 0, $"Promoted {GetUsername( targetPlayerId )} to admin.", networkId );
+						SendMessage( 0, $"{GetUsername( networkId )} has promoted you to admin.", targetPlayerId );
 					}
 					break;
 				case "demote":
@@ -1470,17 +1471,23 @@ namespace Tehelee.Baseline.Networking
 					{
 						AdminDemote( targetPlayerId );
 						SendMessage( 0, $"Demoted {GetUsername( targetPlayerId )} from admin.", networkId );
+						SendMessage( 0, $"You've been demoted from admin", targetPlayerId );
 					}
 					break;
 				case "rename":
 					if( HasTargetPlayer() )
 					{
-						string rename = arguments[ 1 ];
-						string reason = string.Join( " ", arguments, 2, arguments.Length - 2 );
+						string rename = arguments[ 2 ];
+						string reason = string.Join( " ", arguments, 3, arguments.Length - 3 );
 						string oldName = GetUsername( targetPlayerId );
+						
 						SetUsername( targetPlayerId, rename );
-						AdminRename( targetPlayerId, reason );
+						Send( new Username() { name = name, networkId = targetPlayerId }, true );
+						
 						SendMessage( 0, $"Renamed '{oldName}' to '{rename}'.", networkId );
+						SendMessage( 0, $"Your name was force changed to '{rename}' by an admin.", targetPlayerId );
+						
+						AdminRename( targetPlayerId, reason );
 					}
 					break;
 				case "kick":
@@ -1488,7 +1495,7 @@ namespace Tehelee.Baseline.Networking
 					{
 						string name = GetUsername( targetPlayerId );
 						AdminBoot( targetPlayerId, string.Join( " ", arguments, 2, arguments.Length - 2 ) );
-						SendMessage( 0, $"Kicked {name} from the server.", networkId );
+						SendMessage( 0, $"Kicked {name} from the server." );
 					}
 					break;
 				case "ban":
@@ -1496,7 +1503,7 @@ namespace Tehelee.Baseline.Networking
 					{
 						string name = GetUsername( targetPlayerId );
 						AdminBoot( targetPlayerId, string.Join( " ", arguments, 2, arguments.Length - 2 ), true );
-						SendMessage( 0, $"Banned {name} from the server.", networkId );
+						SendMessage( 0, $"Banned {name} from the server." );
 					}
 					break;
 			}
