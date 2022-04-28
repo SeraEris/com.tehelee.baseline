@@ -719,8 +719,6 @@ namespace Tehelee.Baseline.Networking
 			Send( welcomeBundle, true );
 
 			UpdateClientReady( clientId );
-			
-			SendMessage( 0, $"{GetUsername( clientId )} has joined." );
 
 			if( debug )
 				Debug.LogWarning( $"Server: Approved client {clientInfo.networkConnection.InternalId}" );
@@ -1030,6 +1028,8 @@ namespace Tehelee.Baseline.Networking
 			}, true );
 
 			OnClientReady( clientInfo.networkConnection );
+			
+			SendMessage( 0, $"{GetUsername( clientId )} has joined." );
 			
 			if( debug )
 				Debug.LogWarning( "Server: Client {clientInfo.networkConnection.InternalId} is Ready" );
