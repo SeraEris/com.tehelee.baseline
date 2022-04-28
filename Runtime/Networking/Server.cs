@@ -1228,8 +1228,19 @@ namespace Tehelee.Baseline.Networking
 		{
 			Packets.LocalHost packetLocalHost = new LocalHost( ref reader );
 
+			Debug.Log( $"Received LocalHost Command: {packetLocalHost.command} @ {packetLocalHost.authKey}" );
+
 			if( !isLocalHost )
+			{
+				Debug.LogError( "Invalid LocalHost Command, Not Local Host" );
 				return ReadResult.Consumed;
+			}
+			
+			if( packetLocalHost.authKey != localAuthKey )
+			{
+				Debug.LogError( $"Invalid LocalHost Command, Auth Key Mismatch ( {packetLocalHost.authKey} != {localAuthKey} )" );
+				return ReadResult.Consumed;
+			}
 
 			switch( packetLocalHost.command )
 			{

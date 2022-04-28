@@ -1,7 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Net;
 
 using UnityEngine;
 
@@ -14,7 +11,6 @@ using Unity.Collections;
 using Unity.Networking.Transport;
 using Unity.Networking.Transport.Utilities;
 using Unity.Collections.LowLevel.Unsafe;
-using System.Runtime.InteropServices;
 
 namespace Tehelee.Baseline.Networking
 {
@@ -149,8 +145,6 @@ namespace Tehelee.Baseline.Networking
 				isLocalHost = int.TryParse
 				(
 					args[ "localHost" ],
-					NumberStyles.HexNumber,
-					new NumberFormatInfo(),
 					out int authKey
 				);
 				localAuthKey = isLocalHost ? authKey : 0;

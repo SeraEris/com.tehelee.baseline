@@ -258,14 +258,10 @@ namespace Tehelee.Baseline.Networking
 
 		private IEnumerator IPerformShutdown()
 		{
-			Bundle bundle = new Bundle();
-
 			if( isLocalHost )
-				bundle.packets.Add( new LocalHost( localAuthKey, LocalHost.Command.Shutdown, networkId ) );
-
-			bundle.packets.Add( new Administration() { networkId = networkId, operation = Administration.Operation.Disconnect } );
-			
-			Send( bundle );
+				Send( new LocalHost( localAuthKey, LocalHost.Command.Shutdown, networkId ), true );
+			else
+				Send( new Administration() { networkId = networkId, operation = Administration.Operation.Disconnect }, true );
 
 			float delay = Mathf.Max( 0.125f, GetPing( networkId ) / 500f );
 			
