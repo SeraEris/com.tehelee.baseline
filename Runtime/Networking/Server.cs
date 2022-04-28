@@ -1475,8 +1475,8 @@ namespace Tehelee.Baseline.Networking
 				case "rename":
 					if( HasTargetPlayer() )
 					{
-						string rename = arguments[ 2 ];
-						string reason = string.Join( " ", arguments, 3, arguments.Length - 3 );
+						string rename = arguments[ 1 ];
+						string reason = string.Join( " ", arguments, 2, arguments.Length - 2 );
 						string oldName = GetUsername( targetPlayerId );
 						SetUsername( targetPlayerId, rename );
 						AdminRename( targetPlayerId, reason );
