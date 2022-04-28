@@ -17,6 +17,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 using Open.Nat;
 using Tehelee.Baseline.Networking.Packets;
+using Unity.Burst.Intrinsics;
 using StringComparison = System.StringComparison;
 
 using Bundle = Tehelee.Baseline.Networking.Packets.Bundle;
@@ -160,6 +161,12 @@ namespace Tehelee.Baseline.Networking
 			RegisterListener( typeof( Packets.Username ), OnUsername );
 			
 			RegisterListener( typeof( Packets.MultiMessage ), OnMultiMessage );
+			
+			RegisterChatCommand( "a", OnChatAdmin );
+			RegisterChatCommand( "admin", OnChatAdmin );
+			
+			RegisterChatCommand( "nick", OnChatRename );
+			RegisterChatCommand( "rename", OnChatRename );
 
 			if( registerSingleton && object.Equals( null, singleton.instance ) )
 				singleton.instance = this;
@@ -187,8 +194,16 @@ namespace Tehelee.Baseline.Networking
 			DropListener( typeof( Packets.Username ), OnUsername );
 			
 			DropListener( typeof( Packets.MultiMessage ), OnMultiMessage );
+			
+			DropChatCommand( "a", OnChatAdmin );
+			DropChatCommand( "admin", OnChatAdmin );
+			
+			DropChatCommand( "nick", OnChatRename );
+			DropChatCommand( "rename", OnChatRename );
 
 			pendingMultiMessages.Clear();
+
+			chatCommands.Clear();
 
 			if( !object.Equals( null, _IPingBroadcast ) )
 			{
@@ -996,6 +1011,21 @@ namespace Tehelee.Baseline.Networking
 			return ReadResult.Consumed;
 		}
 
+		private void OnChatRename( ushort clientId, string[] arguments )
+		{
+			string name = string.Join( " ", arguments );
+			string oldName = GetUsername( clientId );
+			
+			SetUsername( clientId, name );
+			
+			SendMessage( 0, $"You changed your name to: {name}", clientId );
+			
+			List<ushort> otherIds = new List<ushort>( clientNetworkIds );
+			otherIds.Remove( clientId );
+			
+			SendMessage( 0, $"{oldName} changed their name to {name}", otherIds.ToArray() );
+		}
+
 		#endregion
 
 		////////////////////////////////
@@ -1341,6 +1371,126 @@ namespace Tehelee.Baseline.Networking
 		////////////////////////////////
 		#region Admin Operations
 
+		private void OnChatAdmin( ushort networkId, string[] arguments )
+		{
+			if( !IsAdminId( networkId ) )
+			{
+				if( arguments.Length >= 1 && arguments[ 0 ].ToLower() == "login" )
+				{
+					if( arguments.Length < 2 || !AdminAuthorize( networkId, arguments[ 1 ] ) )
+					{
+						SendMessage( 0, "Admin password invalid.", networkId );
+					}
+				}
+				else
+				{
+					SendMessage( 0, "Admin Ops Unavailable. Use /admin login <password> to login.", networkId );
+				}
+				return;
+			}
+
+			if( arguments.Length < 2 || arguments[ 1 ].ToLower() == "help" )
+			{
+				SendMessage
+				(
+					0,
+					"Admin Commands:\n" +
+					"  /admin login <password>\n" +
+					"  /admin logout\n" +
+					"  /admin shutdown <reason>\n" +
+					"  /admin alert <message>\n" +
+					"  /admin message <name> <message>\n" +
+					"  /admin promote <name>\n" +
+					"  /admin demote <name>\n" +
+					"  /admin rename <name> <rename>\n" +
+					"  /admin kick <name> <reason>\n" +
+					"  /admin ban <name> <reason>",
+					networkId
+				);
+				return;
+			}
+
+			ushort FindNetworkIdByUsername( string name )
+			{
+				foreach( KeyValuePair<ushort,string> kvp in usernamesByNetworkId )
+				{
+					if( kvp.Value.ToLower().Contains( name.ToLower() ) )
+						return kvp.Key;
+				}
+
+				return 0;
+			}
+
+			ushort targetPlayerId =
+				arguments.Length < 3 ?
+					( ushort ) 0 :
+					FindNetworkIdByUsername( arguments[ 2 ] );
+
+			bool HasTargetPlayer()
+			{
+				if( targetPlayerId == 0 )
+					SendMessage( 0, $"Player '{arguments[2]}' not found." );
+				
+				return targetPlayerId != 0;
+			}
+
+			switch( arguments[ 1 ].ToLower() )
+			{
+				case "logout":
+					AdminDemote( networkId );
+					break;
+				case "shutdown":
+					AdminShutdown( string.Join( " ", arguments, 2, arguments.Length - 2 ) );
+					break;
+				case "alert":
+					AdminAlert( string.Join( " ", arguments, 2, arguments.Length - 2 ) );
+					break;
+				case "message":
+					if( HasTargetPlayer() )
+						AdminAlert( string.Join( " ", arguments, 3, arguments.Length - 3 ), targetPlayerId );
+					break;
+				case "promote":
+					if( HasTargetPlayer() )
+					{
+						AdminPromote( targetPlayerId );
+						SendMessage( 0, $"Promoted {GetUsername( targetPlayerId )} to admin.", networkId );
+					}
+					break;
+				case "demote":
+					if( HasTargetPlayer() )
+					{
+						AdminDemote( targetPlayerId );
+						SendMessage( 0, $"Demoted {GetUsername( targetPlayerId )} from admin.", networkId );
+					}
+					break;
+				case "rename":
+					if( HasTargetPlayer() )
+					{
+						string rename = string.Join( " ", arguments, 3, arguments.Length - 3 );
+						string oldName = GetUsername( targetPlayerId );
+						AdminRename( targetPlayerId, rename );
+						SendMessage( 0, $"Renamed '{oldName}' to '{rename}'.", networkId );
+					}
+					break;
+				case "kick":
+					if( HasTargetPlayer() )
+					{
+						string name = GetUsername( targetPlayerId );
+						AdminBoot( targetPlayerId, string.Join( " ", arguments, 3, arguments.Length - 3 ) );
+						SendMessage( 0, $"Kicked {name} from the server.", networkId );
+					}
+					break;
+				case "ban":
+					if( HasTargetPlayer() )
+					{
+						string name = GetUsername( targetPlayerId );
+						AdminBoot( targetPlayerId, string.Join( " ", arguments, 3, arguments.Length - 3 ), true );
+						SendMessage( 0, $"Banned {name} from the server.", networkId );
+					}
+					break;
+			}
+		}
+
 		public void AdminShutdown( string reason )
 		{
 			DisconnectAndClose( reason );
@@ -1429,10 +1579,19 @@ namespace Tehelee.Baseline.Networking
 		{
 			if( message.StartsWith( "/" ) )
 			{
-				string[] parts = message.Split( ' ' );
-				string command = parts[ 0 ].Substring( 1 );
-				
-				SendMessage( 0, $"Command Unrecognized: '{command}'", networkId );
+				string[] parts = Utils.SlitArguments( message );
+				string command = parts[ 0 ].Substring( 1 ).ToLower();
+
+				if( chatCommands.ContainsKey( command ) )
+				{
+					List<string> _parts = new List<string>( parts );
+					_parts.RemoveAt( 1 );
+					chatCommands[ command ]?.Invoke( networkId, _parts.ToArray() );
+				}
+				else
+				{
+					SendMessage( 0, $"Command Unrecognized: '{command}'", networkId );					
+				}
 				
 				return;
 			}
@@ -1451,6 +1610,35 @@ namespace Tehelee.Baseline.Networking
 			Bundle bundle = Bundle.Pack( MultiMessage.ConstructMultiMessages( senderId, postTime, editTime, message ), clientIds.Length == 0 ? null : GetNetworkConnections( clientIds ) );
 
 			Send( bundle, true );
+		}
+
+		#endregion
+		
+		////////////////////////////////
+		#region Chat Commands
+
+		public delegate void OnChatCommand( ushort networkId, string[] arguments );
+
+		private Dictionary<string, OnChatCommand> chatCommands = new Dictionary<string, OnChatCommand>();
+
+		public void RegisterChatCommand( string command, OnChatCommand callback )
+		{
+			command = command.ToLower().Trim();
+
+			if( chatCommands.ContainsKey( command ) )
+				chatCommands[ command ] += callback;
+			else
+				chatCommands.Add( command, callback );
+		}
+
+		public void DropChatCommand( string command, OnChatCommand callback )
+		{
+			command = command.ToLower().Trim();
+
+			if( !chatCommands.ContainsKey( command ) )
+				return;
+			
+			chatCommands[ command ] -= callback;
 		}
 
 		#endregion

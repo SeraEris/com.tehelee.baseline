@@ -759,6 +759,22 @@ namespace Tehelee.Baseline
 			return decimalFormat;
 		}
 
+		public static string[] SlitArguments( string argumentString )
+		{
+			List<string> list =
+				Regex.Matches
+				(
+					argumentString,
+					@"\""(\""\""|[^\""])+\""|[^ ]+",
+					RegexOptions.ExplicitCapture
+				)
+					 .Cast<Match>()
+					 .Select(m => m.Value)
+					 .ToList();
+
+			return list.ToArray();
+		}
+
 		#endregion
 
 		////////////////////////
