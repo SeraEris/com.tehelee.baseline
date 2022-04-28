@@ -162,6 +162,9 @@ namespace Tehelee.Baseline.Networking
 			
 			RegisterListener( typeof( Packets.MultiMessage ), OnMultiMessage );
 			
+			RegisterChatCommand( "?", OnChatHelp );
+			RegisterChatCommand( "help", OnChatHelp );
+			
 			RegisterChatCommand( "a", OnChatAdmin );
 			RegisterChatCommand( "admin", OnChatAdmin );
 			
