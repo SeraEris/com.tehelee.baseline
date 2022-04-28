@@ -1608,7 +1608,7 @@ namespace Tehelee.Baseline.Networking
 				string[] parts = Utils.SlitArguments( message );
 				string command = parts[ 0 ].Substring( 1 ).ToLower();
 
-				if( chatCommands.ContainsKey( command ) )
+				if( chatCommands.ContainsKey( command ) || chatCommandAliases.ContainsKey( command ) )
 				{
 					List<string> _parts = new List<string>( parts );
 					_parts.RemoveAt( 0 );
