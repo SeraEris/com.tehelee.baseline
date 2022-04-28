@@ -229,7 +229,8 @@ namespace Tehelee.Baseline.Networking
 			typeof( Packets.Password ),
 			typeof( Packets.Ping ),
 			typeof( Packets.ServerInfo ),
-			typeof( Packets.Username )
+			typeof( Packets.Username ),
+			typeof( Packets.MultiMessage ),
 		};
 		
 		public List<DesignData.PacketData> packetDatas = new List<DesignData.PacketData>();
