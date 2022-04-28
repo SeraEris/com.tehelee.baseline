@@ -58,6 +58,12 @@ namespace Tehelee.Baseline.Networking
 		public bool isLocalHost { get; protected set; } = false;
 		public int localAuthKey { get; protected set; } = 0;
 
+		public void SetLocalAuth( int authKey )
+		{
+			isLocalHost = true;
+			localAuthKey = authKey;
+		}
+
 		#endregion
 
 		////////////////////////////////
@@ -197,6 +203,9 @@ namespace Tehelee.Baseline.Networking
 			foreach( System.Type type in builtInPacketTypes )
 				if( !object.Equals( null, type ) )
 					Packet.Unregister( this, type );
+			
+			isLocalHost = false;
+			localAuthKey = 0;
 
 			open = false;
 			
