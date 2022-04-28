@@ -1013,17 +1013,26 @@ namespace Tehelee.Baseline.Networking
 
 		private void OnChatRename( ushort clientId, string[] arguments )
 		{
+			if( arguments.Length < 1 )
+			{
+				SendMessage( 0, $"/rename <name>", clientId );
+				return;
+			}
+			
 			string name = string.Join( " ", arguments );
 			string oldName = GetUsername( clientId );
 			
 			SetUsername( clientId, name );
+
+			Send( new Username() { name = name, networkId = clientId }, true );
 			
 			SendMessage( 0, $"You changed your name to: {name}", clientId );
 			
 			List<ushort> otherIds = new List<ushort>( clientNetworkIds );
 			otherIds.Remove( clientId );
 			
-			SendMessage( 0, $"{oldName} changed their name to {name}", otherIds.ToArray() );
+			if( otherIds.Count > 0 )
+				SendMessage( 0, $"{oldName} changed their name to {name}", otherIds.ToArray() );
 		}
 
 		#endregion
@@ -1389,7 +1398,7 @@ namespace Tehelee.Baseline.Networking
 				return;
 			}
 
-			if( arguments.Length < 2 || arguments[ 1 ].ToLower() == "help" )
+			if( arguments.Length < 1 || arguments[ 0 ].ToLower() == "help" )
 			{
 				SendMessage
 				(
@@ -1404,7 +1413,7 @@ namespace Tehelee.Baseline.Networking
 					"  /admin demote <name>\n" +
 					"  /admin rename <name> <rename>\n" +
 					"  /admin kick <name> <reason>\n" +
-					"  /admin ban <name> <reason>",
+					"  /admin ban <name> <reason>\n",
 					networkId
 				);
 				return;
@@ -1422,32 +1431,32 @@ namespace Tehelee.Baseline.Networking
 			}
 
 			ushort targetPlayerId =
-				arguments.Length < 3 ?
+				arguments.Length < 2 ?
 					( ushort ) 0 :
-					FindNetworkIdByUsername( arguments[ 2 ] );
+					FindNetworkIdByUsername( arguments[ 1 ] );
 
 			bool HasTargetPlayer()
 			{
 				if( targetPlayerId == 0 )
-					SendMessage( 0, $"Player '{arguments[2]}' not found." );
+					SendMessage( 0, $"Player '{arguments[1]}' not found." );
 				
 				return targetPlayerId != 0;
 			}
 
-			switch( arguments[ 1 ].ToLower() )
+			switch( arguments[ 0 ].ToLower() )
 			{
 				case "logout":
 					AdminDemote( networkId );
 					break;
 				case "shutdown":
-					AdminShutdown( string.Join( " ", arguments, 2, arguments.Length - 2 ) );
+					AdminShutdown( string.Join( " ", arguments, 1, arguments.Length - 1 ) );
 					break;
 				case "alert":
-					AdminAlert( string.Join( " ", arguments, 2, arguments.Length - 2 ) );
+					AdminAlert( string.Join( " ", arguments, 1, arguments.Length - 1 ) );
 					break;
 				case "message":
 					if( HasTargetPlayer() )
-						AdminAlert( string.Join( " ", arguments, 3, arguments.Length - 3 ), targetPlayerId );
+						AdminAlert( string.Join( " ", arguments, 2, arguments.Length - 2 ), targetPlayerId );
 					break;
 				case "promote":
 					if( HasTargetPlayer() )
@@ -1466,9 +1475,11 @@ namespace Tehelee.Baseline.Networking
 				case "rename":
 					if( HasTargetPlayer() )
 					{
-						string rename = string.Join( " ", arguments, 3, arguments.Length - 3 );
+						string rename = arguments[ 2 ];
+						string reason = string.Join( " ", arguments, 3, arguments.Length - 3 );
 						string oldName = GetUsername( targetPlayerId );
-						AdminRename( targetPlayerId, rename );
+						SetUsername( targetPlayerId, rename );
+						AdminRename( targetPlayerId, reason );
 						SendMessage( 0, $"Renamed '{oldName}' to '{rename}'.", networkId );
 					}
 					break;
@@ -1476,7 +1487,7 @@ namespace Tehelee.Baseline.Networking
 					if( HasTargetPlayer() )
 					{
 						string name = GetUsername( targetPlayerId );
-						AdminBoot( targetPlayerId, string.Join( " ", arguments, 3, arguments.Length - 3 ) );
+						AdminBoot( targetPlayerId, string.Join( " ", arguments, 2, arguments.Length - 2 ) );
 						SendMessage( 0, $"Kicked {name} from the server.", networkId );
 					}
 					break;
@@ -1484,7 +1495,7 @@ namespace Tehelee.Baseline.Networking
 					if( HasTargetPlayer() )
 					{
 						string name = GetUsername( targetPlayerId );
-						AdminBoot( targetPlayerId, string.Join( " ", arguments, 3, arguments.Length - 3 ), true );
+						AdminBoot( targetPlayerId, string.Join( " ", arguments, 2, arguments.Length - 2 ), true );
 						SendMessage( 0, $"Banned {name} from the server.", networkId );
 					}
 					break;
