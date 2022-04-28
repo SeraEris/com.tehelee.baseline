@@ -133,6 +133,7 @@ namespace Tehelee.Baseline.Networking
 			RegisterListener( typeof( Packets.Ping ), OnPing );
 			RegisterListener( typeof( Packets.ServerInfo ), OnServerInfo );
 			RegisterListener( typeof( Packets.Username ), OnUsername );
+			RegisterListener( typeof( MultiMessage ), OnMultiMessage );
 
 			if( registerSingleton && object.Equals( null, singleton.instance ) )
 				singleton.instance = this;
@@ -156,6 +157,9 @@ namespace Tehelee.Baseline.Networking
 			DropListener( typeof( Packets.Ping ), OnPing );
 			DropListener( typeof( Packets.ServerInfo ), OnServerInfo );
 			DropListener( typeof( Packets.Username ), OnUsername );
+			DropListener( typeof( MultiMessage ), OnMultiMessage );
+
+			pendingMultiMessages.Clear();
 
 			base.OnDisable();
 		}
@@ -627,6 +631,11 @@ namespace Tehelee.Baseline.Networking
 			if( !otherClientIds.Contains( clientId ) )
 			{
 				otherClientIds.Add( clientId );
+				
+				if( pendingMultiMessages.ContainsKey( networkId ) )
+					pendingMultiMessages[ networkId ].Clear();
+				else
+					pendingMultiMessages.Add( networkId, new Dictionary<DateTime, PendingMultiMessage>() );
 
 				onOtherClientConnected?.Invoke( clientId );
 
@@ -643,6 +652,9 @@ namespace Tehelee.Baseline.Networking
 		{
 			if( otherClientIds.Remove( clientId ) )
 			{
+				if( pendingMultiMessages.ContainsKey( networkId ) )
+					pendingMultiMessages.Remove( networkId );
+				
 				onOtherClientDisconnected?.Invoke( clientId );
 
 				if( debug )
@@ -964,6 +976,61 @@ namespace Tehelee.Baseline.Networking
 			}
 
 			return ReadResult.Consumed;
+		}
+
+		#endregion
+
+		////////////////////////////////
+		//	Messaging
+
+		#region Messaging
+			
+		public DateTime MessageSend( string message )
+		{
+			DateTime postTime = DateTime.Now;
+
+			if( !isServerApproved )
+				return postTime;
+
+			List<MultiMessage> multiMessages = MultiMessage.ConstructMultiMessages( networkId, postTime, postTime, message );
+			
+			foreach( MultiMessage multiMessage in multiMessages )
+				Send( multiMessage, true );
+
+			return postTime;
+		}
+
+		public DateTime MessageEdit( ushort networkId, DateTime timestamp, string message )
+		{
+			DateTime editTime = DateTime.Now;
+
+			if( !isServerApproved )
+				return editTime;
+
+			List<MultiMessage> multiMessages = MultiMessage.ConstructMultiMessages( networkId, timestamp, editTime, message );
+
+			foreach( MultiMessage multiMessage in multiMessages )
+				Send( multiMessage, true );
+
+			return editTime;
+		}
+
+		public void MessageDelete( ushort networkId, DateTime timestamp )
+		{
+			if( !isServerApproved )
+				return;
+
+			Packets.MultiMessage multiMessage = new MultiMessage()
+			{
+				networkId = networkId,
+				currentPart = 0,
+				totalParts = 1,
+				postTime = timestamp,
+				editTime = timestamp,
+				message = string.Empty
+			};
+
+			Send( multiMessage, true );
 		}
 
 		#endregion

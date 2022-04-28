@@ -158,6 +158,8 @@ namespace Tehelee.Baseline.Networking
 			RegisterListener( typeof( Packets.Loopback ), OnLoopback );
 
 			RegisterListener( typeof( Packets.Username ), OnUsername );
+			
+			RegisterListener( typeof( Packets.MultiMessage ), OnMultiMessage );
 
 			if( registerSingleton && object.Equals( null, singleton.instance ) )
 				singleton.instance = this;
@@ -183,6 +185,10 @@ namespace Tehelee.Baseline.Networking
 			DropListener( typeof( Packets.Loopback ), OnLoopback );
 
 			DropListener( typeof( Packets.Username ), OnUsername );
+			
+			DropListener( typeof( Packets.MultiMessage ), OnMultiMessage );
+
+			pendingMultiMessages.Clear();
 
 			if( !object.Equals( null, _IPingBroadcast ) )
 			{
@@ -579,6 +585,9 @@ namespace Tehelee.Baseline.Networking
 
 		private void RemoveConnection( NetworkConnection networkConnection, int nativeIndex = -1 )
 		{
+			
+			SendMessage( 0, $"{GetUsername( GetNetworkId( networkConnection ) )} has disconnected." );
+			
 			onClientDropped?.Invoke( networkConnection );
 			
 			int internalId = networkConnection.InternalId;
@@ -710,6 +719,8 @@ namespace Tehelee.Baseline.Networking
 			Send( welcomeBundle, true );
 
 			UpdateClientReady( clientId );
+			
+			SendMessage( 0, $"{GetUsername( clientId )} has joined." );
 
 			if( debug )
 				Debug.LogWarning( $"Server: Approved client {clientInfo.networkConnection.InternalId}" );
