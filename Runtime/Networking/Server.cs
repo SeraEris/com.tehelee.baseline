@@ -162,14 +162,15 @@ namespace Tehelee.Baseline.Networking
 			
 			RegisterListener( typeof( Packets.MultiMessage ), OnMultiMessage );
 			
-			RegisterChatCommand( "?", OnChatHelp );
+			
 			RegisterChatCommand( "help", OnChatHelp );
+			RegisterChatCommandAlias( "help", "?" );
 			
-			RegisterChatCommand( "a", OnChatAdmin );
 			RegisterChatCommand( "admin", OnChatAdmin );
+			RegisterChatCommandAlias( "admin", "a" );
 			
-			RegisterChatCommand( "nick", OnChatRename );
 			RegisterChatCommand( "rename", OnChatRename );
+			RegisterChatCommandAlias( "rename", "nick" );
 
 			if( registerSingleton && object.Equals( null, singleton.instance ) )
 				singleton.instance = this;
@@ -198,18 +199,19 @@ namespace Tehelee.Baseline.Networking
 			
 			DropListener( typeof( Packets.MultiMessage ), OnMultiMessage );
 			
-			DropChatCommand( "?", OnChatHelp );
+			DropChatCommandAlias( "?" );
 			DropChatCommand( "help", OnChatHelp );
 			
-			DropChatCommand( "a", OnChatAdmin );
+			DropChatCommandAlias( "a" );
 			DropChatCommand( "admin", OnChatAdmin );
 			
-			DropChatCommand( "nick", OnChatRename );
+			DropChatCommandAlias( "nick" );
 			DropChatCommand( "rename", OnChatRename );
-
+			
 			pendingMultiMessages.Clear();
 
 			chatCommands.Clear();
+			chatCommandAliases.Clear();
 
 			if( !object.Equals( null, _IPingBroadcast ) )
 			{
@@ -1610,7 +1612,7 @@ namespace Tehelee.Baseline.Networking
 				{
 					List<string> _parts = new List<string>( parts );
 					_parts.RemoveAt( 0 );
-					chatCommands[ command ]?.Invoke( networkId, _parts.ToArray() );
+					InvokeChatCommand( command, networkId, _parts.ToArray() );
 				}
 				else
 				{
@@ -1645,6 +1647,8 @@ namespace Tehelee.Baseline.Networking
 
 		private Dictionary<string, OnChatCommand> chatCommands = new Dictionary<string, OnChatCommand>();
 
+		private Dictionary<string, string> chatCommandAliases = new Dictionary<string, string>();
+
 		public void RegisterChatCommand( string command, OnChatCommand callback )
 		{
 			command = command.ToLower().Trim();
@@ -1665,12 +1669,35 @@ namespace Tehelee.Baseline.Networking
 			chatCommands[ command ] -= callback;
 		}
 
+		public void RegisterChatCommandAlias( string command, string alias )
+		{
+			chatCommandAliases[ alias ] = command;
+		}
+
+		public void DropChatCommandAlias( string alias )
+		{
+			chatCommandAliases.Remove( alias );
+		}
+
+		private void InvokeChatCommand( string command, ushort networkId, string[] arguments )
+		{
+			if( chatCommandAliases.ContainsKey( command ) )
+				command = chatCommandAliases[ command ];
+			
+			if( chatCommands.ContainsKey( command ) )
+				chatCommands[ command ]?.Invoke( networkId, arguments );
+			else
+				Debug.LogError( $"Unable To Invoke Chat Command: {command}" );
+		}
+
 		public void OnChatHelp( ushort networkId, string[] arguments )
 		{
-			if( arguments.Length == 0 || !chatCommands.ContainsKey( arguments[ 0 ].ToLower() ) )
+			string command = arguments.Length == 0 ? null : arguments[ 0 ].ToLower();
+			
+			if( string.IsNullOrEmpty( command ) || command == "help" || command == "?" || !chatCommands.ContainsKey( command ) )
 			{
 				SendMessage
-				( 
+				(
 					0,
 					$"Chat Commands:\n  /{string.Join( "\n  /", chatCommands.Keys )}",
 					networkId
@@ -1678,7 +1705,7 @@ namespace Tehelee.Baseline.Networking
 			}
 			else
 			{
-				chatCommands[ arguments[ 0 ].ToLower() ]?.Invoke( networkId, new [] { "help" } );
+				InvokeChatCommand( command, networkId, new[] { "help" } );
 			}
 		}
 
