@@ -38,6 +38,7 @@ namespace Tehelee.Baseline
 		{
 			bool quitRedirect()
 			{
+				Debug.Log( $"Quit Redirect: {quitState}"  );
 				#if UNITY_EDITOR
 				return true;
 				#else
@@ -82,6 +83,8 @@ namespace Tehelee.Baseline
 		{
 			List<GetCoroutine> getCoroutines = new List<GetCoroutine>( invokeOnQuit );
 			quitCoroutineCount = getCoroutines.Count;
+			Debug.Log( $"Quit Coroutines: {quitCoroutineCount}" );
+			
 			foreach( GetCoroutine getCoroutine in getCoroutines )
 			{
 				IEnumerator coroutine = getCoroutine?.Invoke();
@@ -89,10 +92,11 @@ namespace Tehelee.Baseline
 					yield return StartCoroutine( coroutine );
 
 				quitCoroutineCount--;
+				Debug.Log( $"Quit Coroutines Remaining: {quitCoroutineCount}" );
 			}
 
 			quitState = QuitState.Exitable;
-
+			Debug.Log( $"Quit State: {quitState}"  );
 			Application.Quit();
 		}
 		
@@ -123,8 +127,6 @@ namespace Tehelee.Baseline
 		
 		private static void OnShutdown()
 		{
-			Application.quitting -= OnShutdown;
-			
 			if( IsObjectAlive( delaySlave ) )
 				delaySlave.StopAllCoroutines();
 			
