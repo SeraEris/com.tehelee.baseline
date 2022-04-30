@@ -40,8 +40,7 @@ namespace Tehelee.Baseline
 			{
 				#if UNITY_EDITOR
 				return true;
-				#endif
-				
+				#else
 				switch( quitState )
 				{
 					default:
@@ -52,8 +51,10 @@ namespace Tehelee.Baseline
 						Debug.LogWarning( $"Application.Quit() invoked multiple times!\n  Coroutines Remaining: {quitCoroutineCount}" );
 						return false;
 					case QuitState.Exitable:
+						OnShutdown();
 						return true;
 				}
+				#endif
 			}
 			
 			quitState = QuitState.Running;
@@ -104,7 +105,6 @@ namespace Tehelee.Baseline
 		private static void OnAssembliesLoaded()
 		{
 			IsShuttingDown = false;	
-			Application.quitting += OnShutdown;
 			cts = new CancellationTokenSource();
 			#if UNITY_EDITOR
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
