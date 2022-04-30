@@ -367,8 +367,8 @@ namespace Tehelee.Baseline
 			string namespacePrefix = !string.IsNullOrEmpty( NamespacePrefix ) ? NamespacePrefix : Utils.ToPascalCase( PlayerSettings.productName );
 			namespacePrefix = SanitizeNamespace( namespacePrefix );
 
-			string folderSpace = "";
-			string folderSpaceSkipFirst = "";
+			string folderSpace = inScenesFolder == -1 ? string.Empty : "Scenes.";
+			string folderSpaceSkipFirst = folderSpace;
 			if( inScriptsFolder != -1 )
 			{
 				scriptFolders.Reverse();
