@@ -49,7 +49,7 @@ namespace Tehelee.Baseline
 						quitState = QuitState.Redirected;
 						return false;
 					case QuitState.Redirected:
-						Debug.LogWarning( "Application.Quit() invoked multiple times." );
+						Debug.LogWarning( $"Application.Quit() invoked multiple times!\n  Coroutines Remaining: {quitCoroutineCount}" );
 						return false;
 					case QuitState.Exitable:
 						return true;
@@ -76,14 +76,18 @@ namespace Tehelee.Baseline
 				invokeOnQuit.Remove( coroutine );
 		}
 
+		private static int quitCoroutineCount = -1;
 		private static IEnumerator IHandleQuit()
 		{
 			List<GetCoroutine> getCoroutines = new List<GetCoroutine>( invokeOnQuit );
+			quitCoroutineCount = getCoroutines.Count;
 			foreach( GetCoroutine getCoroutine in getCoroutines )
 			{
 				IEnumerator coroutine = getCoroutine?.Invoke();
 				if( coroutine != null )
 					yield return StartCoroutine( coroutine );
+
+				quitCoroutineCount--;
 			}
 
 			quitState = QuitState.Exitable;
