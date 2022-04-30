@@ -6,6 +6,10 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Tehelee.Baseline
 {
 	[System.Serializable]
@@ -49,6 +53,26 @@ namespace Tehelee.Baseline
 	
     public static class KeyEventSingleton
 	{
+		
+#if UNITY_EDITOR
+		
+		[MenuItem( "Tehelee/Setup Input Keys", priority = 200 )]
+		private static void SetupKeyCodesInInputManager()
+		{
+			KeyCode[] keys = System.Enum.GetValues( typeof( KeyCode ) ) as KeyCode[];
+
+			if( EditorUtility.DisplayDialog( "Key Events: Input Manager Setup", $"Setup Input Manager With {keys.Length} Keys?", "Setup", "Cancel" ) )
+			{
+				List<EditorUtils.InputManagerEntry> inputEntries = new List<EditorUtils.InputManagerEntry>();
+
+				foreach( KeyCode keyCode in keys )
+					inputEntries.Add(new EditorUtils.InputManagerEntry { name = $"Key: {keyCode}", kind = EditorUtils.InputManagerEntry.Kind.KeyOrButton, btnPositive = Utils.SpaceCondensedString( keyCode.ToString() ).ToLower(), gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
+			
+				EditorUtils.InputRegistering.RegisterInputs( inputEntries );					
+			}
+		}
+#endif
+		
 		private static HashSet<IKeyEventReceiver> listeners = new HashSet<IKeyEventReceiver>();
 		public static int listenersCount => listeners.Count;
 
