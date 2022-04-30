@@ -31,7 +31,15 @@ namespace Tehelee.Baseline
 			Redirected,
 			Exitable
 		}
-		public static QuitState quitState { get; private set; } = QuitState.Running;
+		private static QuitState _quitState = QuitState.Running;
+		public static QuitState quitState
+		{
+			get => _quitState;
+			set
+			{
+				_quitState = value;
+			}
+		}
 		
 		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
 		private static void RegisterWantsToQuit()
@@ -42,16 +50,16 @@ namespace Tehelee.Baseline
 		
 		private static bool QuitRedirect()
 		{
-			Debug.Log( $"Quit Redirect: {quitState}"  );
+			Debug.Log( $"Quit Redirect: {Utils.quitState}"  );
 			
-			#if UNITY_EDITOR
+			#if !UNITY_EDITOR
 			return true;
 			#else
-			switch( quitState )
+			switch( Utils.quitState )
 			{
 				default:
 					StartCoroutine( IHandleQuit() );
-					quitState = QuitState.Redirected;
+					Utils.quitState = QuitState.Redirected;
 					return false;
 				case QuitState.Redirected:
 					Debug.LogWarning( $"Application.Quit() invoked multiple times!\n  Coroutines Remaining: {quitCoroutineCount}" );
@@ -96,8 +104,8 @@ namespace Tehelee.Baseline
 				Debug.Log( $"Quit Coroutines Remaining: {quitCoroutineCount}" );
 			}
 
-			quitState = QuitState.Exitable;
-			Debug.Log( $"Quit State: {quitState}"  );
+			Utils.quitState = QuitState.Exitable;
+			Debug.Log( $"Quit State: {Utils.quitState}"  );
 			Application.Quit();
 		}
 		
