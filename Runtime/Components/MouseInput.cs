@@ -172,7 +172,7 @@ namespace Tehelee.Baseline.Components
 
 		public static void CheckLock()
 		{
-			if( releaseRequests > 0 || !singleton || singleton.instance.forceReleased )
+			if( releaseRequests > 0 || singleton.instance.forceReleased )
 				return;
 
 			singleton.instance.Lock();
