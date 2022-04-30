@@ -63,7 +63,7 @@ namespace Tehelee.Baseline.Components.UI
 			List<KeyEvent> keyEvents = lookup[ keyCode ];
 			foreach( KeyEvent keyEvent in keyEvents )
 			{
-				if( keyEvent.invokeDuringInput || !editingInput )
+				if( keyEvent.invokeDownDuringInput || !editingInput )
 					keyEvent.InvokeDown( keyCode );
 			}
 
@@ -77,7 +77,7 @@ namespace Tehelee.Baseline.Components.UI
 			List<KeyEvent> keyEvents = lookup[ keyCode ];
 			foreach( KeyEvent keyEvent in keyEvents )
 			{
-				if( keyEvent.invokeDuringInput || !editingInput )
+				if( keyEvent.invokeUpDuringInput || !editingInput )
 					keyEvent.InvokeUp( keyCode );
 			}
 
@@ -160,7 +160,10 @@ namespace Tehelee.Baseline.Components.UI
 					keyEventKeys[ index ].DrawCollapsableList( ref bRect );
 
 					bRect.height = lineHeight * 1.5f;
-					EditorUtils.BetterToggleField( bRect, new GUIContent( "Invoke During Input" ), element.FindPropertyRelative( "invokeDuringInput" ) );
+					Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 10f ) * 0.5f, lineHeight * 1.5f );
+					EditorUtils.BetterToggleField( cRect, new GUIContent( "Invoke Down During Input" ), element.FindPropertyRelative( "invokeDownDuringInput" ) );
+					cRect.x += cRect.width + 10f;
+					EditorUtils.BetterToggleField( cRect, new GUIContent( "Invoke Up During Input" ), element.FindPropertyRelative( "invokeUpDuringInput" ) );
 					bRect.y += lineHeight * 2f;
 
 					float labelWidth = EditorGUIUtility.labelWidth;

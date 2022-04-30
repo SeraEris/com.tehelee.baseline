@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
 namespace Tehelee.Baseline
 {
@@ -14,7 +15,9 @@ namespace Tehelee.Baseline
 
 		public KeyCode[] keys;
 
-		public bool invokeDuringInput = false;
+		[FormerlySerializedAs("invokeDuringInput")]
+		public bool invokeDownDuringInput = false;
+		public bool invokeUpDuringInput = false;
 
 		public UnityEvent onDown = new UnityEvent();
 		public UnityEvent onUp = new UnityEvent();
