@@ -2393,28 +2393,49 @@ namespace Tehelee.Baseline
 	            return false;
 	        }
 
+			static bool UpdateExistingEntry( string name, InputManagerEntry.Kind kind, SerializedProperty spAxes, InputManagerEntry entry )
+			{
+				for (var i = 0; i < spAxes.arraySize; ++i)
+				{
+					var spAxis = spAxes.GetArrayElementAtIndex(i);
+					var axisName = spAxis.FindPropertyRelative("m_Name").stringValue;
+					var kindValue = spAxis.FindPropertyRelative("type").intValue;
+					if( axisName == name && ( int ) kind == kindValue )
+					{
+						UpdateEntry( spAxis, entry );
+						return true;
+					}
+				}
+
+				return false;
+			}
+
+			static void UpdateEntry( SerializedProperty spAxis, InputManagerEntry entry )
+			{
+				spAxis.FindPropertyRelative("m_Name").stringValue = entry.name;
+				spAxis.FindPropertyRelative("descriptiveName").stringValue = entry.desc;
+				spAxis.FindPropertyRelative("negativeButton").stringValue = entry.btnNegative;
+				spAxis.FindPropertyRelative("altNegativeButton").stringValue = entry.altBtnNegative;
+				spAxis.FindPropertyRelative("positiveButton").stringValue = entry.btnPositive;
+				spAxis.FindPropertyRelative("altPositiveButton").stringValue = entry.altBtnPositive;
+				spAxis.FindPropertyRelative("gravity").floatValue = entry.gravity;
+				spAxis.FindPropertyRelative("dead").floatValue = entry.deadZone;
+				spAxis.FindPropertyRelative("sensitivity").floatValue = entry.sensitivity;
+				spAxis.FindPropertyRelative("snap").boolValue = entry.snap;
+				spAxis.FindPropertyRelative("invert").boolValue = entry.invert;
+				spAxis.FindPropertyRelative("type").intValue = (int)entry.kind;
+				spAxis.FindPropertyRelative("axis").intValue = (int)entry.axis;
+				spAxis.FindPropertyRelative("joyNum").intValue = (int)entry.joystick;
+			}
+
 	        static void WriteEntry(SerializedProperty spAxes, InputManagerEntry entry)
 	        {
-	            if (InputAlreadyRegistered(entry.name, entry.kind, spAxes))
+	            if (UpdateExistingEntry(entry.name, entry.kind, spAxes,entry))
 	                return;
 
 	            spAxes.InsertArrayElementAtIndex(spAxes.arraySize);
-	            var spAxis = spAxes.GetArrayElementAtIndex(spAxes.arraySize - 1);
-	            spAxis.FindPropertyRelative("m_Name").stringValue = entry.name;
-	            spAxis.FindPropertyRelative("descriptiveName").stringValue = entry.desc;
-	            spAxis.FindPropertyRelative("negativeButton").stringValue = entry.btnNegative;
-	            spAxis.FindPropertyRelative("altNegativeButton").stringValue = entry.altBtnNegative;
-	            spAxis.FindPropertyRelative("positiveButton").stringValue = entry.btnPositive;
-	            spAxis.FindPropertyRelative("altPositiveButton").stringValue = entry.altBtnPositive;
-	            spAxis.FindPropertyRelative("gravity").floatValue = entry.gravity;
-	            spAxis.FindPropertyRelative("dead").floatValue = entry.deadZone;
-	            spAxis.FindPropertyRelative("sensitivity").floatValue = entry.sensitivity;
-	            spAxis.FindPropertyRelative("snap").boolValue = entry.snap;
-	            spAxis.FindPropertyRelative("invert").boolValue = entry.invert;
-	            spAxis.FindPropertyRelative("type").intValue = (int)entry.kind;
-	            spAxis.FindPropertyRelative("axis").intValue = (int)entry.axis;
-	            spAxis.FindPropertyRelative("joyNum").intValue = (int)entry.joystick;
-	        }
+				UpdateEntry( spAxes.GetArrayElementAtIndex(spAxes.arraySize - 1), entry );
+			}
 
 			private static SerializedObject GetInputManager()
 			{
