@@ -169,6 +169,14 @@ namespace Tehelee.Baseline.Components
 
 		////////////////////////////////
 		#region MouseInput
+
+		public static void CheckLock()
+		{
+			if( releaseRequests > 0 || !singleton || singleton.instance.forceReleased )
+				return;
+
+			singleton.instance.Lock();
+		}
 		
 		private void Lock()
 		{
