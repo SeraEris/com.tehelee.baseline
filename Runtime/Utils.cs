@@ -44,6 +44,7 @@ namespace Tehelee.Baseline
 		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
 		private static void RegisterWantsToQuit()
 		{
+			Debug.Log( "RegisterWantsToQuit" );
 			quitState = QuitState.Running;
 			Application.wantsToQuit += QuitRedirect;
 		}
