@@ -66,7 +66,7 @@ namespace Tehelee.Baseline
 				List<EditorUtils.InputManagerEntry> inputEntries = new List<EditorUtils.InputManagerEntry>();
 
 				foreach( KeyCode keyCode in keys )
-					inputEntries.Add(new EditorUtils.InputManagerEntry { name = $"Key: {keyCode}", kind = EditorUtils.InputManagerEntry.Kind.KeyOrButton, btnPositive = Utils.SpaceCondensedString( keyCode.ToString() ).ToLower(), gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
+					inputEntries.Add(new EditorUtils.InputManagerEntry { name = $"Key: {keyCode}", kind = EditorUtils.InputManagerEntry.Kind.KeyOrButton, btnPositive = Utils.SpaceCondensedString( $"{keyCode}" ).ToLower(), gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
 			
 				EditorUtils.InputRegistering.RegisterInputs( inputEntries );					
 			}
