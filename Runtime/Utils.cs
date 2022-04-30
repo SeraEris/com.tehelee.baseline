@@ -53,7 +53,7 @@ namespace Tehelee.Baseline
 		{
 			Debug.Log( $"Quit Redirect: {Utils.quitState}"  );
 			
-			#if !UNITY_EDITOR
+			#if UNITY_EDITOR
 			return true;
 			#else
 			switch( Utils.quitState )
