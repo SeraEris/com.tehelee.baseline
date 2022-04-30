@@ -36,30 +36,31 @@ namespace Tehelee.Baseline
 		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
 		private static void RegisterWantsToQuit()
 		{
-			bool quitRedirect()
-			{
-				Debug.Log( $"Quit Redirect: {quitState}"  );
-				#if UNITY_EDITOR
-				return true;
-				#else
-				switch( quitState )
-				{
-					default:
-						StartCoroutine( IHandleQuit() );
-						quitState = QuitState.Redirected;
-						return false;
-					case QuitState.Redirected:
-						Debug.LogWarning( $"Application.Quit() invoked multiple times!\n  Coroutines Remaining: {quitCoroutineCount}" );
-						return false;
-					case QuitState.Exitable:
-						OnShutdown();
-						return true;
-				}
-				#endif
-			}
-			
 			quitState = QuitState.Running;
-			Application.wantsToQuit += quitRedirect;
+			Application.wantsToQuit += QuitRedirect;
+		}
+		
+		private static bool QuitRedirect()
+		{
+			Debug.Log( $"Quit Redirect: {quitState}"  );
+			
+			#if UNITY_EDITOR
+			return true;
+			#else
+			switch( quitState )
+			{
+				default:
+					StartCoroutine( IHandleQuit() );
+					quitState = QuitState.Redirected;
+					return false;
+				case QuitState.Redirected:
+					Debug.LogWarning( $"Application.Quit() invoked multiple times!\n  Coroutines Remaining: {quitCoroutineCount}" );
+					return false;
+				case QuitState.Exitable:
+					OnShutdown();
+					return true;
+			}
+			#endif
 		}
 
 		private static HashSet<GetCoroutine> invokeOnQuit = new HashSet<GetCoroutine>();
