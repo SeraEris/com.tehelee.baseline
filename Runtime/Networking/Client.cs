@@ -263,18 +263,29 @@ namespace Tehelee.Baseline.Networking
 
 		private IEnumerator IPerformShutdown()
 		{
+			if( !open )
+				yield break;
+
 			if( isLocalHost )
+			{
+				Debug.Log( "Disconnecting Clients And Closing..." );
 				Send( new LocalHost( localAuthKey, LocalHost.Command.Shutdown, networkId ), true );
+			}
 			else
+			{
+				Debug.Log( "Disconnecting From Server..." );
 				Send( new Administration() { networkId = networkId, operation = Administration.Operation.Disconnect }, true );
+			}
 
 			float delay = Mathf.Max( 0.125f, GetPing( networkId ) / 500f );
-			
+
 			yield return new WaitForSeconds( delay );
-			
+
 			Close();
-			
+
 			yield return new WaitForSeconds( delay );
+			
+			Debug.Log( "Disconnected." );
 		}
 
 		#endregion

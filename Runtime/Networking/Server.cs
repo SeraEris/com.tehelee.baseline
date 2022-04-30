@@ -339,16 +339,23 @@ namespace Tehelee.Baseline.Networking
 		
 		private IEnumerator IPerformShutdown()
 		{
+			if( !open )
+				yield break;
+			
+			Debug.Log( "Disconnecting Clients And Closing..." );
+
 			ushort maxPing = 0;
 			foreach( ushort ping in pingTimingsByNetworkId.Values )
 				if( ping > maxPing )
 					maxPing = ping;
 
 			float delay = Mathf.Max( 0.125f, maxPing / 500f );
-			
+
 			DisconnectAndClose();
-			
+
 			yield return new WaitForSeconds( delay );
+
+			Debug.Log( "Disconnected Clients And Closed." );
 		}
 
 		public void DisconnectAndClose( string message = null, System.Action callback = null )
