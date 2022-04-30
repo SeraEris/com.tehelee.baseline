@@ -2355,6 +2355,218 @@ namespace Tehelee.Baseline
 		////////////////////////////////
 		#region Input Manager
 		
+		public static class CompleteKeyCodesList
+		{
+		    public const int MaxJoysticksCount = 16;
+		    public const int MaxJoystickButtonsCount = 20;
+
+		    public readonly static string[] KeyboardCodes =
+		    {
+		        "backspace",
+		        "delete",
+		        "tab",
+		        "clear",
+		        "return",
+		        "pause",
+		        "escape",
+		        "space",
+
+		        "[0]",
+		        "[1]",
+		        "[2]",
+		        "[3]",
+		        "[4]",
+		        "[5]",
+		        "[6]",
+		        "[7]",
+		        "[8]",
+		        "[9]",
+		        "[.]",
+		        "[/]",
+		        "[*]",
+		        "[-]",
+		        "[+]",
+		        "equals",
+		        "enter",
+
+		        "up",
+		        "down",
+		        "right",
+		        "left",
+
+		        "insert",
+		        "home",
+		        "end",
+		        "page up",
+		        "page down",
+
+		        "f1",
+		        "f2",
+		        "f3",
+		        "f4",
+		        "f5",
+		        "f6",
+		        "f7",
+		        "f8",
+		        "f9",
+		        "f10",
+		        "f11",
+		        "f12",
+		        "f13",
+		        "f14",
+		        "f15",
+
+		        "0",
+		        "1",
+		        "2",
+		        "3",
+		        "4",
+		        "5",
+		        "6",
+		        "7",
+		        "8",
+		        "9",
+		        "-",
+		        "=",
+
+		        "!",
+		        "@",
+		        "#",
+		        "$",
+		        "%",
+		        "^",
+		        "&",
+		        "*",
+		        "(",
+		        ")",
+		        "_",
+		        "+",
+
+		        "[",
+		        "]",
+		        "`",
+		        "{",
+		        "}",
+		        "~",
+
+		        ";",
+		        "'",
+		        "\\",
+		        ":",
+		        "\"",
+		        "|",
+
+		        ",",
+		        ".",
+		        "/",
+		        "<",
+		        ">",
+		        "?",
+
+		        "a",
+		        "b",
+		        "c",
+		        "d",
+		        "e",
+		        "f",
+		        "g",
+		        "h",
+		        "i",
+		        "j",
+		        "k",
+		        "l",
+		        "m",
+		        "n",
+		        "o",
+		        "p",
+		        "q",
+		        "r",
+		        "s",
+		        "t",
+		        "u",
+		        "v",
+		        "w",
+		        "x",
+		        "y",
+		        "z",
+
+		        "numlock",
+		        "caps lock",
+		        "scroll lock",
+		        "right shift",
+		        "left shift",
+		        "right ctrl",
+		        "left ctrl",
+		        "right alt",
+		        "left alt",
+		        "right cmd",
+		        "left cmd",
+		        "right super",
+		        "left super",
+		        "alt gr",
+
+		        "compose",
+		        "help",
+		        "print screen",
+		        "sys req",
+		        "break",
+		        "menu",
+		        "power",
+		        "euro",
+		        "undo",
+		    };
+
+		    public readonly static string[] MouseCodes =
+		    {
+		        "mouse 0",
+		        "mouse 1",
+		        "mouse 2",
+		        "mouse 3",
+		        "mouse 4",
+		        "mouse 5",
+		        "mouse 6",
+		    };
+
+		    // joystick button 0, joystick button 1, ..., joystick button 19
+		    public readonly static string[] AnyJoystickCodes;
+
+		    // joystick 1 button 0, joystick 1 button 1, ..., joystick 16 button 19
+		    public readonly static string[][] JoystickCodes;
+
+		    public readonly static string[] AllCodes;
+
+		    static CompleteKeyCodesList ()
+		    {
+		        int i, allCodesIdx = 0;
+
+		        AllCodes = new string[KeyboardCodes.Length + MouseCodes.Length + ( MaxJoysticksCount + 1 ) * MaxJoystickButtonsCount ];
+
+		        for( i = 0; i < KeyboardCodes.Length; i++, allCodesIdx++ )
+		            AllCodes[allCodesIdx] = KeyboardCodes[i];
+
+		        for( i = 0; i < MouseCodes.Length; i++, allCodesIdx++ )
+		            AllCodes[allCodesIdx] = MouseCodes[i];
+
+		        AnyJoystickCodes = new string[MaxJoystickButtonsCount];
+		        for( i = 0; i < MaxJoystickButtonsCount; i++, allCodesIdx++ )
+		        {
+		            AnyJoystickCodes[i] = "joystick button " + i;
+		            AllCodes[allCodesIdx] = AnyJoystickCodes[i];
+		        }
+
+		        JoystickCodes = new string[MaxJoysticksCount][];
+		        for( i = 0; i < MaxJoysticksCount; i++ )
+		        {
+		            JoystickCodes[i] = new string[MaxJoystickButtonsCount];
+		            for( int j = 0; j < MaxJoystickButtonsCount; j++, allCodesIdx++ )
+		            {
+		                JoystickCodes[i][j] = "joystick " + ( i + 1 ) + " button " + j;
+		                AllCodes[allCodesIdx] = JoystickCodes[i][j];
+		            }
+		        }
+		    }
+		}
+		
 		public class InputManagerEntry
 	    {
 	        public enum Kind { KeyOrButton, Mouse, Axis }

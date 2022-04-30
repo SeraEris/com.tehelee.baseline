@@ -59,14 +59,17 @@ namespace Tehelee.Baseline
 		[MenuItem( "Tehelee/Setup Input Keys", priority = 200 )]
 		private static void SetupKeyCodesInInputManager()
 		{
-			KeyCode[] keys = System.Enum.GetValues( typeof( KeyCode ) ) as KeyCode[];
-
-			if( EditorUtility.DisplayDialog( "Key Events: Input Manager Setup", $"Setup Input Manager With {keys.Length} Keys?", "Setup", "Cancel" ) )
+			List<string> codes = new List<string>();
+			codes.AddRange( EditorUtils.CompleteKeyCodesList.KeyboardCodes );
+			codes.AddRange( EditorUtils.CompleteKeyCodesList.MouseCodes );
+			codes.AddRange( EditorUtils.CompleteKeyCodesList.AnyJoystickCodes );
+			
+			if( EditorUtility.DisplayDialog( "Key Events: Input Manager Setup", $"Setup Input Manager With {codes.Count} Keys?", "Setup", "Cancel" ) )
 			{
 				List<EditorUtils.InputManagerEntry> inputEntries = new List<EditorUtils.InputManagerEntry>();
 
-				foreach( KeyCode keyCode in keys )
-					inputEntries.Add(new EditorUtils.InputManagerEntry { name = $"Key: {keyCode}", kind = EditorUtils.InputManagerEntry.Kind.KeyOrButton, btnPositive = Utils.SpaceCondensedString( $"{keyCode}" ).ToLower(), gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
+				foreach( string keyCode in codes )
+					inputEntries.Add(new EditorUtils.InputManagerEntry { name = $"Key: {keyCode}", kind = EditorUtils.InputManagerEntry.Kind.KeyOrButton, btnPositive = keyCode, gravity = 1000.0f, deadZone = 0.001f, sensitivity = 1000.0f });
 			
 				EditorUtils.InputRegistering.RegisterInputs( inputEntries );					
 			}
