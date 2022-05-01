@@ -18,6 +18,7 @@ namespace Tehelee.Baseline.Components
 
 		public bool executeInEditMode = false;
 		public bool executeInRuntime = true;
+		public bool executeAsPhysics = false;
 		
 		public bool mimicPosition = true;
 		public bool mimicRotation = true;
@@ -117,7 +118,11 @@ namespace Tehelee.Baseline.Components
 		{
 			while( true )
 			{
-				yield return null;
+				if( executeAsPhysics )
+					yield return new WaitForFixedUpdate();
+				else
+					yield return null;
+				
 				if( executeInRuntime )
 					UpdateFollow();
 			}
@@ -130,7 +135,7 @@ namespace Tehelee.Baseline.Components
 	[CustomEditor( typeof( MimicTransform ) )]
 	public class EditorMimicTransform : EditorUtils.InheritedEditor
 	{
-		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 8.5f + 8f;
+		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 10.5f + 8f;
 
 		public override void DrawInspector( ref Rect rect )
 		{
@@ -144,13 +149,20 @@ namespace Tehelee.Baseline.Components
 			EditorUtils.BetterObjectField( bRect, new GUIContent( "Follow Target" ), this[ "_followTarget" ], typeof( Transform ), true );
 			bRect.y += lineHeight * 1.5f;
 
-			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 40f ) / 5f, lineHeight * 1.5f );
+			Rect cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 20f ) / 3f, lineHeight * 1.5f );
 
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Edit Update" ), this[ "executeInEditMode" ] );
 			cRect.x += cRect.width + 10f;
 
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Update" ), this[ "executeInRuntime" ] );
 			cRect.x += cRect.width + 10f;
+
+			EditorUtils.BetterToggleField( cRect, new GUIContent( "Physics" ), this[ "executeAsPhysics" ] );
+			cRect.x += cRect.width + 10f;
+			
+			bRect.y += lineHeight * 2.0f;
+			
+			cRect = new Rect( bRect.x, bRect.y, ( bRect.width - 20f ) / 3f, lineHeight * 1.5f );
 			
 			EditorUtils.BetterToggleField( cRect, new GUIContent( "Position" ), this[ "mimicPosition" ] );
 			cRect.x += cRect.width + 10f;
