@@ -368,7 +368,7 @@ namespace Tehelee.Baseline
 
 		public static void BetterObjectField( Rect rect, GUIContent label, SerializedProperty property, System.Type type, bool allowSceneObjects = false )
 		{
-			Object obj = BetterObjectField( rect, label, property.objectReferenceValue, type, allowSceneObjects );
+			Object obj = BetterObjectField( rect, label ?? new GUIContent( property.displayName ), property.objectReferenceValue, type, allowSceneObjects );
 
 			if( obj != property.objectReferenceValue )
 			{
