@@ -123,7 +123,7 @@ namespace Tehelee.Baseline.Components
 				else
 					yield return null;
 				
-				if( executeInRuntime )
+				if( executeInRuntime || executeAsPhysics )
 					UpdateFollow();
 			}
 		}
