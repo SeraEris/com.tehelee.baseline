@@ -279,7 +279,7 @@ namespace Tehelee.Baseline.Components.Cinematographer
 			dRect = EditorUtils.BeginDisabledGroupToggle( cRect, this[ "_clipMin" ] );
 			EditorGUI.PropertyField( dRect, this[ "clipMin" ], new GUIContent( "Clip Near" ) );
 			EditorGUI.EndDisabledGroup();
-			this[ "clipMin" ].ClampMinimum( 0.1f );
+			this[ "clipMin" ].ClampMinimum( 0.001f );
 
 			cRect.x += cRect.width + 10f;
 
