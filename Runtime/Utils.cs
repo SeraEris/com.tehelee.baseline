@@ -107,6 +107,7 @@ namespace Tehelee.Baseline
 
 			Utils.quitState = QuitState.Exitable;
 			Debug.Log( $"Quit State: {Utils.quitState}"  );
+			Application.wantsToQuit -= QuitRedirect;
 			Application.Quit();
 		}
 		
