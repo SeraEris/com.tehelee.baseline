@@ -44,18 +44,16 @@ namespace Tehelee.Baseline
 		[RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.AfterAssembliesLoaded )]
 		private static void RegisterWantsToQuit()
 		{
-			Debug.Log( "RegisterWantsToQuit" );
 			quitState = QuitState.Running;
 			Application.wantsToQuit += QuitRedirect;
 		}
 		
 		private static bool QuitRedirect()
 		{
-			Debug.Log( $"Quit Redirect: {Utils.quitState}"  );
-			
 			#if UNITY_EDITOR
 			return true;
 			#else
+			Debug.Log( $"Redirecting ({Utils.quitState}) Quit Call..."  );
 			switch( Utils.quitState )
 			{
 				default:
@@ -93,21 +91,29 @@ namespace Tehelee.Baseline
 		{
 			List<GetCoroutine> getCoroutines = new List<GetCoroutine>( invokeOnQuit );
 			quitCoroutineCount = getCoroutines.Count;
-			Debug.Log( $"Quit Coroutines: {quitCoroutineCount}" );
-			
-			foreach( GetCoroutine getCoroutine in getCoroutines )
+			if( quitCoroutineCount > 0 )
 			{
-				IEnumerator coroutine = getCoroutine?.Invoke();
-				if( coroutine != null )
-					yield return StartCoroutine( coroutine );
+				Debug.Log( $"Invoking {quitCoroutineCount} Pre-Quit Coroutines..." );
 
-				quitCoroutineCount--;
-				Debug.Log( $"Quit Coroutines Remaining: {quitCoroutineCount}" );
+				foreach( GetCoroutine getCoroutine in getCoroutines )
+				{
+					IEnumerator coroutine = getCoroutine?.Invoke();
+					if( coroutine != null )
+						yield return StartCoroutine( coroutine );
+
+					quitCoroutineCount--;
+					Debug.Log
+					(
+						$"Finished {getCoroutine}, " +
+						( ( quitCoroutineCount > 0 ) ?
+							$"{quitCoroutineCount} Pre-Quit Coroutines Remaining" :
+							"All Pre-Quit Coroutines Completed, Quitting..."
+						)
+					);
+				}
 			}
-
-			Utils.quitState = QuitState.Exitable;
 			
-			Debug.Log( $"Quit State: {Utils.quitState}"  );
+			Utils.quitState = QuitState.Exitable;
 			Application.wantsToQuit -= QuitRedirect;
 
 			yield return null;
@@ -1382,6 +1388,50 @@ namespace Tehelee.Baseline
 			Gizmos.color = color;
 		}
 
+		#endregion
+		
+		////////////////////////
+		#region Rigidbody
+		
+		public static void TorqueRigidbodyToRotation( this Rigidbody rigidbody, Vector3 forward, Vector3 up, float maxTorque = 0f, bool useInertia = true )
+		{
+			Vector3 torque = Vector3.zero;
+			
+			Quaternion rigidRotation = rigidbody.rotation;
+
+			if( forward.magnitude > 0f )
+			{
+				Vector3 yawCross = Vector3.Cross( rigidRotation * Vector3.forward, forward );
+				float yawTheta = Mathf.Asin( yawCross.magnitude );
+				yawTheta = float.IsNaN( yawTheta ) ? 0f : yawTheta;
+				Vector3 yawTorque = yawCross.normalized * yawTheta / Time.fixedDeltaTime;
+				torque += yawTorque;
+			}
+
+			if( up.magnitude > 0f )
+			{
+				Vector3 pitchCross = Vector3.Cross( rigidRotation * Vector3.up, up );
+				float pitchTheta = Mathf.Asin( pitchCross.magnitude );
+				pitchTheta = float.IsNaN( pitchTheta ) ? 0f : pitchTheta;
+				Vector3 pitchTorque = pitchCross.normalized * pitchTheta / Time.fixedDeltaTime;
+				torque += pitchTorque;
+			}
+
+			if( maxTorque > 0f && torque.magnitude > maxTorque )
+				torque = torque.normalized * maxTorque;
+
+			if( useInertia )
+			{
+				Quaternion q = rigidRotation * rigidbody.inertiaTensorRotation;
+				torque = q * Vector3.Scale( rigidbody.inertiaTensor, Quaternion.Inverse( q ) * torque );
+				rigidbody.AddTorque( torque - rigidbody.angularVelocity, ForceMode.Force );
+			}
+			else
+			{
+				rigidbody.AddTorque( torque - rigidbody.angularVelocity, ForceMode.Acceleration );
+			}
+		}
+		
 		#endregion
 	}
 
