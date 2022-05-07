@@ -360,10 +360,10 @@ namespace Tehelee.Baseline.Networking
 
 		public struct NetworkTraffic
 		{
-			public long reliableSent;
-			public long unreliableSent;
+			public ulong reliableSent;
+			public ulong unreliableSent;
 			
-			public long bytesReceived;
+			public ulong bytesReceived;
 			
 			public static NetworkTraffic operator +( NetworkTraffic a, NetworkTraffic b )
 			{
@@ -376,11 +376,6 @@ namespace Tehelee.Baseline.Networking
 
 		protected NetworkTraffic networkTraffic;
 		protected NetworkTraffic networkTrafficPerSecond;
-
-		public long reliableSent => networkTraffic.reliableSent;
-		public long unreliableSent => networkTraffic.unreliableSent;
-		public long totalSent => networkTraffic.reliableSent + networkTraffic.unreliableSent;
-		public long bytesReceived => networkTraffic.bytesReceived;
 		
 		public NetworkTraffic totalNetworkTraffic => networkTraffic;
 
@@ -447,12 +442,12 @@ namespace Tehelee.Baseline.Networking
 			if( reliable )
 			{
 				packetQueue.reliable.Enqueue( packet );
-				networkTrafficPerSecond.reliableSent += packet.bytes;
+				networkTrafficPerSecond.reliableSent += ( ulong ) packet.bytes;
 			}
 			else
 			{
 				packetQueue.unreliable.Enqueue( packet );
-				networkTrafficPerSecond.unreliableSent += packet.bytes;
+				networkTrafficPerSecond.unreliableSent += ( ulong ) packet.bytes;
 			}
 
 			if( debug )
@@ -488,7 +483,7 @@ namespace Tehelee.Baseline.Networking
 			NativeArray<byte> readerBytes = new NativeArray<byte>( bytes, Allocator.Temp );
 			reader.ReadBytes( readerBytes );
 			
-			networkTrafficPerSecond.bytesReceived += bytes;
+			networkTrafficPerSecond.bytesReceived += ( ulong ) bytes;
 			
 			PacketReader packetReader = new PacketReader( readerBytes );
 			return Read( connection, ref packetReader );
