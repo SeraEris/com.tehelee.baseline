@@ -376,6 +376,11 @@ namespace Tehelee.Baseline.Networking
 
 		protected NetworkTraffic networkTraffic;
 		protected NetworkTraffic networkTrafficPerSecond;
+
+		public long reliableSent => networkTraffic.reliableSent;
+		public long unreliableSent => networkTraffic.unreliableSent;
+		public long totalSent => networkTraffic.reliableSent + networkTraffic.unreliableSent;
+		public long bytesReceived => networkTraffic.bytesReceived;
 		
 		public NetworkTraffic totalNetworkTraffic => networkTraffic;
 
