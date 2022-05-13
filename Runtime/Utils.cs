@@ -1431,6 +1431,75 @@ namespace Tehelee.Baseline
 				rigidbody.AddTorque( torque - rigidbody.angularVelocity, ForceMode.Acceleration );
 			}
 		}
+
+		public class MoveWithSnapshot
+		{
+			public MoveWithSnapshot()
+			{
+				localPosition = Vector3.zero;
+				velocity = Vector3.zero;
+				angular = Vector3.zero;
+				
+				oldPosition = Vector3.zero;
+				oldRotation = Quaternion.identity;
+
+				selfPosition = Vector3.zero;
+				selfRotation = Quaternion.identity;
+			}
+			
+			public MoveWithSnapshot( Rigidbody a, Rigidbody b ) : this()
+			{
+				if( a == null || b == null )
+					return;
+				
+				localPosition = b.transform.InverseTransformPoint( a.position );
+				velocity = b.GetRelativePointVelocity( localPosition );
+				angular = b.angularVelocity;
+
+				oldPosition = b.position;
+				oldRotation = a.rotation;
+
+				selfPosition = a.position;
+				selfRotation = a.rotation;
+			}
+
+			public Vector3 localPosition;
+
+			public Vector3 velocity;
+			public Vector3 angular;
+
+			public Vector3 oldPosition;
+			public Quaternion oldRotation;
+
+			public Vector3 selfPosition;
+			public Quaternion selfRotation;
+		}
+		
+		public static MoveWithSnapshot MoveWithRigidbody( this Rigidbody rigidbody, Rigidbody targetParent, MoveWithSnapshot moveWithSnapshot = null )
+		{
+			if( rigidbody == null || targetParent == null )
+				return null;
+
+			if( moveWithSnapshot != null )
+			{
+				Vector3 selfDeltaPosition = rigidbody.position - moveWithSnapshot.selfPosition;
+				Quaternion selfDeltaRotation = rigidbody.rotation * Quaternion.Inverse( moveWithSnapshot.selfRotation );
+
+				Vector3 deltaPosition = targetParent.position - moveWithSnapshot.oldPosition;
+				Quaternion deltaRotation = targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
+
+				Vector3 deltaVelocity = targetParent.GetRelativePointVelocity( moveWithSnapshot.localPosition ) - moveWithSnapshot.velocity;
+				Vector3 deltaAngular = targetParent.angularVelocity - moveWithSnapshot.angular;
+
+				rigidbody.position += selfDeltaPosition + deltaPosition;
+				rigidbody.rotation *= selfDeltaRotation * deltaRotation;
+
+				rigidbody.AddForce( deltaVelocity );
+				rigidbody.AddTorque( deltaAngular );
+			}
+
+			return new MoveWithSnapshot( rigidbody, targetParent );
+		}
 		
 		#endregion
 	}
