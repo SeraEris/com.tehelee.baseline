@@ -1393,7 +1393,9 @@ namespace Tehelee.Baseline
 		////////////////////////
 		#region Rigidbody
 
-		public static void TorqueRigidbodyToRotation( this Rigidbody rigidbody, Vector3 forward, Vector3 up, float maxTorque = 0f, bool useInertia = true )
+		public static void TorqueRigidbodyToRotation( this Rigidbody rigidbody, Vector3 forward, Vector3 up, float maxTorque = 0f, bool useInertia = true ) =>
+			TorqueRigidbodyToRotation( rigidbody, Quaternion.LookRotation( forward, up ), maxTorque, useInertia );
+		public static void TorqueRigidbodyToRotation( this Rigidbody rigidbody, Quaternion rotation, float maxTorque = 0f, bool useInertia = true )
 		{
 			if( useInertia )
 			{
@@ -1402,7 +1404,7 @@ namespace Tehelee.Baseline
 					CalculateTorqueOfRotation
 					(
 						rigidbody.rotation,
-						Quaternion.LookRotation( forward, up ),
+						rotation,
 						maxTorque,
 						true,
 						rigidbody.inertiaTensorRotation,
@@ -1418,7 +1420,7 @@ namespace Tehelee.Baseline
 					CalculateTorqueOfRotation
 					(
 						rigidbody.rotation,
-						Quaternion.LookRotation( forward, up ),
+						rotation,
 						maxTorque
 					) - rigidbody.angularVelocity,
 					ForceMode.Acceleration

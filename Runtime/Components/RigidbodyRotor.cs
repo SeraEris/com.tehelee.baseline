@@ -103,13 +103,7 @@ namespace Tehelee.Baseline.Components
 			}
 			else
 			{
-				Vector3 x = Vector3.Cross( Vector3.forward, Quaternion.AngleAxis( angleDelta, axis ) * Vector3.forward );
-				float theta = Mathf.Asin( x.magnitude );
-				Vector3 w = x.normalized * theta / Time.fixedDeltaTime;
-				Quaternion q = rigidbody.rotation * rigidbody.inertiaTensorRotation;
-				Vector3 t = q * Vector3.Scale( rigidbody.inertiaTensor, Quaternion.Inverse( q ) * w );
-				rigidbody.AddTorque( t - rigidbody.angularVelocity, ForceMode.Impulse );
-				//rigidbody.AddTorque( w - rigidbody.angularVelocity, ForceMode.VelocityChange );
+				rigidbody.TorqueRigidbodyToRotation( Quaternion.AngleAxis( angleDelta, axis ) * rigidbody.rotation );
 			}
 
 			lastUpdate = time;
