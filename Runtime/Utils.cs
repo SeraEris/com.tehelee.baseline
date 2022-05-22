@@ -1567,6 +1567,7 @@ namespace Tehelee.Baseline
 		}
 
 		private static Dictionary<Rigidbody, VelocityPair> additiveVelocities = new Dictionary<Rigidbody, VelocityPair>();
+		private static Dictionary<Rigidbody, VelocityPair> parentVelocities = new Dictionary<Rigidbody, VelocityPair>();
 		
 		public static MoveWithSnapshot MoveWithRigidbody( this Rigidbody rigidbody, Rigidbody targetParent, MoveWithSnapshot moveWithSnapshot = null )
 		{
@@ -1587,17 +1588,22 @@ namespace Tehelee.Baseline
 				//Vector3 deltaVelocity = targetParent.GetRelativePointVelocity( moveWithSnapshot.localPosition ) - moveWithSnapshot.velocity;
 				//Vector3 deltaAngular = targetParent.angularVelocity - moveWithSnapshot.angular;
 
-				VelocityPair oldVelocityPair = additiveVelocities.ContainsKey( rigidbody ) ? additiveVelocities[ rigidbody ] : new VelocityPair();
+				VelocityPair oldAdditivePair = additiveVelocities.ContainsKey( rigidbody ) ? additiveVelocities[ rigidbody ] : new VelocityPair();
+				VelocityPair oldParentPair = parentVelocities.ContainsKey( rigidbody ) ? parentVelocities[ rigidbody ] : new VelocityPair();
 
-				Vector3 additiveVelocity = deltaPosition - oldVelocityPair.velocity;
+				Vector3 additiveVelocity = deltaPosition - oldAdditivePair.velocity;
 
 				Vector3 deltaTorque = CalculateTorqueOfRotation( Quaternion.Inverse( moveWithSnapshot.oldRotation ), targetParent.rotation );
-				Vector3 additiveTorque = deltaTorque - oldVelocityPair.angularVelocity;
+				Vector3 additiveTorque = deltaTorque - oldAdditivePair.angularVelocity;
 
-				rigidbody.velocity += additiveVelocity;
-				rigidbody.angularVelocity += additiveTorque;
+				Vector3 parentVelocity = targetParent.velocity - oldParentPair.velocity;
+				Vector3 parentTorque = targetParent.angularVelocity - oldParentPair.angularVelocity;
+
+				rigidbody.velocity += additiveVelocity + parentVelocity;
+				rigidbody.angularVelocity += additiveTorque + parentTorque;
 
 				additiveVelocities[ rigidbody ] = new VelocityPair( additiveVelocity, additiveTorque );
+				parentVelocities[ rigidbody ] = new VelocityPair( parentVelocity, parentTorque );
 
 				//rigidbody.MovePosition( rigidbody.position + deltaPosition );
 				//rigidbody.MoveRotation( deltaRotation * rigidbody.rotation );
