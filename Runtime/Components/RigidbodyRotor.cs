@@ -103,7 +103,7 @@ namespace Tehelee.Baseline.Components
 			}
 			else
 			{
-				rigidbody.TorqueRigidbodyToRotation( Quaternion.AngleAxis( angleDelta, axis ) * rigidbody.rotation );
+				rigidbody.TorqueRigidbodyToRotation( Quaternion.AngleAxis( angleDelta, axis ) * rigidbody.rotation, 0f, false );
 			}
 
 			lastUpdate = time;
