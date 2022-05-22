@@ -1599,8 +1599,8 @@ namespace Tehelee.Baseline
 				Vector3 parentVelocity = targetParent.velocity - oldParentPair.velocity;
 				Vector3 parentTorque = targetParent.angularVelocity - oldParentPair.angularVelocity;
 
-				rigidbody.velocity += additiveVelocity + parentVelocity;
-				rigidbody.angularVelocity += additiveTorque + parentTorque;
+				rigidbody.velocity += ( additiveVelocity / Time.fixedDeltaTime ) + parentVelocity;
+				rigidbody.angularVelocity += ( additiveTorque / Time.fixedDeltaTime ) + parentTorque;
 
 				additiveVelocities[ rigidbody ] = new VelocityPair( additiveVelocity, additiveTorque );
 				parentVelocities[ rigidbody ] = new VelocityPair( parentVelocity, parentTorque );
