@@ -1594,8 +1594,8 @@ namespace Tehelee.Baseline
 				Vector3 deltaTorque = CalculateTorqueOfRotation( Quaternion.Inverse( moveWithSnapshot.oldRotation ), targetParent.rotation );
 				Vector3 additiveTorque = deltaTorque - oldVelocityPair.angularVelocity;
 
-				rigidbody.AddForce( additiveVelocity, ForceMode.Acceleration );
-				rigidbody.AddTorque( additiveTorque, ForceMode.Acceleration );
+				rigidbody.velocity += additiveVelocity;
+				rigidbody.angularVelocity += additiveTorque;
 
 				additiveVelocities[ rigidbody ] = new VelocityPair( additiveVelocity, additiveTorque );
 
