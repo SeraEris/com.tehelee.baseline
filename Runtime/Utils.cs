@@ -1397,6 +1397,7 @@ namespace Tehelee.Baseline
 			TorqueRigidbodyToRotation( rigidbody, Quaternion.LookRotation( forward, up ), maxTorque, useInertia );
 		public static void TorqueRigidbodyToRotation( this Rigidbody rigidbody, Quaternion rotation, float maxTorque = 0f, bool useInertia = true )
 		{
+			rigidbody.velocity = Vector3.zero;
 			if( useInertia )
 			{
 				rigidbody.AddTorque
@@ -1545,30 +1546,6 @@ namespace Tehelee.Baseline
 			return new MoveWithSnapshot( transform, targetParent );
 		}
 
-		public static Vector3 GetLocalVelocity( this Rigidbody rigidbody ) =>
-			rigidbody.velocity - ( additiveVelocities.ContainsKey( rigidbody ) ? additiveVelocities[ rigidbody ].velocity : Vector3.zero );
-		public static Vector3 GetLocalAngularVelocity( this Rigidbody rigidbody ) =>
-			rigidbody.angularVelocity - ( additiveVelocities.ContainsKey( rigidbody ) ? additiveVelocities[ rigidbody ].angularVelocity : Vector3.zero );
-
-		private struct VelocityPair
-		{
-			public VelocityPair( Rigidbody rigidbody )
-			{
-				velocity = rigidbody.velocity;
-				angularVelocity = rigidbody.angularVelocity;
-			}
-			public VelocityPair( Vector3 velocity, Vector3 angularVelocity )
-			{
-				this.velocity = velocity;
-				this.angularVelocity = angularVelocity;
-			}
-			public Vector3 velocity;
-			public Vector3 angularVelocity;
-		}
-
-		private static Dictionary<Rigidbody, VelocityPair> additiveVelocities = new Dictionary<Rigidbody, VelocityPair>();
-		private static Dictionary<Rigidbody, VelocityPair> parentVelocities = new Dictionary<Rigidbody, VelocityPair>();
-		
 		public static MoveWithSnapshot MoveWithRigidbody( this Rigidbody rigidbody, Rigidbody targetParent, MoveWithSnapshot moveWithSnapshot = null )
 		{
 			if( rigidbody == null || targetParent == null )
@@ -1576,47 +1553,17 @@ namespace Tehelee.Baseline
 
 			if( moveWithSnapshot != null )
 			{
-				//Vector3 selfDeltaPosition = rigidbody.position - moveWithSnapshot.selfPosition;
-				//Quaternion selfDeltaRotation = Quaternion.Inverse( moveWithSnapshot.selfRotation ) * rigidbody.rotation;
-
 				Matrix4x4 trs = Matrix4x4.TRS( targetParent.position, targetParent.rotation, Vector3.one );
-				//Matrix4x4 _trs = Matrix4x4.Inverse( trs );
 
 				Vector3 deltaPosition = trs.MultiplyPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition;
 				Quaternion deltaRotation = Quaternion.Inverse( moveWithSnapshot.oldRotation ) * targetParent.rotation;
 
-				//Vector3 deltaVelocity = targetParent.GetRelativePointVelocity( moveWithSnapshot.localPosition ) - moveWithSnapshot.velocity;
-				//Vector3 deltaAngular = targetParent.angularVelocity - moveWithSnapshot.angular;
-
-				VelocityPair oldAdditivePair = additiveVelocities.ContainsKey( rigidbody ) ? additiveVelocities[ rigidbody ] : new VelocityPair();
-				VelocityPair oldParentPair = parentVelocities.ContainsKey( rigidbody ) ? parentVelocities[ rigidbody ] : new VelocityPair();
-
-				Vector3 additiveVelocity = deltaPosition - oldAdditivePair.velocity;
-
-				Vector3 deltaTorque = CalculateTorqueOfRotation( Quaternion.Inverse( moveWithSnapshot.oldRotation ), targetParent.rotation );
-				Vector3 additiveTorque = deltaTorque - oldAdditivePair.angularVelocity;
-
-				Vector3 parentVelocity = targetParent.GetRelativePointVelocity( moveWithSnapshot.localPosition ) - oldParentPair.velocity;
-				Vector3 parentTorque = targetParent.angularVelocity - oldParentPair.angularVelocity;
-
-				rigidbody.velocity += additiveVelocity + parentVelocity;
-				rigidbody.angularVelocity += additiveTorque / Time.fixedDeltaTime + parentTorque;
-
-				additiveVelocities[ rigidbody ] = new VelocityPair( additiveVelocity, additiveTorque );
-				parentVelocities[ rigidbody ] = new VelocityPair( parentVelocity, parentTorque );
-
-				//rigidbody.MovePosition( rigidbody.position + deltaPosition );
-				//rigidbody.MoveRotation( deltaRotation * rigidbody.rotation );
-				//rigidbody.position += deltaPosition;
-				//rigidbody.rotation = deltaRotation * rigidbody.rotation;
-
-				//rigidbody.velocity += deltaVelocity;
-				//rigidbody.angularVelocity += deltaAngular;
-
-				//if( deltaVelocity.magnitude > 0.01f )
-				//rigidbody.AddForce( deltaVelocity, ForceMode.VelocityChange );
-				//if( deltaAngular.magnitude > 0.01f )
-				//rigidbody.AddTorque( deltaAngular, ForceMode.VelocityChange );
+				Vector3 velocity = rigidbody.velocity;
+				Vector3 angularVelocity = rigidbody.angularVelocity;
+				rigidbody.position += deltaPosition;
+				rigidbody.rotation *= deltaRotation;
+				rigidbody.velocity = velocity;
+				rigidbody.angularVelocity = angularVelocity;
 			}
 
 			return new MoveWithSnapshot( rigidbody, targetParent );
