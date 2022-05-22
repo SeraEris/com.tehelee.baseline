@@ -1555,15 +1555,19 @@ namespace Tehelee.Baseline
 			{
 				Matrix4x4 trs = Matrix4x4.TRS( targetParent.position, targetParent.rotation, Vector3.one );
 
-				Vector3 deltaPosition = trs.MultiplyPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition;
-				Quaternion deltaRotation = Quaternion.Inverse( moveWithSnapshot.oldRotation ) * targetParent.rotation;
-
 				Vector3 velocity = rigidbody.velocity;
 				Vector3 angularVelocity = rigidbody.angularVelocity;
-				rigidbody.position += deltaPosition;
-				rigidbody.rotation *= deltaRotation;
+				Vector3 inertiaTensor = rigidbody.inertiaTensor;
+				Quaternion inertiaTensorRotation = rigidbody.inertiaTensorRotation;
+				
+				rigidbody.position += ( trs.MultiplyPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
+				rigidbody.rotation *= ( Quaternion.Inverse( moveWithSnapshot.oldRotation ) * targetParent.rotation );
+				
 				rigidbody.velocity = velocity;
 				rigidbody.angularVelocity = angularVelocity;
+				
+				rigidbody.inertiaTensor = inertiaTensor;
+				rigidbody.inertiaTensorRotation = inertiaTensorRotation;
 			}
 
 			return new MoveWithSnapshot( rigidbody, targetParent );
