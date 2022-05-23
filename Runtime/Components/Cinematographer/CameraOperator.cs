@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -32,6 +33,10 @@ namespace Tehelee.Baseline.Components.Cinematographer
 			PlayerPrefs.SetFloat( "Cinematographer.Camera.FieldOfView", fieldOfView );
 			PlayerPrefs.SetFloat( "Cinematographer.Camera.RotationSpeed", rotationSpeed );
 		}
+
+		public delegate void CameraEvent();
+		public static event CameraEvent onPreRender;
+		public static event CameraEvent onPostRender;
 
 		#endregion
 
@@ -149,6 +154,16 @@ namespace Tehelee.Baseline.Components.Cinematographer
 			if( !Application.isPlaying )
 				LoadReturn( true );
 			#endif
+		}
+
+		protected void OnPreRender()
+		{
+			CameraOperator.onPreRender?.Invoke();
+		}
+
+		protected void OnPostRender()
+		{
+			CameraOperator.onPostRender?.Invoke();
 		}
 
 		protected virtual void Update()
