@@ -71,7 +71,7 @@ namespace Tehelee.Baseline.Components
 		////////////////////////////////
 		#region MimicTransform
 		
-		public void UpdateFollow()
+		public void UpdateFollow( Rigidbody rigidbody = null )
 		{
 #if UNITY_EDITOR
 			if( !Application.isPlaying )
@@ -84,15 +84,17 @@ namespace Tehelee.Baseline.Components
 
 				if( !Utils.IsObjectAlive( t ) || !Utils.IsObjectAlive( followTarget ) )
 					return;
+
+				Matrix4x4 trs = Utils.IsObjectAlive( rigidbody ) ? Matrix4x4.TRS( rigidbody.position, rigidbody.rotation, t.localScale ) : Matrix4x4.TRS( t.position, t.rotation, t.localScale ); 
 				
 				if( mimicPosition )
-					t.position = followTarget.TransformPoint( offsetPosition );
+					t.position = trs.MultiplyPoint( offsetPosition );
 				if( mimicRotation )
-					t.rotation = followTarget.rotation * Quaternion.Euler( offsetRotation );
+					t.rotation = trs.rotation * Quaternion.Euler( offsetRotation );
 				if( mimicScale )
 				{
 					Transform parent = t.parent;
-					Vector3 lossyScale = followTarget.TransformVector( multiplyScale );
+					Vector3 lossyScale = trs.MultiplyVector( multiplyScale );
 					t.localScale = Utils.IsObjectAlive( parent ) ? parent.InverseTransformVector( lossyScale ) : lossyScale;
 				}
 			}
