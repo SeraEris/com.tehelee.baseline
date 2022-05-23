@@ -35,8 +35,6 @@ namespace Tehelee.Baseline.Components
 		////////////////////////////////
 		#region Members
 
-		private float lastUpdate = -1f;
-
 		private float overflowRotation = 0f;
 
 		#endregion
@@ -51,9 +49,6 @@ namespace Tehelee.Baseline.Components
 				enabled = false;
 				return;
 			}
-			
-			if( !resumeRotationOnEnable )
-				lastUpdate = -1f;
 		}
 
 		protected virtual void FixedUpdate()
@@ -68,7 +63,6 @@ namespace Tehelee.Baseline.Components
 
 		public void PerformRotation()
 		{
-			float time = Time.time;
 			float angleDelta = Time.fixedDeltaTime * rotationsPerSecond * 360f;
 
 			if( rotationAngleSnap > 0f )
@@ -103,8 +97,6 @@ namespace Tehelee.Baseline.Components
 			{
 				rigidbody.TorqueRigidbodyToRotation( Quaternion.AngleAxis( angleDelta, axis ) * rigidbody.rotation, 0f, false );
 			}
-
-			lastUpdate = time;
 		}
 
 		#endregion
