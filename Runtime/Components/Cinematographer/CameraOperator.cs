@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
-
+using UnityEngine.Rendering;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditorInternal;
@@ -143,6 +143,10 @@ namespace Tehelee.Baseline.Components.Cinematographer
 
 			CameraAnchor.onAnchorSwitching += OnAnchorSwitching;
 
+			RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
+			RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+			
+
 			LoadStatic();
 		}
 
@@ -150,18 +154,37 @@ namespace Tehelee.Baseline.Components.Cinematographer
 		{
 			CameraAnchor.onAnchorSwitching -= OnAnchorSwitching;
 
+			RenderPipelineManager.beginCameraRendering -= OnBeginCameraRendering;
+			RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+
 			#if UNITY_EDITOR
 			if( !Application.isPlaying )
 				LoadReturn( true );
 			#endif
 		}
 
-		protected void OnPreRender()
+		private void OnEndCameraRendering( ScriptableRenderContext context, Camera srpCamera )
+		{
+			if( srpCamera != camera )
+				return;
+			
+			OnPostRender();
+		}
+		
+		private void OnBeginCameraRendering( ScriptableRenderContext context, Camera srpCamera )
+		{
+			if( srpCamera != camera )
+				return;
+			
+			OnPreRender();
+		}
+
+		protected virtual void OnPreRender()
 		{
 			CameraOperator.onPreRender?.Invoke();
 		}
 
-		protected void OnPostRender()
+		protected virtual void OnPostRender()
 		{
 			CameraOperator.onPostRender?.Invoke();
 		}
