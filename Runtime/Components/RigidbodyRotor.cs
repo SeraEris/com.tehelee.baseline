@@ -69,9 +69,7 @@ namespace Tehelee.Baseline.Components
 		public void PerformRotation()
 		{
 			float time = Time.time;
-			float timeDelta = lastUpdate < 0f ? 0f : time - lastUpdate;
-
-			float angleDelta = timeDelta * rotationsPerSecond * 360f;
+			float angleDelta = Time.fixedDeltaTime * rotationsPerSecond * 360f;
 
 			if( rotationAngleSnap > 0f )
 			{
