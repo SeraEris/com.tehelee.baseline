@@ -1536,7 +1536,7 @@ namespace Tehelee.Baseline
 				Quaternion selfDeltaRotation = Quaternion.Inverse( moveWithSnapshot.selfRotation ) * transform.rotation;
 				
 				Vector3 deltaPosition = targetParent.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition;
-				Quaternion deltaRotation = Quaternion.Inverse( moveWithSnapshot.oldRotation ) * targetParent.rotation;
+				Quaternion deltaRotation = targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
 				
 				transform.position += deltaPosition;
 				transform.rotation = deltaRotation * transform.rotation;
@@ -1560,7 +1560,7 @@ namespace Tehelee.Baseline
 				Quaternion inertiaTensorRotation = rigidbody.inertiaTensorRotation;
 				
 				rigidbody.position += ( trs.MultiplyPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
-				rigidbody.rotation = Quaternion.Inverse( moveWithSnapshot.oldRotation ) * targetParent.rotation * rigidbody.rotation;
+				rigidbody.rotation *= targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
 				
 				rigidbody.velocity = velocity;
 				rigidbody.angularVelocity = angularVelocity;
