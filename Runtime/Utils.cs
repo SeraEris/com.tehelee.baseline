@@ -1538,6 +1538,8 @@ namespace Tehelee.Baseline
 		{
 			if( rigidbody == null || targetParent == null )
 				return null;
+			
+			MoveWithSnapshot cacheSnapshot = new MoveWithSnapshot( rigidbody, targetParent );
 
 			if( moveWithSnapshot != null )
 			{
@@ -1557,7 +1559,7 @@ namespace Tehelee.Baseline
 				rigidbody.inertiaTensorRotation = inertiaTensorRotation;
 			}
 
-			return new MoveWithSnapshot( rigidbody, targetParent );
+			return cacheSnapshot;
 		}
 		
 		#endregion
