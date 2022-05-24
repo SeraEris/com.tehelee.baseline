@@ -1553,8 +1553,8 @@ namespace Tehelee.Baseline
 				rigidbody.velocity = velocity;
 				rigidbody.angularVelocity = angularVelocity;
 				
-				rigidbody.inertiaTensor = rotationDelta * inertiaTensor;
-				rigidbody.inertiaTensorRotation = inertiaTensorRotation * rotationDelta;
+				rigidbody.inertiaTensor = inertiaTensor;
+				rigidbody.inertiaTensorRotation = inertiaTensorRotation;
 			}
 
 			return new MoveWithSnapshot( rigidbody, targetParent );
