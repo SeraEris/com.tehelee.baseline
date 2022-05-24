@@ -1469,8 +1469,6 @@ namespace Tehelee.Baseline
 			public MoveWithSnapshot()
 			{
 				localPosition = Vector3.zero;
-				velocity = Vector3.zero;
-				angular = Vector3.zero;
 				
 				oldPosition = Vector3.zero;
 				oldRotation = Quaternion.identity;
@@ -1485,7 +1483,6 @@ namespace Tehelee.Baseline
 					return;
 				
 				localPosition = b.InverseTransformPoint( a.position );
-				localRotation = a.rotation * Quaternion.Inverse( b.rotation );
 
 				oldPosition = b.position;
 				oldRotation = b.rotation;
@@ -1498,12 +1495,8 @@ namespace Tehelee.Baseline
 			{
 				if( a == null || b == null )
 					return;
-
-				Matrix4x4 trs = Matrix4x4.Inverse( Matrix4x4.TRS( b.position, b.rotation, Vector3.one ) );
 				
-				localPosition = trs.MultiplyPoint( a.position );
-				velocity = b.GetRelativePointVelocity( localPosition );
-				angular = b.angularVelocity;
+				localPosition = b.transform.InverseTransformPoint( a.position );
 
 				oldPosition = a.position;
 				oldRotation = b.rotation;
@@ -1513,10 +1506,6 @@ namespace Tehelee.Baseline
 			}
 
 			public Vector3 localPosition;
-			public Quaternion localRotation;
-
-			public Vector3 velocity;
-			public Vector3 angular;
 
 			public Vector3 oldPosition;
 			public Quaternion oldRotation;
@@ -1552,21 +1541,19 @@ namespace Tehelee.Baseline
 
 			if( moveWithSnapshot != null )
 			{
-				Matrix4x4 trs = Matrix4x4.TRS( targetParent.position, targetParent.rotation, Vector3.one );
-
 				Vector3 velocity = rigidbody.velocity;
 				Vector3 angularVelocity = rigidbody.angularVelocity;
 				Vector3 inertiaTensor = rigidbody.inertiaTensor;
 				Quaternion inertiaTensorRotation = rigidbody.inertiaTensorRotation;
 				
-				rigidbody.position += ( trs.MultiplyPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
+				rigidbody.position += ( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
 				Quaternion rotationDelta = targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
 				rigidbody.rotation *= rotationDelta;
 				
 				rigidbody.velocity = velocity;
 				rigidbody.angularVelocity = angularVelocity;
 				
-				rigidbody.inertiaTensor = inertiaTensor;
+				rigidbody.inertiaTensor = rotationDelta * inertiaTensor;
 				rigidbody.inertiaTensorRotation = inertiaTensorRotation * rotationDelta;
 			}
 
