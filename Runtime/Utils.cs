@@ -1551,9 +1551,11 @@ namespace Tehelee.Baseline
 				rigidbody.position += ( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
 				Quaternion rotationDelta = targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
 				rigidbody.rotation *= rotationDelta;
+
+				float deltaTime = Time.fixedDeltaTime;
 				
-				rigidbody.velocity = velocity;
-				rigidbody.angularVelocity = angularVelocity;
+				rigidbody.velocity = velocity * ( 1f - deltaTime * rigidbody.drag );
+				rigidbody.angularVelocity = angularVelocity * ( 1f - deltaTime * rigidbody.angularDrag );
 				
 				rigidbody.inertiaTensor = inertiaTensor;
 				rigidbody.inertiaTensorRotation = inertiaTensorRotation;
