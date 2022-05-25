@@ -1483,6 +1483,7 @@ namespace Tehelee.Baseline
 					return;
 				
 				localPosition = b.InverseTransformPoint( a.position );
+				oldVelocity = Vector3.zero;
 
 				oldPosition = b.position;
 				oldRotation = b.rotation;
@@ -1497,6 +1498,7 @@ namespace Tehelee.Baseline
 					return;
 				
 				localPosition = b.transform.InverseTransformPoint( a.position );
+				oldVelocity = b.GetPointVelocity( a.position );
 
 				oldPosition = a.position;
 				oldRotation = b.rotation;
@@ -1506,6 +1508,7 @@ namespace Tehelee.Baseline
 			}
 
 			public Vector3 localPosition;
+			public Vector3 oldVelocity;
 
 			public Vector3 oldPosition;
 			public Quaternion oldRotation;
@@ -1547,12 +1550,14 @@ namespace Tehelee.Baseline
 				Vector3 angularVelocity = rigidbody.angularVelocity;
 				Vector3 inertiaTensor = rigidbody.inertiaTensor;
 				Quaternion inertiaTensorRotation = rigidbody.inertiaTensorRotation;
+
+				Vector3 deltaVelocity = targetParent.velocity - moveWithSnapshot.oldVelocity;
 				
 				rigidbody.position += ( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
 				Quaternion rotationDelta = targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
 				rigidbody.rotation *= rotationDelta;
 				
-				rigidbody.velocity = velocity;
+				rigidbody.velocity = velocity - deltaVelocity;
 				rigidbody.angularVelocity = angularVelocity;
 				
 				rigidbody.inertiaTensor = inertiaTensor;
