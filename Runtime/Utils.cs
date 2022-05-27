@@ -478,6 +478,17 @@ namespace Tehelee.Baseline
 			Debug.DrawLine( point + Vector3.forward * -size, point + Vector3.forward * size, color, time );
 			Debug.DrawLine( point + Vector3.up * -size, point + Vector3.up * size, color, time );
 		}
+
+		public static void DebugLine( Vector3 point, Vector3 vector, Color color = default( Color ), float time = 0f )
+		{
+			if( time == 0f )
+				time = Time.deltaTime * 1.1f;
+
+			if( color == default( Color ) )
+				color = Color.cyan;
+			
+			Debug.DrawLine( point, point + vector, color, time );
+		}
 		
 		#endregion
 
@@ -1554,14 +1565,11 @@ namespace Tehelee.Baseline
 				Vector3 deltaVelocity = moveWithSnapshot.oldVelocity - targetParent.GetPointVelocity( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) );
 				Vector3 contactVelocity = ( targetParent.GetPointVelocity( rigidbody.position ) - velocity ) * Time.fixedDeltaTime;
 				
-				Vector3 positionDelta = ( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
-				Vector3 positionVelocity = positionDelta * Time.deltaTime;
-				
-				rigidbody.position += positionDelta;
+				rigidbody.position += ( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
 				Quaternion rotationDelta = targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
 				rigidbody.rotation *= rotationDelta;
 				
-				rigidbody.velocity = velocity - ( deltaVelocity + contactVelocity + positionVelocity );
+				rigidbody.velocity = velocity - ( deltaVelocity + contactVelocity );
 				rigidbody.angularVelocity = angularVelocity;
 				
 				rigidbody.inertiaTensor = inertiaTensor;
