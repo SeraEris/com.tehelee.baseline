@@ -1554,11 +1554,14 @@ namespace Tehelee.Baseline
 				Vector3 deltaVelocity = moveWithSnapshot.oldVelocity - targetParent.GetPointVelocity( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) );
 				Vector3 contactVelocity = ( targetParent.GetPointVelocity( rigidbody.position ) - velocity ) * Time.fixedDeltaTime;
 				
-				rigidbody.position += ( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
+				Vector3 positionDelta = ( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
+				Vector3 positionVelocity = positionDelta * Time.deltaTime;
+				
+				rigidbody.position += positionDelta;
 				Quaternion rotationDelta = targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
 				rigidbody.rotation *= rotationDelta;
 				
-				rigidbody.velocity = velocity - ( deltaVelocity + contactVelocity );
+				rigidbody.velocity = velocity - ( deltaVelocity + contactVelocity + positionVelocity );
 				rigidbody.angularVelocity = angularVelocity;
 				
 				rigidbody.inertiaTensor = inertiaTensor;
