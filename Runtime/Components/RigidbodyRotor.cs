@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 using UnityEngine;
@@ -25,6 +25,8 @@ namespace Tehelee.Baseline.Components
 		public float rotationsPerSecond = 1f;
 
 		public float rotationAngleSnap = 0f;
+
+		public float maximumTorque = 0f;
 
 		public bool resumeRotationOnEnable = true;
 
@@ -95,7 +97,7 @@ namespace Tehelee.Baseline.Components
 			}
 			else
 			{
-				rigidbody.TorqueRigidbodyToRotation( Quaternion.AngleAxis( angleDelta, axis ) * rigidbody.rotation, 0f, false );
+				rigidbody.TorqueRigidbodyToRotation( Quaternion.AngleAxis( angleDelta, axis ) * rigidbody.rotation, maximumTorque, false, false );
 			}
 		}
 
@@ -149,7 +151,7 @@ namespace Tehelee.Baseline.Components
 			useCustom = ( vectorAxis == VectorAxis.Custom );
 		}
 
-		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 13.5f + 12f;
+		public override float GetInspectorHeight() => base.GetInspectorHeight() + lineHeight * 14.5f + 16f;
 
 		public override void DrawInspector( ref Rect rect )
 		{
@@ -219,6 +221,9 @@ namespace Tehelee.Baseline.Components
 			bRect.y += lineHeight + 4f; 
 
 			EditorUtils.DrawSnapSlider( bRect, this[ "rotationAngleSnap" ], new GUIContent( "Rotation Angle Step" ), 0f, 360f );
+			bRect.y += lineHeight + 4f;
+
+			EditorGUI.PropertyField( bRect, this[ "maximumTorque" ], new GUIContent( "Maximum Torque" ) );
 			bRect.y += lineHeight;
 
 			EditorGUIUtility.labelWidth = labelWidth;

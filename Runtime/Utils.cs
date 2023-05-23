@@ -1419,7 +1419,7 @@ namespace Tehelee.Baseline
 						maxTorque,
 						true,
 						rigidbody.inertiaTensorRotation,
-						rigidbody.inertiaTensor
+						soft ? rigidbody.inertiaTensor / rigidbody.mass : rigidbody.inertiaTensor
 					) - rigidbody.angularVelocity,
 					soft ? ForceMode.Force : ForceMode.Impulse
 				);
@@ -1469,9 +1469,16 @@ namespace Tehelee.Baseline
 
 			if( !useInertia )
 				return torque;
-			
-			Quaternion q = a * inertiaTensorRotation;
-			torque = q * Vector3.Scale( inertiaTensor, Quaternion.Inverse( q ) * torque );
+
+			Vector3 rotatedTorque = Quaternion.Inverse( a ) * torque;
+
+			torque = a * new Vector3
+				(
+					rotatedTorque.x / inertiaTensor.x,
+					rotatedTorque.y / inertiaTensor.y,
+					rotatedTorque.z / inertiaTensor.z
+				);
+
 			return torque;
 		}
 
