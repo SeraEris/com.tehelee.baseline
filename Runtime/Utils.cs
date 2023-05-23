@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -1487,19 +1487,19 @@ namespace Tehelee.Baseline
 			public MoveWithSnapshot()
 			{
 				localPosition = Vector3.zero;
-				
+
 				oldPosition = Vector3.zero;
 				oldRotation = Quaternion.identity;
 
 				selfPosition = Vector3.zero;
 				selfRotation = Quaternion.identity;
 			}
-			
+
 			public MoveWithSnapshot( Transform a, Transform b ) : this()
 			{
 				if( a == null || b == null )
 					return;
-				
+
 				localPosition = b.InverseTransformPoint( a.position );
 				oldVelocity = Vector3.zero;
 
@@ -1509,12 +1509,12 @@ namespace Tehelee.Baseline
 				selfPosition = a.position;
 				selfRotation = a.rotation;
 			}
-			
+
 			public MoveWithSnapshot( Rigidbody a, Rigidbody b ) : this()
 			{
 				if( a == null || b == null )
 					return;
-				
+
 				localPosition = b.transform.InverseTransformPoint( a.position );
 				oldVelocity = b.GetPointVelocity( a.position );
 
@@ -1523,6 +1523,8 @@ namespace Tehelee.Baseline
 
 				selfPosition = a.position;
 				selfRotation = a.rotation;
+
+				selfVelocity = a.velocity;
 			}
 
 			public Vector3 localPosition;
@@ -1533,59 +1535,55 @@ namespace Tehelee.Baseline
 
 			public Vector3 selfPosition;
 			public Quaternion selfRotation;
+
+			public Vector3 selfVelocity;
 		}
-		
+
 		public static MoveWithSnapshot MoveWithTransform( this Transform transform, Transform targetParent, MoveWithSnapshot moveWithSnapshot = null )
 		{
 			if( transform == null || targetParent == null )
 				return null;
 
+			MoveWithSnapshot cacheSnapshot = new MoveWithSnapshot( transform, targetParent );
+
 			if( moveWithSnapshot != null )
 			{
 				Vector3 selfDeltaPosition = transform.position - moveWithSnapshot.selfPosition;
-				Quaternion selfDeltaRotation = Quaternion.Inverse( moveWithSnapshot.selfRotation ) * transform.rotation;
-				
-				Vector3 deltaPosition = targetParent.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition;
+				Quaternion selfDeltaRotation = transform.rotation * Quaternion.Inverse( moveWithSnapshot.selfRotation );
+
+				Vector3 deltaPosition = targetParent.TransformPoint( moveWithSnapshot.localPosition ) - transform.position;
 				Quaternion deltaRotation = targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
-				
+
 				transform.position += deltaPosition;
-				transform.rotation = deltaRotation * transform.rotation;
+				transform.rotation *= deltaRotation;
 			}
 
-			return new MoveWithSnapshot( transform, targetParent );
+			return cacheSnapshot;
 		}
 
 		public static MoveWithSnapshot MoveWithRigidbody( this Rigidbody rigidbody, Rigidbody targetParent, MoveWithSnapshot moveWithSnapshot = null )
 		{
 			if( rigidbody == null || targetParent == null )
 				return null;
-			
+
 			MoveWithSnapshot cacheSnapshot = new MoveWithSnapshot( rigidbody, targetParent );
 
 			if( moveWithSnapshot != null )
 			{
 				Vector3 velocity = rigidbody.velocity;
 				Vector3 angularVelocity = rigidbody.angularVelocity;
-				Vector3 inertiaTensor = rigidbody.inertiaTensor;
-				Quaternion inertiaTensorRotation = rigidbody.inertiaTensorRotation;
 
-				Vector3 deltaVelocity = moveWithSnapshot.oldVelocity - targetParent.GetPointVelocity( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) );
-				Vector3 contactVelocity = ( targetParent.GetPointVelocity( rigidbody.position ) - velocity ) * Time.fixedDeltaTime;
-				
-				rigidbody.position += ( targetParent.transform.TransformPoint( moveWithSnapshot.localPosition ) - moveWithSnapshot.oldPosition );
+				Vector3 deltaVelocity = targetParent.GetPointVelocity( rigidbody.position ) - moveWithSnapshot.oldVelocity;
+
 				Quaternion rotationDelta = targetParent.rotation * Quaternion.Inverse( moveWithSnapshot.oldRotation );
-				rigidbody.rotation *= rotationDelta;
-				
-				rigidbody.velocity = velocity - ( deltaVelocity + contactVelocity );
-				rigidbody.angularVelocity = angularVelocity;
-				
-				rigidbody.inertiaTensor = inertiaTensor;
-				rigidbody.inertiaTensorRotation = inertiaTensorRotation;
+
+				rigidbody.velocity = ( rotationDelta * velocity ) + deltaVelocity;
+				rigidbody.angularVelocity = rotationDelta * angularVelocity;
 			}
 
 			return cacheSnapshot;
 		}
-		
+
 		#endregion
 	}
 
